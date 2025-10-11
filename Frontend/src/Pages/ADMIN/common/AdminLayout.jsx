@@ -1,11 +1,26 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Search, Users, BookOpen, GraduationCap, DollarSign, TrendingUp, LogOut, User } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AdminLayout({ children, title, subtitle }) {
     const navigate = useNavigate();
+    const location = useLocation();
     const [adminInfo, setAdminInfo] = useState(null);
+
+    // Function to check if a route is active
+    const isActiveRoute = (path) => {
+        return location.pathname === path;
+    };
+
+    // Function to get button classes based on active state
+    const getButtonClasses = (path) => {
+        const baseClasses = "w-full text-left px-4 py-2 rounded-lg flex items-center font-medium transition-colors";
+        if (isActiveRoute(path)) {
+            return `${baseClasses} bg-sky-500 text-white`;
+        }
+        return `${baseClasses} text-gray-600 hover:bg-gray-100`;
+    };
 
     useEffect(() => {
         const storedAdminInfo = localStorage.getItem('adminInfo');
@@ -94,52 +109,73 @@ export default function AdminLayout({ children, title, subtitle }) {
                         <div className="space-y-2">
                             <button 
                                 onClick={() => navigate('/admin/dashboard')}
-                                className="w-full text-left px-4 py-3 bg-sky-500 text-white rounded-lg font-medium"
+                                className={getButtonClasses('/admin/dashboard')}
                             >
+                                <TrendingUp className="w-5 h-5 mr-3" />
                                 Dashboard
                             </button>
                             <button 
                                 onClick={() => navigate('/admin/profile')}
-                                className="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg flex items-center"
+                                className={getButtonClasses('/admin/profile')}
                             >
                                 <User className="w-5 h-5 mr-3" />
                                 Profile
                             </button>
-                            <button className="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <button 
+                                onClick={() => navigate('/admin/category')}
+                                className={getButtonClasses('/admin/category')}
+                            >
+                                <BookOpen className="w-5 h-5 mr-3" />
                                 Category
                             </button>
                             <button 
                                 onClick={() => navigate('/admin/students')}
-                                className="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg flex items-center"
+                                className={getButtonClasses('/admin/students')}
                             >
                                 <Users className="w-5 h-5 mr-3" />
                                 Students
                             </button>
                             <button 
                                 onClick={() => navigate('/admin/tutors')}
-                                className="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg flex items-center"
+                                className={getButtonClasses('/admin/tutors')}
                             >
                                 <GraduationCap className="w-5 h-5 mr-3" />
                                 Tutors
                             </button>
-                            <button className="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <button 
+                                onClick={() => navigate('/admin/orders')}
+                                className={getButtonClasses('/admin/orders')}
+                            >
+                                <DollarSign className="w-5 h-5 mr-3" />
                                 Orders
                             </button>
-                            <button className="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <button 
+                                onClick={() => navigate('/admin/coupon')}
+                                className={getButtonClasses('/admin/coupon')}
+                            >
+                                <DollarSign className="w-5 h-5 mr-3" />
                                 Coupon
                             </button>
-                            <button className="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <button 
+                                onClick={() => navigate('/admin/courses')}
+                                className={getButtonClasses('/admin/courses')}
+                            >
+                                <BookOpen className="w-5 h-5 mr-3" />
                                 Courses
                             </button>
-                            <button className="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <button 
+                                onClick={() => navigate('/admin/legal')}
+                                className={getButtonClasses('/admin/legal')}
+                            >
+                                <BookOpen className="w-5 h-5 mr-3" />
                                 Legal
                             </button>
                             <button
                                 onClick={handleLogout}
-                                className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg flex items-center space-x-2"
+                                className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg flex items-center font-medium transition-colors"
                             >
-                                <LogOut className="w-5 h-5" />
-                                <span>Logout</span>
+                                <LogOut className="w-5 h-5 mr-3" />
+                                Logout
                             </button>
                         </div>
                     </nav>
@@ -154,6 +190,28 @@ export default function AdminLayout({ children, title, subtitle }) {
                         </div>
                     )}
                     {children}
+                    
+                    {/* Footer */}
+                    <footer className="mt-12 pt-8 border-t border-gray-200">
+                        <div className="flex flex-col md:flex-row justify-between items-center">
+                            <div className="text-sm text-gray-500 mb-4 md:mb-0">
+                                © 2025 Scholaro. All rights reserved.
+                            </div>
+                            <div className="flex items-center space-x-6 text-sm text-gray-500">
+                                <button className="hover:text-sky-500 transition-colors">
+                                    Privacy Policy
+                                </button>
+                                <button className="hover:text-sky-500 transition-colors">
+                                    Terms of Service
+                                </button>
+                                <button className="hover:text-sky-500 transition-colors">
+                                    Support
+                                </button>
+                                <span className="text-gray-300">|</span>
+                                <span>Admin Panel v1.0</span>
+                            </div>
+                        </div>
+                    </footer>
                 </main>
             </div>
         </div>

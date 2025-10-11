@@ -1,11 +1,19 @@
 import express from 'express';
-const router = express.Router();
 import {
+  adminLogin,
   createAdmin,
-  adminLogin
+  getAllUsers,
+  blockUser,
+  unblockUser
 } from '../Controllers/adminController.js';
+import { protectAdmin } from '../Middleware/adminMiddleware.js';
 
-router.post('/register', createAdmin);
-router.post('/login',adminLogin)
+const router = express.Router();
+
+router.post('/login', adminLogin);
+router.post('/create', createAdmin);
+router.get('/users', protectAdmin, getAllUsers);
+router.patch('/users/:userId/block', protectAdmin, blockUser);
+router.patch('/users/:userId/unblock', protectAdmin, unblockUser);
 
 export default router;

@@ -3,7 +3,7 @@ import { ChevronDown, Download, FileText, Users, BookOpen, GraduationCap, Dollar
 import Button from '../../ui/Button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import AdminLayout from './common/AdminLayout';
-
+import { useNavigate } from 'react-router-dom';
 // Mock data for the chart
 const chartData = [
     { month: 'Jan', income: 45000, profit: 35000 },
@@ -52,6 +52,7 @@ const courseData = [
 ];
 
 export default function AdminDashboard() {
+    const navigate=useNavigate()
     const [dateFilter, setDateFilter] = useState('This Month');
 
     const handleDownloadPDF = () => {
@@ -111,6 +112,7 @@ export default function AdminDashboard() {
                             <FileText className="w-4 h-4" />
                             <span>PDF</span>
                         </Button>
+                        <Button onClick={()=>navigate('/admin/userlist')}>UserList</Button>
                         <Button 
                             onClick={handleDownloadExcel}
                             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2"

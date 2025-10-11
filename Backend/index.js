@@ -1,13 +1,13 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import cors from 'cors';
+import cors from 'cors'; // Make sure you have this import
 import connectDB from './Config/db.js';
 dotenv.config();
 
 import UserRoutes from './Routes/userRoute.js';
 import TutorRoutes from './Routes/tutorRoute.js';
-import AdminRoutes from './Routes/adminRoute.js';
+import AdminRoutes from './Routes/adminRoute.js'; // This was missing
 
 const port  = process.env.PORT || 5000;
 connectDB();
@@ -34,6 +34,6 @@ app.get('/', (req, res) => {
 //Use routes
 app.use('/api/users',UserRoutes)
 app.use('/api/tutors',TutorRoutes)
-app.use('/api/admin', AdminRoutes);
+app.use('/api/admin', AdminRoutes); // This was missing
 
 app.listen(port, () => console.log(`✅ Server running on http://localhost:${port}`));

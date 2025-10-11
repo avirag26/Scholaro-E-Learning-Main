@@ -1,450 +1,340 @@
-import { useState, useEffect } from 'react';
-import { Search, Ban, Trash2, UserCheck, Users, Eye } from 'lucide-react';
-import { adminService } from '../../services/adminService.js';
-import Swal from 'sweetalert2';
-import AdminLayout from './common/AdminLayout';
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUsers } from "../../Redux/userSlice";
+import AdminLayout from "./common/AdminLayout";
+import { toast } from "sonner";
+import axios from "axios";
 
-export default function Students() {
-    const [students, setStudents] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const studentsPerPage = 10;
+const Students = () => {
+  const dispatch = useDispatch();
+  const users = useSelector((state) => state.users.users);
+  const pagination = useSelector((state) => state.users.pagination);
+  const stats = useSelector((state) => state.users.stats);
+  const loading = useSelector((state) => state.users.loading);
+  const error = useSelector((state) => state.users.error);
+  
+  const [actionLoading, setActionLoading] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
-    useEffect(() => {
-        loadStudents();
-    }, [currentPage, statusFilter]);
+  // Fetch users when component mounts or filters change
+  useEffect(() => {
+    dispatch(fetchUsers({ 
+      page: currentPage, 
+      search: searchTerm, 
+      status: statusFilter 
+    }));
+  }, [dispatch, currentPage, searchTerm, statusFilter]);
 
-    // Debounced search effect
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            if (searchTerm !== '') {
-                setCurrentPage(1);
-                loadStudents();
-            }
-        }, 500);
+  // Reset to first page when search or filter changes
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [searchTerm, statusFilter]);
 
-        return () => clearTimeout(timeoutId);
-    }, [searchTerm]);
+  const handleBlockUnblock = async (userId, currentStatus) => {
+    const adminToken = localStorage.getItem('adminAuthToken');
+    
+    if (!adminToken) {
+      toast.error("Please login again");
+      return;
+    }
 
-    const loadStudents = async () => {
-        try {
-            setLoading(true);
-            const response = await adminService.getAllUsers({
-                page: currentPage,
-                limit: studentsPerPage,
-                search: searchTerm,
-                status: statusFilter,
-                _t: Date.now() // Cache buster
-            });
+    setActionLoading(prev => ({ ...prev, [userId]: true }));
 
-            console.log('Raw API response:', response);
-            console.log('Users data:', response.users);
-            setStudents(response.users || []);
-            setTotalPages(response.totalPages || Math.ceil((response.total || 0) / studentsPerPage));
-        } catch (error) {
-            console.error('Error loading students:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'Failed to load students'
-            });
-        } finally {
-            setLoading(false);
+    try {
+      const action = currentStatus ? 'unblock' : 'block';
+      const response = await axios.patch(
+        `http://localhost:5000/api/admin/users/${userId}/${action}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+          },
         }
-    };
+      );
 
-    const handleToggleBlock = async (studentId) => {
-        try {
-            const student = students.find(s => s._id === studentId);
-            console.log('Toggling block for student:', student); // Debug log
-            
-            const result = await Swal.fire({
-                title: 'Are you sure?',
-                text: `This will ${student.is_blocked ? 'unblock' : 'block'} this student`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, proceed!'
-            });
+      if (response.data.success) {
+        toast.success(`Student ${action}ed successfully`);
+        // Refresh current page
+        dispatch(fetchUsers({ 
+          page: currentPage, 
+          search: searchTerm, 
+          status: statusFilter 
+        }));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || `Failed to ${currentStatus ? 'unblock' : 'block'} student`);
+    } finally {
+      setActionLoading(prev => ({ ...prev, [userId]: false }));
+    }
+  };
 
-            if (result.isConfirmed) {
-                // Show loading state
-                Swal.fire({
-                    title: 'Updating...',
-                    text: 'Please wait while we update the student status',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
-                console.log('Making API call to toggle block for student ID:', studentId);
-                console.log('Student before toggle:', student);
-                const response = await adminService.toggleUserBlock(studentId);
-                console.log('Toggle block response:', response);
-                console.log('Response user data:', response.user);
-                
-                // Update local state immediately for better UX
-                setStudents(prevStudents => 
-                    prevStudents.map(s => 
-                        s._id === studentId 
-                            ? { ...s, is_blocked: response.user.is_blocked }
-                            : s
-                    )
-                );
-                
-                Swal.fire('Success!', `Student ${response.user.is_blocked ? 'blocked' : 'unblocked'} successfully`, 'success');
-                
-                // Also refresh from server to ensure consistency
-                setTimeout(() => {
-                    loadStudents();
-                }, 1000);
-            }
-        } catch (error) {
-            console.error('Error in handleToggleBlock:', error); // Debug log
-            Swal.fire('Error!', error.message || 'Failed to update student status', 'error');
-        }
-    };
-
-    const handleDelete = async (studentId) => {
-        try {
-            const result = await Swal.fire({
-                title: 'Are you sure?',
-                text: 'This will permanently delete this student',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, delete!'
-            });
-
-            if (result.isConfirmed) {
-                await adminService.deleteUser(studentId);
-                Swal.fire('Deleted!', 'Student has been deleted.', 'success');
-                loadStudents();
-            }
-        } catch (error) {
-            Swal.fire('Error!', error.message || 'Failed to delete student', 'error');
-        }
-    };
-
-    const handleSearch = () => {
-        setCurrentPage(1);
-        loadStudents();
-    };
-
-    const handleMigration = async () => {
-        try {
-            const result = await Swal.fire({
-                title: 'Fix Database?',
-                text: 'This will add the is_blocked field to all existing users. This is safe to run.',
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, fix it!'
-            });
-
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Fixing database...',
-                    text: 'Please wait while we update the database',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                const response = await adminService.migrateUserBlocks();
-                
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Database Fixed!',
-                    html: `
-                        <p>Migration completed successfully:</p>
-                        <ul style="text-align: left; margin: 10px 0;">
-                            <li>Users updated: ${response.usersUpdated}</li>
-                            <li>Tutors updated: ${response.tutorsUpdated}</li>
-                            <li>Admins updated: ${response.adminsUpdated}</li>
-                        </ul>
-                    `,
-                    timer: 5000
-                });
-
-                // Refresh the data
-                loadStudents();
-            }
-        } catch (error) {
-            console.error('Migration error:', error);
-            Swal.fire('Error!', error.message || 'Failed to fix database', 'error');
-        }
-    };
-
-    // Use server-side filtering, so no need to filter again on frontend
-    const filteredStudents = students;
-
+  if (loading) {
     return (
-        <AdminLayout title="Students Management" subtitle="Manage all registered students">
-            {/* Search and Filters */}
-            <div className="mb-6 flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <input
-                        type="text"
-                        placeholder="Search students..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                        className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                </div>
-                <div className="flex gap-2">
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                        <option value="all">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="blocked">Blocked</option>
-                        <option value="pending">Pending</option>
-                    </select>
-                    <button
-                        onClick={handleSearch}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                    >
-                        Search
-                    </button>
-                    <button
-                        onClick={handleMigration}
-                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                    >
-                        Fix Data
-                    </button>
-                    <button
-                        onClick={() => console.log('Current students data:', students)}
-                        className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600"
-                    >
-                        Debug Data
-                    </button>
-                </div>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-gray-600 text-sm">Total Students</p>
-                            <p className="text-2xl font-bold text-gray-800">{students.length}</p>
-                        </div>
-                        <Users className="w-8 h-8 text-blue-500" />
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-gray-600 text-sm">Active Students</p>
-                            <p className="text-2xl font-bold text-green-600">
-                                {students.filter(s => !s.is_blocked && s.is_verified).length}
-                            </p>
-                        </div>
-                        <UserCheck className="w-8 h-8 text-green-500" />
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-gray-600 text-sm">Blocked Students</p>
-                            <p className="text-2xl font-bold text-red-600">
-                                {students.filter(s => s.is_blocked).length}
-                            </p>
-                        </div>
-                        <Ban className="w-8 h-8 text-red-500" />
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-gray-600 text-sm">Pending Verification</p>
-                            <p className="text-2xl font-bold text-yellow-600">
-                                {students.filter(s => !s.is_verified).length}
-                            </p>
-                        </div>
-                        <Eye className="w-8 h-8 text-yellow-500" />
-                    </div>
-                </div>
-            </div>
-
-            {/* Students Table */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                {loading ? (
-                    <div className="text-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                        <p className="text-gray-500">Loading students...</p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Student
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Email
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Phone
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Joined
-                                    </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {filteredStudents.map((student) => (
-                                    <tr key={student._id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="flex-shrink-0 h-10 w-10">
-                                                    <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
-                                                        <span className="text-white font-medium">
-                                                            {student.full_name?.charAt(0) || 'S'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {student.full_name || 'N/A'}
-                                                    </div>
-                                                    <div className="text-sm text-gray-500">
-                                                        ID: {student._id?.slice(-6)}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {student.email}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {student.phone || 'N/A'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                student.is_blocked 
-                                                    ? 'bg-red-100 text-red-800' 
-                                                    : student.is_verified 
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-yellow-100 text-yellow-800'
-                                            }`}>
-                                                {student.is_blocked ? 'Blocked' : student.is_verified ? 'Active' : 'Pending'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {new Date(student.createdAt).toLocaleDateString()}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex items-center justify-end space-x-2">
-                                                <button
-                                                    onClick={() => handleToggleBlock(student._id)}
-                                                    className={`p-2 rounded-lg ${
-                                                        student.is_blocked 
-                                                            ? 'text-green-600 hover:bg-green-50' 
-                                                            : 'text-red-600 hover:bg-red-50'
-                                                    }`}
-                                                    title={student.is_blocked ? 'Unblock' : 'Block'}
-                                                >
-                                                    {student.is_blocked ? <UserCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(student._id)}
-                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        
-                        {filteredStudents.length === 0 && (
-                            <div className="text-center py-12">
-                                <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
-                                <p className="text-gray-500">No students match your search criteria.</p>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="bg-white px-4 py-6 flex items-center justify-center border-t border-gray-200">
-                        <div className="flex items-center space-x-2">
-                            {/* Previous Button */}
-                            <button
-                                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                disabled={currentPage === 1}
-                                className="w-10 h-10 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-                            >
-                                ←
-                            </button>
-
-                            {/* Page Numbers */}
-                            {(() => {
-                                const pages = [];
-                                const maxVisiblePages = 5;
-                                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                                
-                                if (endPage - startPage + 1 < maxVisiblePages) {
-                                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                                }
-
-                                for (let i = startPage; i <= endPage; i++) {
-                                    pages.push(
-                                        <button
-                                            key={i}
-                                            onClick={() => setCurrentPage(i)}
-                                            className={`w-10 h-10 rounded-full flex items-center justify-center font-medium transition-colors ${
-                                                currentPage === i
-                                                    ? 'bg-teal-500 text-white'
-                                                    : 'bg-teal-100 text-teal-600 hover:bg-teal-200'
-                                            }`}
-                                        >
-                                            {i}
-                                        </button>
-                                    );
-                                }
-                                return pages;
-                            })()}
-
-                            {/* Next Button */}
-                            <button
-                                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                disabled={currentPage === totalPages}
-                                className="w-10 h-10 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-                            >
-                                →
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </AdminLayout>
+      <AdminLayout title="Students">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500"></div>
+        </div>
+      </AdminLayout>
     );
-}
+  }
+
+  if (error) {
+    return (
+      <AdminLayout title="Students">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">Error: {error}</p>
+          <button 
+            onClick={() => dispatch(fetchUsers({ page: 1, search: '', status: 'all' }))}
+            className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  return (
+    <AdminLayout title="Students" subtitle="Manage all registered students">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center">
+            <div className="text-2xl text-blue-500 mr-3">👥</div>
+            <div>
+              <p className="text-sm text-gray-500">Total Students</p>
+              <p className="text-xl font-semibold text-gray-900">
+                {stats?.total || 0}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center">
+            <div className="text-2xl text-green-500 mr-3">✅</div>
+            <div>
+              <p className="text-sm text-gray-500">Listed Students</p>
+              <p className="text-xl font-semibold text-gray-900">
+                {stats?.listed || 0}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="flex items-center">
+            <div className="text-2xl text-red-500 mr-3">🚫</div>
+            <div>
+              <p className="text-sm text-gray-500">Unlisted Students</p>
+              <p className="text-xl font-semibold text-gray-900">
+                {stats?.unlisted || 0}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="bg-white rounded-lg shadow">
+        {/* Header with Search and Filters */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Student List
+              </h2>
+              
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="text-sm border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-1 focus:ring-sky-500"
+              >
+                <option value="all">All Students</option>
+                <option value="active">Active Only</option>
+                <option value="blocked">Blocked Only</option>
+              </select>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                placeholder="Search students..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500 w-64"
+              />
+              
+              <button 
+                onClick={() => dispatch(fetchUsers({ 
+                  page: currentPage, 
+                  search: searchTerm, 
+                  status: statusFilter 
+                }))}
+                className="px-4 py-2 bg-sky-500 text-white text-sm rounded-lg hover:bg-sky-600"
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Verification</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {Array.isArray(users) && users.length > 0 ? (
+                users.map((user) => (
+                  <tr key={user._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center text-white text-sm font-medium mr-3">
+                          {user.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{user.full_name}</div>
+                          <div className="text-xs text-gray-500">ID: {user.user_id}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{user.email}</div>
+                      {user.phone && <div className="text-xs text-gray-500">{user.phone}</div>}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        user.is_blocked 
+                          ? 'bg-red-100 text-red-800' 
+                          : 'bg-green-100 text-green-800'
+                      }`}>
+                        {user.is_blocked ? 'Blocked' : 'Active'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        user.is_verified 
+                          ? 'bg-blue-100 text-blue-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {user.is_verified ? 'Verified' : 'Pending'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => handleBlockUnblock(user._id, user.is_blocked)}
+                        disabled={actionLoading[user._id]}
+                        className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                          user.is_blocked
+                            ? 'bg-green-600 hover:bg-green-700 text-white'
+                            : 'bg-red-600 hover:bg-red-700 text-white'
+                        } ${actionLoading[user._id] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {actionLoading[user._id] ? (
+                          'Processing...'
+                        ) : user.is_blocked ? (
+                          'Unblock'
+                        ) : (
+                          'Block'
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="px-6 py-8 text-center">
+                    <div className="text-gray-500">
+                      <div className="text-4xl mb-2">👥</div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
+                      <p className="text-sm">
+                        {searchTerm || statusFilter !== "all" 
+                          ? "Try adjusting your search or filter criteria"
+                          : "Students will appear here once they register"
+                        }
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Server-side Pagination */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Showing {((pagination.currentPage - 1) * 5) + 1} to {Math.min(pagination.currentPage * 5, pagination.totalUsers)} of {pagination.totalUsers} students
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                {/* Previous Button */}
+                <button
+                  onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  disabled={!pagination.hasPrev}
+                  className={`px-3 py-1 rounded text-sm font-medium ${
+                    !pagination.hasPrev
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  Previous
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex space-x-1">
+                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-1 rounded text-sm font-medium ${
+                        pagination.currentPage === page
+                          ? 'bg-sky-500 text-white'
+                          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  disabled={!pagination.hasNext}
+                  className={`px-3 py-1 rounded text-sm font-medium ${
+                    !pagination.hasNext
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </AdminLayout>
+  );
+};
+
+export default Students;
