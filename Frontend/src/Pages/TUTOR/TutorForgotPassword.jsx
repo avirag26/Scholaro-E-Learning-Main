@@ -4,7 +4,7 @@ import { toast, Toaster } from 'sonner';
 import { Link } from 'react-router-dom';
 import DotDotDotSpinner from '../../ui/Spinner/DotSpinner';
 
-export default function UserForgotPassword() {
+export default function TutorForgotPassword() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -16,8 +16,7 @@ export default function UserForgotPassword() {
     }
     setIsSubmitting(true);
     try {
-      // This endpoint needs to be created in your userController on the backend
-      const response = await axiosPublic.post('/api/users/forgot-password', { email });
+      const response = await axiosPublic.post('/api/tutors/forgot-password', { email });
       toast.success(response.data.message);
     } catch (err) {
       // Show a generic success message even on failure to prevent email enumeration
@@ -28,22 +27,22 @@ export default function UserForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-sky-50">
       <Toaster position="top-center" richColors />
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Forgot Your Password?</h2>
-        <p className="text-center text-gray-600 mb-6">
+        <h2 className="text-2xl font-bold text-center text-sky-800 mb-6">Forgot Your Password?</h2>
+        <p className="text-center text-sky-700 mb-6">
           No problem! Enter your email address below and we'll send you a link to reset it.
         </p>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <label htmlFor="email" className="block text-sm font-medium text-sky-700 mb-1">Email Address</label>
             <input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-4 py-3 rounded-lg border border-sky-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
               placeholder="you@example.com"
               required
             />
@@ -52,8 +51,8 @@ export default function UserForgotPassword() {
             {isSubmitting ? <DotDotDotSpinner /> : 'Send Reset Link'}
           </button>
         </form>
-        <p className="text-center text-sm text-gray-600 mt-4">
-          Remembered your password? <Link to="/user/login" className="text-sky-500 hover:underline">Login here</Link>
+        <p className="text-center text-sm text-sky-600 mt-4">
+          Remembered your password? <Link to="/tutor/login" className="text-sky-500 hover:underline">Login here</Link>
         </p>
       </div>
     </div>

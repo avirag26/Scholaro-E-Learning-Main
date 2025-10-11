@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import DotDotDotSpinner from '../../ui/Spinner/DotSpinner';
 import { Eye, EyeOff } from 'lucide-react';
 
-export default function UserResetPassword() {
+export default function TutorResetPassword() {
   const { token } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -44,12 +44,12 @@ export default function UserResetPassword() {
 
     setIsSubmitting(true);
     try {
-      const response = await axiosPublic.patch(`/api/users/reset-password/${token}`, {
+      const response = await axiosPublic.patch(`/api/tutors/reset-password/${token}`, {
         password: formData.password
       });
       toast.success(response.data.message);
       setTimeout(() => {
-        navigate('/user/login');
+        navigate('/tutor/login');
       }, 2000);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to reset password. Please try again.');
@@ -59,16 +59,16 @@ export default function UserResetPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-sky-50">
       <Toaster position="top-center" richColors />
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Reset Your Password</h2>
-        <p className="text-center text-gray-600 mb-6">
+        <h2 className="text-2xl font-bold text-center text-sky-800 mb-6">Reset Your Password</h2>
+        <p className="text-center text-sky-700 mb-6">
           Enter your new password below.
         </p>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-sky-700 mb-1">New Password</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -76,14 +76,14 @@ export default function UserResetPassword() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-4 py-3 pr-12 rounded-lg border border-sky-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 placeholder="Enter new password"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sky-500 hover:text-sky-700"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -91,7 +91,7 @@ export default function UserResetPassword() {
           </div>
           
           <div className="mb-6">
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-sky-700 mb-1">Confirm New Password</label>
             <div className="relative">
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
@@ -99,14 +99,14 @@ export default function UserResetPassword() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full px-4 py-3 pr-12 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-4 py-3 pr-12 rounded-lg border border-sky-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 placeholder="Confirm new password"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sky-500 hover:text-sky-700"
               >
                 {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -122,8 +122,8 @@ export default function UserResetPassword() {
           </button>
         </form>
         
-        <p className="text-center text-sm text-gray-600 mt-4">
-          Remember your password? <Link to="/user/login" className="text-sky-500 hover:underline">Login here</Link>
+        <p className="text-center text-sm text-sky-600 mt-4">
+          Remember your password? <Link to="/tutor/login" className="text-sky-500 hover:underline">Login here</Link>
         </p>
       </div>
     </div>

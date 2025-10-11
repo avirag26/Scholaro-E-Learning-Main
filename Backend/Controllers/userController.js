@@ -85,7 +85,7 @@ const verifyOtp= async(req,res)=>{
   try{
   const {email,otp}=req.body;
 
-  const user=User.find({email});
+  let user=User.find({email});
 
   if(!user) return res.status(400).json({message:"User Not Found"});
 

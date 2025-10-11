@@ -20,7 +20,10 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.9.3",
     "react-toastify": "^11.0.5",
+    "recharts": "^3.2.1",
     "sonner": "^2.0.7",
+    "sweetalert": "^2.1.2",
+    "sweetalert2": "^11.26.1",
     "tailwindcss": "^4.1.14"
   },
   "devDependencies": {
