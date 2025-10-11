@@ -4,6 +4,7 @@ import UserRoutes from "../Routes/userRoutes"
 import TutorRoutes from "../Routes/tutorRoutes";
 import LandingPage from "./Landing/LandingPage"
 import NotFoundPage from "./ui/NotFound";
+import AdminRoutes from "../Routes/adminRoutes";
 function App() {
 
 
@@ -16,6 +17,7 @@ function App() {
 
        <Route path="/user/*" element={<UserRoutes/>}/>
        <Route path ='/tutor/*' element={<TutorRoutes/>}/>
+       <Route path="/admin/*" element={<AdminRoutes/>}/>
         <Route path="*" element={<NotFoundPage/>}/>
        
       </Routes>
