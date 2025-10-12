@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom"
-import { Play, Star, Users, BookOpen, Award, ChevronRight, Menu, X } from 'lucide-react';
+import { Play, Award, Menu, X } from 'lucide-react';
 import Button from "../ui/Button";
 import FeatureTabs from "../ui/FeatureTabs";
 import AboutSection from "../ui/AboutSection";

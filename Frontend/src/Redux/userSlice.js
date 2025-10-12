@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// fetching all users
 export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
   async ({ page = 1, search = "", status = "all" } = {}, { rejectWithValue }) => {
@@ -11,7 +10,6 @@ export const fetchUsers = createAsyncThunk(
         return rejectWithValue("No admin token found. Please login again.");
       }
 
-      // send request to backend
       const res = await axios.get("http://localhost:5000/api/admin/users", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -21,7 +19,6 @@ export const fetchUsers = createAsyncThunk(
 
       return res.data;
     } catch (err) {
-      console.log("Error while fetching users:", err);
       return rejectWithValue(err.response?.data?.message || "Something went wrong");
     }
   }

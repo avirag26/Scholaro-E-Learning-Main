@@ -1,19 +1,29 @@
-import { useState } from 'react';
-import { Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import LoginBanner from "../../assets/Login.svg";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-
-
 import { toast, Toaster } from "sonner";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner.jsx";
 import { axiosPublic } from '../../api/axios.js';
 import { useAuth } from '../../Context/AuthContext.jsx';
 import { GoogleLogin } from "@react-oauth/google";
-export default  function Login(){
-    const navigate=useNavigate();
-    const location=useLocation();
-    const {setAuth} = useAuth();
-    const from=location.state?.from?.pathname || '/user/home';
+import {
+  clearTutorData,
+  clearAdminData,
+  redirectAfterLogin,
+} from "../../helpers/auth";
+export default function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { setAuth } = useAuth();
+  const from = location.state?.from?.pathname || "/user/home";
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) navigate("/user/home", { replace: true });
+  }, [navigate]);
+
+
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -70,18 +80,20 @@ export default  function Login(){
 
       const {accessToken, ...user} = response.data;
 
+      clearTutorData();
+      clearAdminData();
+
       setAuth({user,accessToken});
       
-       localStorage.setItem("authToken", accessToken);
+      localStorage.setItem("authToken", accessToken);
       localStorage.setItem("userInfo", JSON.stringify(user));
 
-      // Clear form fields
       setEmail("");
       setPassword("");
 
       toast.success("Login successful! Welcome back.");
-      // Navigate to the originally requested page or the home page
-      navigate(from, { replace: true });
+      
+      redirectAfterLogin(navigate, 'user', from);
     } catch (err) {
       if (!err?.response) {
         toast.error("No Server Response");
@@ -104,17 +116,18 @@ export default  function Login(){
 
       const { accessToken, ...user } = response.data;
 
-      // Set the user and accessToken in the global auth state
+      clearTutorData();
+      clearAdminData();
+
       setAuth({ user, accessToken });
 
-      // Persist the token and user info in localStorage
       localStorage.setItem("authToken", accessToken);
       localStorage.setItem("userInfo", JSON.stringify(user));
 
       toast.success(response.data.message || "Google login successful!");
-      navigate(from, { replace: true });
+      
+      redirectAfterLogin(navigate, 'user', from);
     } catch (err) {
-      console.error('Google login error:', err);
       toast.error(err.response?.data?.message || "Google login failed");
     } finally {
       setIsSubmitting(false);

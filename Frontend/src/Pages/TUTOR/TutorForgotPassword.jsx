@@ -8,6 +8,8 @@ export default function TutorForgotPassword() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
@@ -19,7 +21,6 @@ export default function TutorForgotPassword() {
       const response = await axiosPublic.post('/api/tutors/forgot-password', { email });
       toast.success(response.data.message);
     } catch (err) {
-      // Show a generic success message even on failure to prevent email enumeration
       toast.success('If an account with that email exists, a password reset link has been sent.');
     } finally {
       setIsSubmitting(false);

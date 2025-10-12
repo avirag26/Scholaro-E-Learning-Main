@@ -99,14 +99,11 @@ const getAllUsers = async (req, res) => {
     const limit = 5; 
     const skip = (page - 1) * limit;
 
-  
     const search = req.query.search || "";
     const status = req.query.status || "all";
 
-    
     let query = {};
 
-   
     if (search) {
       query.$or = [
         { full_name: { $regex: search, $options: "i" } },
@@ -115,23 +112,17 @@ const getAllUsers = async (req, res) => {
       ];
     }
 
-
     if (status === "active") {
       query.is_blocked = false;
     } else if (status === "blocked") {
       query.is_blocked = true;
     }
 
-
-
-   
     const totalUsers = await User.countDocuments(query);
 
-    
     const listedStudents = await User.countDocuments({ is_blocked: false });
     const unlistedStudents = await User.countDocuments({ is_blocked: true });
 
-  
     const users = await User.find(query)
       .select("-password -refreshToken")
       .sort({ createdAt: -1 })
@@ -139,7 +130,6 @@ const getAllUsers = async (req, res) => {
       .limit(limit);
 
     const totalPages = Math.ceil(totalUsers / limit);
-
 
     res.status(200).json({
       success: true,
@@ -171,7 +161,6 @@ const getAllUsers = async (req, res) => {
 const blockUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log(`Blocking user: ${userId}`);
 
     const user = await User.findByIdAndUpdate(
       userId,
@@ -204,7 +193,6 @@ const blockUser = async (req, res) => {
 const unblockUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log(`Unblocking user: ${userId}`);
 
     const user = await User.findByIdAndUpdate(
       userId,
@@ -411,4 +399,28 @@ const resetPassword = async (req,res)=>{
   res.status(200).json({message:"password reset successful"})
 }
 
-export { createAdmin, adminLogin, getAllUsers, blockUser, blockTutor, unblockUser , getAllTutors,unblockTutor ,resetPassword,forgotPassword};
+const checkAdminStatus = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication invalid.' });
+    }
+
+    // Fetch the latest admin state from the database
+    const admin = await Admin.findById(req.user._id);
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    if (admin.is_blocked) {
+      return res.status(403).json({ message: "Admin is blocked." });
+    }
+
+    // If not blocked, send a 200 OK status.
+    res.status(200).json({ message: "Admin is active." });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error while checking status' });
+  }
+};
+
+export { createAdmin, adminLogin, getAllUsers, blockUser, blockTutor, unblockUser , getAllTutors,unblockTutor ,resetPassword,forgotPassword, checkAdminStatus};

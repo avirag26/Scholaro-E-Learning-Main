@@ -1,38 +1,35 @@
 import jwt from 'jsonwebtoken';
-import User from '../Model/usermodel.js'; // Using User model for now
+import Tutor from '../Model/TutorModel.js';
 
 const protectTutor = async (req, res, next) => {
-  let token;
-
-  // Read the JWT from the 'Authorization' header
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    try {
-      // Get token from header
-      token = req.headers.authorization.split(' ')[1];
-
-      // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      // Get tutor from the token (select everything except the password)
-      req.tutor = await Tutor.findById(decoded.id).select('-password');
-
-      if (!req.tutor) {
-        return res.status(401).json({ message: 'Not authorized, tutor not found' });
-      }
-
-      next();
-    } catch (error) {
-      console.error('Tutor auth error:', error.name, error.message);
-      if (error.name === 'TokenExpiredError') {
-        return res.status(401).json({ 
-          message: 'Token expired, please login again',
-          expired: true
-        });
-      }
-      return res.status(401).json({ message: 'Not authorized, token failed' });
-    }
-  } else {
+  if (!req.headers.authorization?.startsWith('Bearer')) {
     return res.status(401).json({ message: 'Not authorized, no token' });
+  }
+
+  try {
+    const token = req.headers.authorization.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Use the decoded ID to find the tutor
+    req.user = await Tutor.findById(decoded.id).select('-password');
+
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authorized, tutor not found' });
+    }
+
+    if (req.user.is_blocked) {
+      return res.status(403).json({ message: 'Account has been blocked. Please contact support.' });
+    }
+
+    next();
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ 
+        message: 'Token expired, please login again',
+        expired: true
+      });
+    }
+    return res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };
 

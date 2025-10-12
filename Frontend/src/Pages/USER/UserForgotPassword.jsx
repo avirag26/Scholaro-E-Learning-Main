@@ -8,6 +8,8 @@ export default function UserForgotPassword() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
@@ -16,11 +18,9 @@ export default function UserForgotPassword() {
     }
     setIsSubmitting(true);
     try {
-      // This endpoint needs to be created in your userController on the backend
       const response = await axiosPublic.post('/api/users/forgot-password', { email });
       toast.success(response.data.message);
     } catch (err) {
-      // Show a generic success message even on failure to prevent email enumeration
       toast.success('If an account with that email exists, a password reset link has been sent.');
     } finally {
       setIsSubmitting(false);

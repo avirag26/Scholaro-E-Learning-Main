@@ -20,6 +20,13 @@ const protectAdmin = async (req, res, next) => {
         return res.status(401).json({ message: 'Not authorized, admin not found' });
       }
 
+      if (req.admin.is_blocked) {
+        return res.status(403).json({ message: 'Account has been blocked. Please contact support.' });
+      }
+
+      // Set req.user for consistency with other middlewares
+      req.user = req.admin;
+
       next();
     } catch (error) {
       console.error('Admin auth error:', error.name, error.message);

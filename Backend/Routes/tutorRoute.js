@@ -1,22 +1,24 @@
-import express from 'express';
+import express from "express";
 const router = express.Router();
-
 import {
-    registerTutor,
-    loginTutor,
-    verifyTutorOtp,
-    resendTutorOtp,
-    googleAuthTutor,
-    forgotPassword,
-    resetPassword,
-} from '../Controllers/tutorController.js';
+  registerTutor,
+  verifyTutorOtp,
+  loginTutor,
+  resendTutorOtp,
+  googleAuthTutor,
+  forgotPassword,
+  resetPassword,
+  checkTutorStatus,
+} from "../Controllers/tutorController.js";
+import { protectTutor } from "../Middleware/tutorMiddleware.js";
 
-router.post('/register', registerTutor);
-router.post('/login', loginTutor);
-router.post('/verify-otp', verifyTutorOtp);
-router.post('/resend-otp', resendTutorOtp);
-router.post('/forgot-password', forgotPassword);
-router.patch('/reset-password/:token', resetPassword);
-router.post('/google-auth', googleAuthTutor);
+router.post("/", registerTutor);
+router.post("/verify-otp", verifyTutorOtp);
+router.post("/login", loginTutor);
+router.post("/resend-otp", resendTutorOtp);
+router.post("/google-auth", googleAuthTutor);
+router.post("/forgot-password", forgotPassword);
+router.patch("/reset-password/:token", resetPassword);
+router.get("/check-status", protectTutor, checkTutorStatus);
 
 export default router;

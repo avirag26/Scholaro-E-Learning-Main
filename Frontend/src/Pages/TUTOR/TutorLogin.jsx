@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Eye, EyeOff, AlertTriangle } from "lucide-react";
 import LoginBanner from "../../assets/Login.svg";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { axiosPublic } from "../../api/axios";
 import { toast, Toaster } from "sonner";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner";
 import { GoogleLogin } from "@react-oauth/google";
+import { clearUserData, clearAdminData, redirectAfterLogin } from "../../helpers/auth";
 
-export default function Login() {
+export default function TutorLogin() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -16,6 +16,8 @@ export default function Login() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+
 
   const validateEmail = (inputEmail) => {
     if (!inputEmail) {
@@ -57,10 +59,15 @@ export default function Login() {
     setIsSubmitting(true);
     try {
       const response = await axiosPublic.post("/api/tutors/login", { email, password });
+      
+      clearUserData();
+      clearAdminData();
+      
       localStorage.setItem("tutorAuthToken", response.data.accessToken);
       localStorage.setItem("tutorInfo", JSON.stringify({ name: response.data.name, email: response.data.email }));
       toast.success("Login successful! Welcome back.");
-      navigate("/tutor/home");
+      
+      redirectAfterLogin(navigate, 'tutor');
     } catch (err) {
       toast.error(err.response?.data?.message || "Login Failed");
     } finally {
@@ -75,6 +82,9 @@ export default function Login() {
         credential: credentialResponse.credential
       });
 
+      clearUserData();
+      clearAdminData();
+
       localStorage.setItem("tutorAuthToken", response.data.accessToken);
       localStorage.setItem("tutorInfo", JSON.stringify({ 
         name: response.data.name, 
@@ -83,9 +93,8 @@ export default function Login() {
       }));
 
       toast.success(response.data.message || "Google login successful!");
-      navigate("/tutor/home");
+      redirectAfterLogin(navigate, 'tutor');
     } catch (err) {
-      console.error('Google login error:', err);
       toast.error(err.response?.data?.message || "Google login failed");
     } finally {
       setIsSubmitting(false);

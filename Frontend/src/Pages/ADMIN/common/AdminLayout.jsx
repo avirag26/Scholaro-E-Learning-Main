@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Search, Users, BookOpen, GraduationCap, DollarSign, TrendingUp, LogOut, User } from 'lucide-react';
 import { toast } from 'sonner';
 
+
 export default function AdminLayout({ children, title, subtitle }) {
     const navigate = useNavigate();
     const location = useLocation();
@@ -94,7 +95,7 @@ export default function AdminLayout({ children, title, subtitle }) {
                                 <h3 className="font-semibold text-gray-900">
                                     {adminInfo?.name || 'Admin'}
                                 </h3>
-                                <button 
+                                <button
                                     onClick={() => navigate('/admin/profile')}
                                     className="text-sky-500 text-sm hover:underline"
                                 >
@@ -107,63 +108,63 @@ export default function AdminLayout({ children, title, subtitle }) {
                     {/* Navigation */}
                     <nav className="p-4">
                         <div className="space-y-2">
-                            <button 
+                            <button
                                 onClick={() => navigate('/admin/dashboard')}
                                 className={getButtonClasses('/admin/dashboard')}
                             >
                                 <TrendingUp className="w-5 h-5 mr-3" />
                                 Dashboard
                             </button>
-                            <button 
+                            <button
                                 onClick={() => navigate('/admin/profile')}
                                 className={getButtonClasses('/admin/profile')}
                             >
                                 <User className="w-5 h-5 mr-3" />
                                 Profile
                             </button>
-                            <button 
+                            <button
                                 onClick={() => navigate('/admin/category')}
                                 className={getButtonClasses('/admin/category')}
                             >
                                 <BookOpen className="w-5 h-5 mr-3" />
                                 Category
                             </button>
-                            <button 
+                            <button
                                 onClick={() => navigate('/admin/students')}
                                 className={getButtonClasses('/admin/students')}
                             >
                                 <Users className="w-5 h-5 mr-3" />
                                 Students
                             </button>
-                            <button 
+                            <button
                                 onClick={() => navigate('/admin/tutors')}
                                 className={getButtonClasses('/admin/tutors')}
                             >
                                 <GraduationCap className="w-5 h-5 mr-3" />
                                 Tutors
                             </button>
-                            <button 
+                            <button
                                 onClick={() => navigate('/admin/orders')}
                                 className={getButtonClasses('/admin/orders')}
                             >
                                 <DollarSign className="w-5 h-5 mr-3" />
                                 Orders
                             </button>
-                            <button 
+                            <button
                                 onClick={() => navigate('/admin/coupon')}
                                 className={getButtonClasses('/admin/coupon')}
                             >
                                 <DollarSign className="w-5 h-5 mr-3" />
                                 Coupon
                             </button>
-                            <button 
+                            <button
                                 onClick={() => navigate('/admin/courses')}
                                 className={getButtonClasses('/admin/courses')}
                             >
                                 <BookOpen className="w-5 h-5 mr-3" />
                                 Courses
                             </button>
-                            <button 
+                            <button
                                 onClick={() => navigate('/admin/legal')}
                                 className={getButtonClasses('/admin/legal')}
                             >
@@ -190,28 +191,9 @@ export default function AdminLayout({ children, title, subtitle }) {
                         </div>
                     )}
                     {children}
-                    
+
                     {/* Footer */}
-                    <footer className="mt-12 pt-8 border-t border-gray-200">
-                        <div className="flex flex-col md:flex-row justify-between items-center">
-                            <div className="text-sm text-gray-500 mb-4 md:mb-0">
-                                © 2025 Scholaro. All rights reserved.
-                            </div>
-                            <div className="flex items-center space-x-6 text-sm text-gray-500">
-                                <button className="hover:text-sky-500 transition-colors">
-                                    Privacy Policy
-                                </button>
-                                <button className="hover:text-sky-500 transition-colors">
-                                    Terms of Service
-                                </button>
-                                <button className="hover:text-sky-500 transition-colors">
-                                    Support
-                                </button>
-                                <span className="text-gray-300">|</span>
-                                <span>Admin Panel v1.0</span>
-                            </div>
-                        </div>
-                    </footer>
+                
                 </main>
             </div>
         </div>

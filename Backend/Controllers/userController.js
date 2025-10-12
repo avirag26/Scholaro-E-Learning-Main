@@ -107,19 +107,16 @@ const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    // Missing await here - this was the main issue!
     const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
 
-    // Check if OTP has expired (should be < not >=)
     if (user.otpExpiry < new Date()) {
       return res.status(400).json({ message: "OTP has expired" });
     }
 
-    // Check if OTP matches
     if (otp !== user.otp) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
@@ -142,7 +139,7 @@ const verifyOtp = async (req, res) => {
 
     res.status(200).json({
       _id: user._id,
-      name: user.full_name, // Fixed syntax error
+      name: user.full_name,
       email: user.email,
       accessToken: accessToken,
       message: "User verified successfully",
@@ -206,6 +203,14 @@ const handleGoogleAuth = async (req, res, Model, userType) => {
         is_verified: true,
       });
     } else {
+      // Check if existing entity is blocked
+      if (entity.is_blocked) {
+        return res.status(403).json({
+          message: "Your account has been blocked by the administrator. Please contact support.",
+          blocked: true
+        });
+      }
+      
       // Update existing entity
       if (!entity.googleId) entity.googleId = googleId;
       if (!entity.profileImage) entity.profileImage = picture; // Only update if not present
@@ -305,7 +310,6 @@ const resetPassword = async (req, res) => {
   try {
     const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
 
-    // Use findOne instead of find
     const user = await User.findOne({
       passwordResetToken: hashedToken,
       passwordResetExpires: { $gt: Date.now() }
@@ -318,7 +322,7 @@ const resetPassword = async (req, res) => {
     user.password = req.body.password;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
-    await user.save(); // Missing await
+    await user.save();
 
     return res.status(200).json({ message: "Password reset successful" });
   } catch (error) {
@@ -327,4 +331,29 @@ const resetPassword = async (req, res) => {
   }
 };
 
-export { registerUser, verifyOtp, loginUser, resendOtp, googleAuth, forgotPassword, resetPassword };
+const checkUserStatus = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Authentication invalid.' });
+    }
+
+    // Fetch the latest user state from the database
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.is_blocked) {
+      // If blocked, send a 403 Forbidden status, which the frontend will catch.
+      return res.status(403).json({ message: "User is blocked by admin." });
+    }
+
+    // If not blocked, send a 200 OK status.
+    res.status(200).json({ message: "User is active." });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error while checking status' });
+  }
+};
+
+export { registerUser, verifyOtp, loginUser, resendOtp, googleAuth, forgotPassword, resetPassword, checkUserStatus };

@@ -4,6 +4,7 @@ import { fetchUsers } from "../../Redux/userSlice";
 import AdminLayout from "./common/AdminLayout";
 import { toast } from "sonner";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const Students = () => {
   const dispatch = useDispatch();
@@ -42,6 +43,25 @@ const Students = () => {
       return;
     }
 
+    // SweetAlert confirmation dialog
+    const action = currentStatus ? 'unblock' : 'block';
+    const result = await Swal.fire({
+      title: `${action.charAt(0).toUpperCase() + action.slice(1)} Student?`,
+      text: currentStatus 
+        ? 'This student will regain access to their account and can login again.'
+        : 'This student will be logged out immediately and unable to access their account.',
+      icon: currentStatus ? 'question' : 'warning',
+      showCancelButton: true,
+      confirmButtonColor: currentStatus ? '#10b981' : '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: `Yes, ${action}!`,
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
     setActionLoading(prev => ({ ...prev, [userId]: true }));
 
     try {
@@ -57,7 +77,11 @@ const Students = () => {
       );
 
       if (response.data.success) {
-        toast.success(`Student ${action}ed successfully`);
+        if (action === 'block') {
+          toast.success(`🚫 Student has been blocked successfully. They will be logged out on next page refresh.`);
+        } else {
+          toast.success(`✅ Student has been unblocked successfully. They can now access their account.`);
+        }
         // Refresh current page
         dispatch(fetchUsers({ 
           page: currentPage, 
@@ -66,7 +90,8 @@ const Students = () => {
         }));
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || `Failed to ${currentStatus ? 'unblock' : 'block'} student`);
+      const actionText = currentStatus ? 'unblock' : 'block';
+      toast.error(`❌ Failed to ${actionText} student. ${error.response?.data?.message || 'Please try again.'}`);
     } finally {
       setActionLoading(prev => ({ ...prev, [userId]: false }));
     }

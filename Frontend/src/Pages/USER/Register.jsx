@@ -129,12 +129,10 @@ export default function Register(){
     setIsSubmitting(true);
 
     try {
-      // Exclude confirmPassword from the data sent to the backend
       const {  ...registerData } = formData;
       const response = await axiosPublic.post("/api/users", registerData);
 
       toast.success(response.data.message);
-      // On success, open the OTP modal
       setIsOtpModalOpen(true);
 
     } catch (err) {
@@ -160,8 +158,6 @@ export default function Register(){
       });
       toast.success(response.data.message);
       localStorage.setItem("authToken", response.data.accessToken);
-
-      // Clear the saved form data from localStorage after successful registration
       localStorage.removeItem("registerFormData");
 
       setIsOtpModalOpen(false);
@@ -183,13 +179,8 @@ export default function Register(){
 
       const { accessToken, ...user } = response.data;
 
-      // Set the user and accessToken in the global auth state
       setAuth({ user, accessToken });
-
-      // Persist the token in localStorage
       localStorage.setItem("authToken", accessToken);
-
-      // Clear the saved form data from localStorage
       localStorage.removeItem("registerFormData");
 
       toast.success(response.data.message || "Google registration successful!");
@@ -415,7 +406,6 @@ return (
               </button>
             </div>
 
-            {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
@@ -425,7 +415,6 @@ return (
               </div>
             </div>
 
-            {/* Google Registration Button */}
             <div className="mt-6">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { FaPlus, FaUser, FaBook, FaChartBar, FaComments, FaSignOutAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Header from "./COMMON/Header";
 import Footer from "./COMMON/Footer";
 import Swal from "sweetalert2";
+
 
 
 
@@ -57,6 +58,16 @@ export default function TutorDashboard() {
   const navigate = useNavigate();
   const [tutorName, setTutorName] = useState("Tutor");
 
+
+
+  useEffect(() => {
+    const token = localStorage.getItem("tutorAuthToken");
+    if (!token) {
+      navigate("/tutor/login");
+    }
+    
+  }, [navigate]);
+
   useEffect(() => {
     const tutorInfo = localStorage.getItem("tutorInfo");
     if (tutorInfo) {
@@ -66,7 +77,7 @@ export default function TutorDashboard() {
           setTutorName(parsedInfo.name);
         }
       } catch (error) {
-        console.error("Failed to parse tutorInfo from localStorage", error);
+        setTutorName("Tutor");
       }
     }
   }, []);

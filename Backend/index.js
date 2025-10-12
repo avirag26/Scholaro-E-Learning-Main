@@ -33,7 +33,7 @@ app.get('/', (req, res) => {
 
 
 app.use('/api/users',UserRoutes)
-app.use('/api/tutors',TutorRoutes)
+app.use('/api/tutors', TutorRoutes)
 app.use('/api/admin', AdminRoutes);
 
 app.listen(port, () => console.log(`✅ Server running on http://localhost:${port}`));

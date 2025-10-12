@@ -7,14 +7,6 @@ if (!process.env.EMAIL_USERNAME || !process.env.EMAIL_PASSWORD) {
   throw new Error("Missing email credentials in .env file");
 }
 
-// Debug log environment variables (only in development)
-if (process.env.NODE_ENV === 'development') {
-  console.log('Email service initialized with:');
-  console.log('- EMAIL_USERNAME:', process.env.EMAIL_USERNAME ? '✓ Set' : '✗ Missing');
-  console.log('- EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? '✓ Set' : '✗ Missing');
-  console.log('- FRONTEND_URL:', process.env.FRONTEND_URL || 'Using fallback: http://localhost:5173');
-}
-
 const transporter = nodemailer.createTransport({
   service: 'gmail', // Or your preferred email service
   auth: {
@@ -33,7 +25,6 @@ const sendOtpEmail = async (to, otp) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`OTP email sent to ${to}`);
   } catch (error) {
     console.error('Failed to send OTP email:', error);
     throw error; // Re-throw or handle error appropriately in calling code
@@ -113,7 +104,6 @@ const sendPasswordResetEmail = async (to, resetToken, userType = 'user') => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`Password reset email sent to ${to}`);
   } catch (error) {
     console.error('Failed to send password reset email:', error);
     throw error;

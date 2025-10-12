@@ -4,6 +4,7 @@ import { fetchTutors } from "../../Redux/tutorSlice";
 import AdminLayout from "./common/AdminLayout";
 import { toast } from "sonner";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const Tutors = () => {
   const dispatch = useDispatch();
@@ -12,7 +13,7 @@ const Tutors = () => {
   const stats = useSelector((state) => state.tutors.stats);
   const loading = useSelector((state) => state.tutors.loading);
   const error = useSelector((state) => state.tutors.error);
-  
+
   const [actionLoading, setActionLoading] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -20,10 +21,10 @@ const Tutors = () => {
 
   // Fetch users when component mounts or filters change
   useEffect(() => {
-    dispatch(fetchTutors({ 
-      page: currentPage, 
-      search: searchTerm, 
-      status: statusFilter 
+    dispatch(fetchTutors({
+      page: currentPage,
+      search: searchTerm,
+      status: statusFilter
     }));
   }, [dispatch, currentPage, searchTerm, statusFilter]);
 
@@ -36,9 +37,28 @@ const Tutors = () => {
 
   const handleBlockUnblock = async (tutorId, currentStatus) => {
     const adminToken = localStorage.getItem('adminAuthToken');
-    
+
     if (!adminToken) {
       toast.error("Please login again");
+      return;
+    }
+
+    // SweetAlert confirmation dialog
+    const action = currentStatus ? 'unblock' : 'block';
+    const result = await Swal.fire({
+      title: `${action.charAt(0).toUpperCase() + action.slice(1)} Tutor?`,
+      text: currentStatus 
+        ? 'This tutor will regain access to their account and can login again.'
+        : 'This tutor will be logged out immediately and unable to access their account.',
+      icon: currentStatus ? 'question' : 'warning',
+      showCancelButton: true,
+      confirmButtonColor: currentStatus ? '#10b981' : '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: `Yes, ${action}!`,
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) {
       return;
     }
 
@@ -57,16 +77,21 @@ const Tutors = () => {
       );
 
       if (response.data.success) {
-        toast.success(`Tutor ${action}ed successfully`);
+        if (action === 'block') {
+          toast.success(`🚫 Tutor has been blocked successfully. They will be logged out on next page refresh.`);
+        } else {
+          toast.success(`✅ Tutor has been unblocked successfully. They can now access their account.`);
+        }
         // Refresh current page
-        dispatch(fetchTutors({ 
-          page: currentPage, 
-          search: searchTerm, 
-          status: statusFilter 
+        dispatch(fetchTutors({
+          page: currentPage,
+          search: searchTerm,
+          status: statusFilter
         }));
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || `Failed to ${currentStatus ? 'unblock' : 'block'} tutor`);
+      const actionText = currentStatus ? 'unblock' : 'block';
+      toast.error(`❌ Failed to ${actionText} tutor. ${error.response?.data?.message || 'Please try again.'}`);
     } finally {
       setActionLoading(prev => ({ ...prev, [tutorId]: false }));
     }
@@ -91,7 +116,7 @@ const Tutors = () => {
       <AdminLayout title="Tutors">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800">Error: {error}</p>
-          <button 
+          <button
             onClick={() => dispatch(fetchTutors({ page: 1, search: '', status: 'all' }))}
             className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
           >
@@ -117,7 +142,7 @@ const Tutors = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
             <div className="text-2xl text-green-500 mr-3">✅</div>
@@ -129,7 +154,7 @@ const Tutors = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
             <div className="text-2xl text-red-500 mr-3">🚫</div>
@@ -152,7 +177,7 @@ const Tutors = () => {
               <h2 className="text-lg font-semibold text-gray-900">
                 Tutor List
               </h2>
-              
+
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -163,7 +188,7 @@ const Tutors = () => {
                 <option value="blocked">Blocked Only</option>
               </select>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <input
                 type="text"
@@ -172,12 +197,12 @@ const Tutors = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500 w-64"
               />
-              
-              <button 
-                onClick={() => dispatch(fetchTutors({ 
-                  page: currentPage, 
-                  search: searchTerm, 
-                  status: statusFilter 
+
+              <button
+                onClick={() => dispatch(fetchTutors({
+                  page: currentPage,
+                  search: searchTerm,
+                  status: statusFilter
                 }))}
                 className="px-4 py-2 bg-sky-500 text-white text-sm rounded-lg hover:bg-sky-600"
               >
@@ -186,7 +211,7 @@ const Tutors = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -219,20 +244,18 @@ const Tutors = () => {
                       {tutor.phone && <div className="text-xs text-gray-500">{tutor.phone}</div>}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        tutor.is_blocked 
-                          ? 'bg-red-100 text-red-800' 
-                          : 'bg-green-100 text-green-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${tutor.is_blocked
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-green-100 text-green-800'
+                        }`}>
                         {tutor.is_blocked ? 'Blocked' : 'Active'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        tutor.is_verified 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${tutor.is_verified
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                        }`}>
                         {tutor.is_verified ? 'Verified' : 'Pending'}
                       </span>
                     </td>
@@ -240,11 +263,10 @@ const Tutors = () => {
                       <button
                         onClick={() => handleBlockUnblock(tutor._id, tutor.is_blocked)}
                         disabled={actionLoading[tutor._id]}
-                        className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                          tutor.is_blocked
-                            ? 'bg-green-600 hover:bg-green-700 text-white'
-                            : 'bg-red-600 hover:bg-red-700 text-white'
-                        } ${actionLoading[tutor._id] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`px-3 py-1 rounded text-xs font-medium transition-colors ${tutor.is_blocked
+                          ? 'bg-green-600 hover:bg-green-700 text-white'
+                          : 'bg-red-600 hover:bg-red-700 text-white'
+                          } ${actionLoading[tutor._id] ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         {actionLoading[tutor._id] ? (
                           'Processing...'
@@ -264,7 +286,7 @@ const Tutors = () => {
                       <div className="text-4xl mb-2">👥</div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">No tutors found</h3>
                       <p className="text-sm">
-                        {searchTerm || statusFilter !== "all" 
+                        {searchTerm || statusFilter !== "all"
                           ? "Try adjusting your search or filter criteria"
                           : "Tutors will appear here once they register"
                         }
@@ -284,17 +306,16 @@ const Tutors = () => {
               <div className="text-sm text-gray-700">
                 Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to {Math.min(pagination.currentPage * pagination.limit, pagination.totalTutors)} of {pagination.totalTutors} tutors
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 {/* Previous Button */}
                 <button
                   onClick={() => handlePageChange(pagination.currentPage - 1)}
                   disabled={!pagination.hasPrev}
-                  className={`px-3 py-1 rounded text-sm font-medium ${
-                    !pagination.hasPrev
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
+                  className={`px-3 py-1 rounded text-sm font-medium ${!pagination.hasPrev
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    }`}
                 >
                   Previous
                 </button>
@@ -305,11 +326,10 @@ const Tutors = () => {
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1 rounded text-sm font-medium ${
-                        pagination.currentPage === page
-                          ? 'bg-sky-500 text-white'
-                          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                      }`}
+                      className={`px-3 py-1 rounded text-sm font-medium ${pagination.currentPage === page
+                        ? 'bg-sky-500 text-white'
+                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                        }`}
                     >
                       {page}
                     </button>
@@ -320,11 +340,10 @@ const Tutors = () => {
                 <button
                   onClick={() => handlePageChange(pagination.currentPage + 1)}
                   disabled={!pagination.hasNext}
-                  className={`px-3 py-1 rounded text-sm font-medium ${
-                    !pagination.hasNext
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
+                  className={`px-3 py-1 rounded text-sm font-medium ${!pagination.hasNext
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    }`}
                 >
                   Next
                 </button>

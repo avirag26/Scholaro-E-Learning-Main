@@ -1,8 +1,7 @@
-// UserProfile.jsx
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -26,17 +25,27 @@ export default function UserProfile() {
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userInfo');
-    navigate('/user/login');
+    Swal.fire({
+      title: 'Are you sure you want to log out?',
+      text: "You will be returned to the login page.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, log out!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userInfo');
+        navigate('/user/login');
+      }
+    });
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
-      {/* Sidebar */}
       <aside className="w-full md:w-64 bg-white border-r shadow-sm h-auto md:h-screen flex flex-col">
         <div>
-          {/* Profile Section */}
           <div className="p-6 border-b text-center">
             <div className="relative inline-block">
               {userInfo.profileImage ? (
@@ -54,7 +63,6 @@ export default function UserProfile() {
             <h3 className="mt-3 font-semibold text-gray-800">{userInfo.name}</h3>
             <p className="text-sm text-gray-500">{userInfo.email}</p>
           </div>
-          {/* Nav Items */}
           <nav className="p-4">
             <button
               onClick={handleLogout}
@@ -68,7 +76,6 @@ export default function UserProfile() {
       </aside>
 
       <div className="flex-1 flex flex-col">
-        {/* Header */}
         <header className="sticky top-0 z-10 bg-white bg-opacity-90 backdrop-blur-sm border-b shadow-sm">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-8">
@@ -82,7 +89,6 @@ export default function UserProfile() {
           </div>
         </header>
 
-        {/* Main */}
         <main className="flex-1 flex items-center justify-center bg-gray-50">
           <div className="w-full max-w-md p-8">
             <div className="bg-white shadow-md rounded-xl p-6 flex flex-col items-center">

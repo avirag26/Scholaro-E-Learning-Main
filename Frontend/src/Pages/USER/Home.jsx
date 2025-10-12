@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, Bell, User, BookOpen, Clock, Award, TrendingUp, Menu, X, Star } from 'lucide-react';
+import { BookOpen, Clock, Award, TrendingUp, Star } from 'lucide-react';
 import Button from "../../ui/Button";
 import CategoryCards from "../../ui/CategoryCards";
 import Testimonials from "../../ui/Testmonials";
@@ -8,41 +8,73 @@ import TeamSection from "../../ui/TeamSection";
 import BannerImg from "../../assets/banner.png";
 import { MdFavoriteBorder } from "react-icons/md";
 import Header from "./Common/Header";
+import axios from "axios";
 
 export default function UserHomePage() {
-  console.log('UserHomePage component rendering');
-
   const navigate = useNavigate();
-//   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
 
+  // Simple back button prevention
   useEffect(() => {
-    console.log('Home component mounted');
+    window.history.pushState(null, '', window.location.pathname);
 
-    // Get user info from localStorage
-    const storedUserInfo = localStorage.getItem('userInfo');
-    const authToken = localStorage.getItem('authToken');
+    const preventBack = () => {
+      window.history.pushState(null, '', window.location.pathname);
+    };
 
-    console.log('Auth token:', authToken);
-    console.log('Stored user info:', storedUserInfo);
+    window.addEventListener('popstate', preventBack);
+    return () => window.removeEventListener('popstate', preventBack);
+  }, []);
 
-    
-    if (!authToken) {
-      console.log('No auth token, redirecting to login');
-      navigate('/user/login');
-      return;
-    }
 
-    if (storedUserInfo) {
-      setUserInfo(JSON.parse(storedUserInfo));
-    } else {
-      // Set default user info for testing
-      setUserInfo({
-        name: 'Test User',
-        email: 'test@example.com'
+
+useEffect(() => {
+  async function verifyAndLoadUser() {
+    try {
+      const token = localStorage.getItem('authToken');
+      const storedUserInfo = localStorage.getItem('userInfo');
+
+   
+      if (!token) {
+        navigate('/user/login');
+        return;
+      }
+
+      
+      const response = await axios.get('http://localhost:5000/api/users/check-status', {
+        headers: { Authorization: `Bearer ${token}` },
       });
+
+      const data = response.data;
+
+      
+      if (data.isBlocked) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userInfo');
+        navigate('/user/login');
+        return;
+      }
+
+     
+      if (storedUserInfo) {
+        setUserInfo(JSON.parse(storedUserInfo));
+      } else {
+        setUserInfo({ name: 'User', email: 'user@example.com' });
+      }
+
+    } catch (error) {
+      console.error('Error verifying user:', error);
+      
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userInfo');
+        navigate('/user/login');
+      }
     }
-  }, [navigate]);
+  }
+
+  verifyAndLoadUser();
+}, [navigate]);
 
 
 
