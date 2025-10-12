@@ -1,36 +1,28 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Async thunk to fetch users with pagination
+// fetching all users
 export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
-  async ({ page = 1, search = '', status = 'all' } = {}, { rejectWithValue }) => {
+  async ({ page = 1, search = "", status = "all" } = {}, { rejectWithValue }) => {
     try {
-      // Get admin token from localStorage
-      const adminToken = localStorage.getItem('adminAuthToken');
-      
-      if (!adminToken) {
+      const token = localStorage.getItem("adminAuthToken");
+      if (!token) {
         return rejectWithValue("No admin token found. Please login again.");
       }
 
-      const params = new URLSearchParams({
-        page: page.toString(),
-        search,
-        status
+      // send request to backend
+      const res = await axios.get("http://localhost:5000/api/admin/users", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: { page, search, status },
       });
 
-      const { data } = await axios.get(`http://localhost:5000/api/admin/users?${params}`, {
-        headers: {
-          Authorization: `Bearer ${adminToken}`,
-        },
-      });
-      
-      return data;
-    } catch (error) {
-      console.error("Fetch users error:", error);
-      return rejectWithValue(
-        error.response?.data?.message || "Error fetching users"
-      );
+      return res.data;
+    } catch (err) {
+      console.log("Error while fetching users:", err);
+      return rejectWithValue(err.response?.data?.message || "Something went wrong");
     }
   }
 );

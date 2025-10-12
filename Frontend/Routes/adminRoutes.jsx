@@ -5,14 +5,14 @@ import NotFoundPage from "../src/ui/NotFound";
 import Students from "../src/Pages/ADMIN/Students";
 
 const AdminRoutes = () => {
-  return (
-    <Routes>
-      <Route path="login" element={<AdminLogin />} />
-      <Route path="dashboard" element={<AdminDashboard />} />
-      <Route path="students" element={<Students />} />
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
-  );
-};
+    return (
+        <Routes>
+            <Route path="login" element={<AdminLogin />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="students" element={<Students />} />
+            <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+    )
+}
 
 export default AdminRoutes;

@@ -2,48 +2,37 @@ import jwt from "jsonwebtoken";
 import Admin from "../Model/AdminModel.js";
 
 const protectAdmin = async (req, res, next) => {
-  try {
-    let token;
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
-    ) {
-      token = req.headers.authorization.split(" ")[1];
-    } else if (req.cookies.jwt_admin) {
-      token = req.cookies.jwt_admin;
+  let token;
+
+  // Read the JWT from the 'Authorization' header
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      // Get token from header
+      token = req.headers.authorization.split(' ')[1];
+
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Get admin from the token (select everything except the password)
+      req.admin = await Admin.findById(decoded.id).select('-password');
+
+      if (!req.admin) {
+        return res.status(401).json({ message: 'Not authorized, admin not found' });
+      }
+
+      next();
+    } catch (error) {
+      console.error('Admin auth error:', error.name, error.message);
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ 
+          message: 'Token expired, please login again',
+          expired: true
+        });
+      }
+      return res.status(401).json({ message: 'Not authorized, token failed' });
     }
-
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Admin access required. Please login",
-      });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const admin = await Admin.findById(decoded.id).select("-password");
-
-    if (!admin) {
-      return res.status(401).json({
-        success: false,
-        message: "Admin not found. Please login again",
-      });
-    }
-
-    if (admin.is_blocked) {
-      return res.status(403).json({
-        success: false,
-        message: "Admin account suspended",
-      });
-    }
-
-    req.admin = admin;
-    next();
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid admin token. Please login again",
-    });
+  } else {
+    return res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
 

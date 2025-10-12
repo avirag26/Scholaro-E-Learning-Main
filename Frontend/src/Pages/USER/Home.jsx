@@ -26,12 +26,12 @@ export default function UserHomePage() {
     console.log('Auth token:', authToken);
     console.log('Stored user info:', storedUserInfo);
 
-    // Temporarily disable redirect for testing
-    // if (!authToken) {
-    //   console.log('No auth token, redirecting to login');
-    //   navigate('/user/login');
-    //   return;
-    // }
+    
+    if (!authToken) {
+      console.log('No auth token, redirecting to login');
+      navigate('/user/login');
+      return;
+    }
 
     if (storedUserInfo) {
       setUserInfo(JSON.parse(storedUserInfo));

@@ -2,53 +2,37 @@ import jwt from 'jsonwebtoken';
 import User from '../Model/usermodel.js'; // Using User model for now
 
 const protectTutor = async (req, res, next) => {
-  try {
-    let token;
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  let token;
+
+  // Read the JWT from the 'Authorization' header
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      // Get token from header
       token = req.headers.authorization.split(' ')[1];
-    } else if (req.cookies.jwt_tutor) {
-      token = req.cookies.jwt_tutor;
+
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Get tutor from the token (select everything except the password)
+      req.tutor = await Tutor.findById(decoded.id).select('-password');
+
+      if (!req.tutor) {
+        return res.status(401).json({ message: 'Not authorized, tutor not found' });
+      }
+
+      next();
+    } catch (error) {
+      console.error('Tutor auth error:', error.name, error.message);
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ 
+          message: 'Token expired, please login again',
+          expired: true
+        });
+      }
+      return res.status(401).json({ message: 'Not authorized, token failed' });
     }
-
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: 'Tutor access required. Please login'
-      });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const tutor = await User.findById(decoded.id).select('-password');
-    
-    if (!tutor) {
-      return res.status(401).json({
-        success: false,
-        message: 'Tutor not found. Please login again'
-      });
-    }
-
-    if (tutor.is_blocked) {
-      return res.status(403).json({
-        success: false,
-        message: 'Your tutor account has been blocked'
-      });
-    }
-
-    if (!tutor.is_verified) {
-      return res.status(401).json({
-        success: false,
-        message: 'Please verify your tutor account first'
-      });
-    }
-
-    req.tutor = tutor;
-    next();
-
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: 'Invalid tutor token. Please login again'
-    });
+  } else {
+    return res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
 

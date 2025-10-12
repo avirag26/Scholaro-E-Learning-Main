@@ -112,7 +112,6 @@ export default function AdminDashboard() {
                             <FileText className="w-4 h-4" />
                             <span>PDF</span>
                         </Button>
-                        <Button onClick={()=>navigate('/admin/userlist')}>UserList</Button>
                         <Button 
                             onClick={handleDownloadExcel}
                             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2"
