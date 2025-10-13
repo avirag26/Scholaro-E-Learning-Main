@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { checkUserAuth, checkTutorAuth, checkAdminAuth, clearAllData } from '../helpers/auth';
 import { axiosPrivate } from '../api/axios';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 
 export const useAuthProtection = (userType) => {
   const navigate = useNavigate();

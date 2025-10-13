@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
@@ -45,6 +45,11 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Don't try to refresh token for login requests - let login components handle 401 errors
+      if (error.config?.url?.includes('/login') || error.config?.url?.includes('/google-auth')) {
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -68,14 +73,24 @@ axiosInstance.interceptors.response.use(
           localStorage.setItem('refreshToken', data.refreshToken);
         }
 
-        originalRequest.headers['Authorization'] = `Bearer ${data.accessToken}`;
+        originalRequest.headers['Authorization'] = `Bearer ${token}`;
         processQueue(null, data.accessToken);
         
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         localStorage.clear();
         toast.error('Session expired. Please log in again.');
-        window.location.href = '/login';
+        
+        // Determine which login page to redirect to based on current URL
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('/tutor/')) {
+          window.location.href = '/tutor/login';
+        } else if (currentPath.includes('/admin/')) {
+          window.location.href = '/admin/login';
+        } else {
+          window.location.href = '/user/login';
+        }
+        
         processQueue(refreshError, null);
         return Promise.reject(refreshError);
       } finally {

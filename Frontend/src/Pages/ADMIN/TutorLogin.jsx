@@ -3,7 +3,7 @@ import { Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { axiosPublic } from "../../api/axios";
-import { toast, Toaster } from "sonner";
+import { toast } from "react-toastify";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner";
 import { clearUserData, clearTutorData, redirectAfterLogin } from "../../helpers/auth";
 
@@ -190,7 +190,7 @@ export default function AdminLogin() {
             </button>
           </form>
         </div>
-        <Toaster position="top-center" richColors />
+
       </div>
     </div>
   );

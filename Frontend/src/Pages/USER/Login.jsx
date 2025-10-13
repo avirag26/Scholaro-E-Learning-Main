@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import LoginBanner from "../../assets/Login.svg";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { toast, Toaster } from "sonner";
+import { toast } from "react-toastify";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner.jsx";
 import { axiosPublic } from '../../api/axios.js';
 import { useAuth } from '../../Context/AuthContext.jsx';
@@ -306,7 +306,7 @@ export default function Login() {
             </p>
           </form>
         </div>
-        <Toaster />
+
       </div>
     </div>
   );

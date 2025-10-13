@@ -3,7 +3,7 @@ import { Eye, EyeOff, AlertTriangle } from "lucide-react";
 import LoginBanner from "../../assets/Login.svg";
 import { Link, useNavigate } from "react-router-dom";
 import { axiosPublic } from "../../api/axios";
-import { toast, Toaster } from "sonner";
+import { toast } from "react-toastify";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner";
 import { GoogleLogin } from "@react-oauth/google";
 import { clearUserData, clearAdminData, redirectAfterLogin } from "../../helpers/auth";
@@ -128,7 +128,7 @@ export default function TutorLogin() {
 
       {/* Right Section */}
       <div className="w-full lg:w-1/2 flex flex-col p-8 lg:p-12 relative">
-        <Toaster position="top-center" richColors />
+
         {/* Scholaro Logo */}
         <div className="absolute top-4 right-4 hidden lg:block">
           <h1 className="text-2xl font-bold text-sky-600">Scholaro</h1>

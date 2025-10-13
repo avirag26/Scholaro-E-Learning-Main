@@ -1,13 +1,15 @@
 
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import UserRoutes from "../Routes/userRoutes"
 import TutorRoutes from "../Routes/tutorRoutes";
 import LandingProtection from "./components/RouteProtection/LandingProtection";
 import NotFoundPage from "./ui/NotFound";
 import AdminRoutes from "../Routes/adminRoutes";
 
-// Global route guard
+
 const GlobalGuard = ({ children }) => {
   const location = useLocation();
   
@@ -22,7 +24,7 @@ const GlobalGuard = ({ children }) => {
       '/tutor/forgot-password', '/user/forgot-password', '/admin/forgot-password'
     ];
     
-    // If logged in and on auth page, redirect
+   
     if ((userToken || tutorToken || adminToken) && authPages.includes(location.pathname)) {
       if (userToken) {
         window.location.replace('/user/home');
@@ -54,7 +56,19 @@ function App() {
         </Routes>
       </GlobalGuard>
     </Router>
-  
+    
+    <ToastContainer
+      position="top-right"
+      autoClose={5000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="light"
+    />
     </>
   )
 }

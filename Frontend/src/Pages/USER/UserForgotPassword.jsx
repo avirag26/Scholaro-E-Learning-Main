@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { axiosPublic } from '../../api/axios';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import DotDotDotSpinner from '../../ui/Spinner/DotSpinner';
 
@@ -29,7 +29,7 @@ export default function UserForgotPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Toaster position="top-center" richColors />
+
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Forgot Your Password?</h2>
         <p className="text-center text-gray-600 mb-6">

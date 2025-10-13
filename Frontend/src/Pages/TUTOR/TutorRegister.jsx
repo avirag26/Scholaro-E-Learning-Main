@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { toast, Toaster } from "sonner";
+import { toast } from "react-toastify";
 import TutorBanner from "../../assets/TutorBanner.jpg";
 import { useNavigate } from "react-router-dom";
 import { axiosPublic } from "../../api/axios";
@@ -126,7 +126,7 @@ export default function TutorRegister() {
 
   return (
     <div className="min-h-screen flex relative bg-sky-50">
-      <Toaster position="top-center" richColors />
+
       {/* Left Banner Section */}
       <div className="hidden lg:flex lg:w-1/2 bg-sky-100 relative">
         <img

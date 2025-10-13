@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 import axiosInstance from '../../api/axios';
 
 const ProtectedRoute = ({ children, userType }) => {

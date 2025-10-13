@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Mail, Shield, CheckCircle, Clock } from "lucide-react";
-import { toast, Toaster } from "sonner";
+import { toast } from "react-toastify";
 import { axiosPublic } from "../api/axios";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -225,7 +225,7 @@ const OtpModal = ({ isOpen, onClose, onVerify, email }) => {
             className="fixed inset-0 flex items-center justify-center z-50 p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <Toaster position="top-center" richColors />
+
             
             <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-sky-100 relative overflow-hidden">
               {/* Decorative background elements */}

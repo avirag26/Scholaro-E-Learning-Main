@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUsers } from "../../Redux/userSlice";
 import AdminLayout from "./common/AdminLayout";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import axiosInstance from "../../api/axios";
 import Swal from "sweetalert2";
 

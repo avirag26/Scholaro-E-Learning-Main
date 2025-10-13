@@ -16,11 +16,11 @@ export default function UserProfile() {
     }
     if (storedUserInfo) {
       const user = JSON.parse(storedUserInfo);
-      setUserInfo({
-        name: user.name || user.full_name || 'Student',
-        email: user.email || 'No email',
-        profileImage: user.profileImage || ''
-      });
+      // setUserInfo({
+      //   name: user.full_name || user.name || 'Student',
+      //   email: user.email || 'No email',
+      //   profileImage: user.profileImage || ''
+      // });
     }
   }, [navigate]);
 

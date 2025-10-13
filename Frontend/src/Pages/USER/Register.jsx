@@ -1,6 +1,6 @@
 import { useState ,useEffect } from "react";
 import { Eye,EyeOff } from "lucide-react";
-import { toast ,Toaster } from "sonner";
+import { toast } from "react-toastify";
 import Banner from "../../assets/Register.jpg";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner";
 import { useNavigate } from "react-router-dom";
@@ -139,7 +139,7 @@ export default function Register(){
       if (!err?.response) {
         toast.error("No Server Response");
       } else if (err.response?.status === 400) {
-        // Handle specific backend errors, like "User already exists"
+       
         toast.error(err.response.data.message || "Registration failed.");
       } else {
         toast.error("Registration Failed");
@@ -158,6 +158,7 @@ export default function Register(){
       });
       toast.success(response.data.message);
       localStorage.setItem("authToken", response.data.accessToken);
+   
       localStorage.removeItem("registerFormData");
 
       setIsOtpModalOpen(false);
@@ -427,7 +428,7 @@ return (
               />
             </div>
           </form>
-          <Toaster />
+
         </div>
         <OtpModal 
         isOpen={isOtpModalOpen}
