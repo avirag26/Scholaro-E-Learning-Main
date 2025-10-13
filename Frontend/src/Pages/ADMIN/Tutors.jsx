@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchTutors } from "../../Redux/tutorSlice";
 import AdminLayout from "./common/AdminLayout";
 import { toast } from "react-toastify";
-import axiosInstance from "../../api/axios";
+import { adminAPI } from "../../api/axiosConfig";
 import Swal from "sweetalert2";
 
 const Tutors = () => {
@@ -60,7 +60,7 @@ const Tutors = () => {
 
     try {
       const action = currentStatus ? 'unblock' : 'block';
-      const response = await axiosInstance.patch(`/api/admin/tutors/${tutorId}/${action}`);
+      const response = await adminAPI.patch(`/api/admin/tutors/${tutorId}/${action}`);
 
       if (response.data.success) {
         if (action === 'block') {

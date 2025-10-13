@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { axiosPublic } from '../../api/axios';
+import { publicAPI } from '../../api/axiosConfig';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import DotDotDotSpinner from '../../ui/Spinner/DotSpinner';
@@ -44,7 +44,7 @@ export default function UserResetPassword() {
 
     setIsSubmitting(true);
     try {
-      const response = await axiosPublic.post(`/api/users/reset-password/${token}`, {
+      const response = await publicAPI.post(`/api/users/reset-password/${token}`, {
         password: formData.password
       });
       toast.success(response.data.message);

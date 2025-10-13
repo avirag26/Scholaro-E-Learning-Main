@@ -7,8 +7,8 @@ import Testimonials from "../../ui/Testmonials";
 import TeamSection from "../../ui/TeamSection";
 import BannerImg from "../../assets/banner.png";
 import { MdFavoriteBorder } from "react-icons/md";
-import Header from "./Common/Header";
-import axiosInstance from "../../api/axios";
+import Header from "./Common/Header"; 
+import { userAPI } from "../../api/axiosConfig";
 
 export default function UserHomePage() {
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ useEffect(() => {
         return;
       }
 
-      const response = await axiosInstance.get('/api/users/check-status');
+      const response = await userAPI.get('/api/users/check-status');
       const data = response.data;
 
       if (data.isBlocked) {

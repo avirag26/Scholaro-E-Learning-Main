@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Mail, Shield, CheckCircle, Clock } from "lucide-react";
 import { toast } from "react-toastify";
-import { axiosPublic } from "../api/axios";
+import { publicAPI } from "../api/axiosConfig.js";
 import { motion, AnimatePresence } from "framer-motion";
 
-const OtpModal = ({ isOpen, onClose, onVerify, email }) => {
+const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
   const [otp, setOtp] = useState(Array(6).fill(""));
   const [timer, setTimer] = useState(60);
   const [isResending, setIsResending] = useState(false);
@@ -74,7 +74,7 @@ const OtpModal = ({ isOpen, onClose, onVerify, email }) => {
     if (isResending || timer > 0) return;
     try {
       setIsResending(true);
-      const response = await axiosPublic.post(`/api/users/resend-otp`, { email });
+      const response = await publicAPI.post(`/api/${userType}s/resend-otp`, { email });
       if (response.status === 200) {
         const newExpiryTime = new Date().getTime() + 60 * 1000;
         localStorage.setItem(`otpExpiryTime_${email}`, newExpiryTime.toString());

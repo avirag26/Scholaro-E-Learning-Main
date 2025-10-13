@@ -3,6 +3,9 @@ import { toast } from 'sonner';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+let isRefreshing = false;
+let failedQueue = [];
+
 const createAxiosInstance = (userType) => {
   const instance = axios.create({
     baseURL: API_BASE_URL,
@@ -11,6 +14,17 @@ const createAxiosInstance = (userType) => {
       'Content-Type': 'application/json',
     },
   });
+
+  const processQueue = (error, token = null) => {
+    failedQueue.forEach(prom => {
+      if (error) {
+        prom.reject(error);
+      } else {
+        prom.resolve(token);
+      }
+    });
+    failedQueue = [];
+  };
 
   instance.interceptors.request.use(
     (config) => {
@@ -31,7 +45,7 @@ const createAxiosInstance = (userType) => {
         config.headers.Authorization = `Bearer ${token}`;
       }
 
-      console.log(`📤 ${userType.toUpperCase()} API Request:`, {
+      console.log(` ${userType.toUpperCase()} API Request:`, {
         method: config.method?.toUpperCase(),
         url: config.url,
         hasToken: !!token
@@ -47,7 +61,7 @@ const createAxiosInstance = (userType) => {
 
   instance.interceptors.response.use(
     (response) => {
-      console.log(`📥 ${userType.toUpperCase()} API Response:`, {
+      console.log(` ${userType.toUpperCase()} API Response:`, {
         status: response.status,
         url: response.config.url
       });
@@ -56,24 +70,67 @@ const createAxiosInstance = (userType) => {
     (error) => {
       const { response, config } = error;
       
-      console.error(`❌ ${userType.toUpperCase()} API Error:`, {
+      console.error(` ${userType.toUpperCase()} API Error:`, {
         status: response?.status,
         url: config?.url,
         message: response?.data?.message
       });
 
       if (response?.status === 401) {
-        if (response.data?.expired) {
-          toast.error('Session expired. Please login again.');
-        } else {
-          toast.error('Authentication failed. Please login again.');
+        const originalRequest = error.config;
+
+        // Don't retry for login or token refresh endpoints
+        if (originalRequest.url.includes('/login') || originalRequest.url.includes('/google-auth') || originalRequest.url.includes('/refresh-token') || originalRequest._retry) {
+          return Promise.reject(error);
         }
-        
-        clearUserTokens(userType);
-        redirectToLogin(userType);
+
+        if (isRefreshing) {
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          }).then(token => {
+            originalRequest.headers['Authorization'] = 'Bearer ' + token;
+            return instance(originalRequest);
+          });
+        }
+
+        originalRequest._retry = true;
+        isRefreshing = true;
+
+        return new Promise((resolve, reject) => {
+          // Use publicAPI to avoid circular interceptor calls
+          // Assuming a generic refresh endpoint. Adjust if needed.
+          publicAPI.post(`/api/${userType}s/refresh-token`)
+            .then(({ data }) => {
+              const tokenKey = userType === 'user' ? 'authToken' : `${userType}AuthToken`;
+              localStorage.setItem(tokenKey, data.accessToken);
+              instance.defaults.headers.common['Authorization'] = 'Bearer ' + data.accessToken;
+              originalRequest.headers['Authorization'] = 'Bearer ' + data.accessToken;
+              processQueue(null, data.accessToken);
+              resolve(instance(originalRequest));
+            })
+            .catch(err => {
+              processQueue(err, null);
+              clearUserTokens(userType);
+              redirectToLogin(userType);
+              toast.error('Session expired. Please login again.');
+              reject(err);
+            })
+            .finally(() => {
+              isRefreshing = false;
+            });
+        });
+
       } else if (response?.status === 403) {
         if (response.data?.blocked) {
-          toast.error('Your account has been blocked by the administrator.');
+          // Let login components handle their own blocked messages
+          if (config.url.includes('/login') || config.url.includes('/google-auth')) {
+            return Promise.reject(error);
+          }
+          
+          // For other 403 errors (like blocked users accessing protected routes)
+          if (!toast.isActive('blocked-error')) {
+            toast.error('Your account has been blocked by the administrator.', { id: 'blocked-error' });
+          }
           clearUserTokens(userType);
           redirectToLogin(userType);
         } else {
@@ -111,7 +168,8 @@ const clearUserTokens = (userType) => {
 
 const redirectToLogin = (userType) => {
   setTimeout(() => {
-    window.location.href = `/${userType}/login`;
+    const path = userType === 'admin' ? '/admin/login' : `/${userType}/login`;
+    window.location.href = path;
   }, 1000);
 };
 

@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import axiosInstance from '../../api/axios';
+import { userAPI, tutorAPI, adminAPI } from '../../api/axiosConfig';
 
 const ProtectedRoute = ({ children, userType }) => {
   const { auth } = useAuth();
@@ -18,18 +18,22 @@ const ProtectedRoute = ({ children, userType }) => {
   useEffect(() => {
     const checkBlockedStatus = async () => {
       let endpoint = '';
+      let apiInstance;
 
       if (userType === 'user' && userToken) {
         endpoint = '/api/users/check-status';
+        apiInstance = userAPI;
       } else if (userType === 'tutor' && tutorToken) {
         endpoint = '/api/tutors/check-status';
+        apiInstance = tutorAPI;
       } else if (userType === 'admin' && adminToken) {
-        endpoint = '/api/admin/check-status';
+        endpoint = '/api/admin/check-status'; // Assuming this endpoint exists
+        apiInstance = adminAPI;
       }
 
       if (endpoint) {
         try {
-          await axiosInstance.get(endpoint);
+          await apiInstance.get(endpoint);
           setIsBlocked(false);
         } catch (error) {
           if (error.response?.status === 403) {

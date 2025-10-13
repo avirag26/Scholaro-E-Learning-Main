@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchUsers } from "../../Redux/userSlice";
 import AdminLayout from "./common/AdminLayout";
 import { toast } from "react-toastify";
-import axiosInstance from "../../api/axios";
+import { adminAPI } from "../../api/axiosConfig";
 import Swal from "sweetalert2";
 
 const Students = () => {
@@ -60,7 +60,7 @@ const Students = () => {
 
     try {
       const action = currentStatus ? 'unblock' : 'block';
-      const response = await axiosInstance.patch(`/api/admin/users/${userId}/${action}`);
+      const response = await adminAPI.patch(`/api/admin/users/${userId}/${action}`);
 
       if (response.data.success) {
         if (action === 'block') {

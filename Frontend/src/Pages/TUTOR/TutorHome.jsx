@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "./COMMON/Header";
 import Footer from "./COMMON/Footer";
 import Swal from "sweetalert2";
-import axiosInstance from "../../api/axios";
+import { tutorAPI } from "../../api/axiosConfig";
 
 
 
@@ -71,7 +71,7 @@ useEffect(() => {
         return;
       }
 
-      const response = await axiosInstance.get('/api/tutors/check-status');
+      const response = await tutorAPI.get('/api/tutors/check-status');
       const data = response.data;
 
       if (data.isBlocked) {

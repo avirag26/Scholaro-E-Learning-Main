@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axiosInstance from "../api/axios";
+import { adminAPI } from "../api/axiosConfig";
 
 export const fetchTutors = createAsyncThunk(
   "tutors/fetchTutors",
@@ -10,7 +10,7 @@ export const fetchTutors = createAsyncThunk(
         search,
         status
       });
-      const { data } = await axiosInstance.get(`/api/admin/tutors?${params}`);
+      const { data } = await adminAPI.get(`/api/admin/tutors?${params}`);
 
       return data;
 

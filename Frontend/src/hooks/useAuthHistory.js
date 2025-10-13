@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { checkUserAuth, checkTutorAuth, checkAdminAuth, clearAllData } from '../helpers/auth';
-import { axiosPrivate } from '../api/axios';
+import { userAPI, tutorAPI, adminAPI } from '../api/axiosConfig';
 import { toast } from 'react-toastify';
 
 export const useAuthProtection = (userType) => {
@@ -39,10 +39,19 @@ export const useAuthProtection = (userType) => {
     };
 
     const checkIfBlocked = async () => {
-      const statusUrl = `/api/${userType}s/check-status`;
+      let apiInstance;
+      if (userType === 'user') {
+        apiInstance = userAPI;
+      } else if (userType === 'tutor') {
+        apiInstance = tutorAPI;
+      } else if (userType === 'admin') {
+        apiInstance = adminAPI;
+      } else {
+        return;
+      }
 
       try {
-        await axiosPrivate.get(statusUrl);
+        await apiInstance.get(`/api/${userType}s/check-status`);
       } catch (error) {
         if (error.response?.status === 403) {
           toast.error('Your account has been blocked. Please contact support.');

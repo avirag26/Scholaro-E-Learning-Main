@@ -1,11 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axiosInstance from "../api/axios";
+import { adminAPI } from "../api/axiosConfig";
 
 export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
   async ({ page = 1, search = "", status = "all" } = {}, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.get("/api/admin/users", {
+      const res = await adminAPI.get("/api/admin/users", {
         params: { page, search, status },
       });
 

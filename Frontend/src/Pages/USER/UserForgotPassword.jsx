@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { axiosPublic } from '../../api/axios';
+import { publicAPI } from '../../api/axiosConfig';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import DotDotDotSpinner from '../../ui/Spinner/DotSpinner';
@@ -18,7 +18,7 @@ export default function UserForgotPassword() {
     }
     setIsSubmitting(true);
     try {
-      const response = await axiosPublic.post('/api/users/forgot-password', { email });
+      const response = await publicAPI.post('/api/users/forgot-password', { email });
       toast.success(response.data.message);
     } catch (err) {
       toast.success('If an account with that email exists, a password reset link has been sent.');

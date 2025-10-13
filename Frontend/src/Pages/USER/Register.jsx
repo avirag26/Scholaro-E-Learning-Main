@@ -3,8 +3,8 @@ import { Eye,EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 import Banner from "../../assets/Register.jpg";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner";
-import { useNavigate } from "react-router-dom";
-import { axiosPublic } from "../../api/axios";
+import { useNavigate } from "react-router-dom"; 
+import { publicAPI } from "../../api/axiosConfig";
 import { useAuth } from "../../Context/AuthContext";
 import OtpModal from "../../ui/OTP";
 import { GoogleLogin } from "@react-oauth/google";
@@ -130,7 +130,7 @@ export default function Register(){
 
     try {
       const {  ...registerData } = formData;
-      const response = await axiosPublic.post("/api/users", registerData);
+      const response = await publicAPI.post("/api/users", registerData);
 
       toast.success(response.data.message);
       setIsOtpModalOpen(true);
@@ -152,7 +152,7 @@ export default function Register(){
     const handleVerifyOtp = async (otp) => {
     setIsSubmitting(true);
     try {
-      const response = await axiosPublic.post(`/api/users/verify-otp`, {
+      const response = await publicAPI.post(`/api/users/verify-otp`, {
         email: formData.email,
         otp,
       });
@@ -174,7 +174,7 @@ export default function Register(){
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       setIsSubmitting(true);
-      const response = await axiosPublic.post("/api/users/google-auth", {
+      const response = await publicAPI.post("/api/users/google-auth", {
         credential: credentialResponse.credential
       });
 
@@ -435,6 +435,7 @@ return (
          onClose={() => setIsOtpModalOpen(false)}
           onVerify={handleVerifyOtp}
           email={formData.email}
+          userType="user"
         />
 
      

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff, AlertTriangle } from "lucide-react";
 import LoginBanner from "../../assets/Login.svg";
 import { Link, useNavigate } from "react-router-dom";
-import { axiosPublic } from "../../api/axios";
+import { tutorAPI } from "../../api/axiosConfig"; // Corrected from axios.js in previous steps, but was using axiosPublic before.
 import { toast } from "react-toastify";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner";
 import { GoogleLogin } from "@react-oauth/google";
@@ -58,7 +58,7 @@ export default function TutorLogin() {
 
     setIsSubmitting(true);
     try {
-      const response = await axiosPublic.post("/api/tutors/login", { email, password });
+      const response = await tutorAPI.post("/api/tutors/login", { email, password });
       
       clearUserData();
       clearAdminData();
@@ -83,7 +83,7 @@ export default function TutorLogin() {
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       setIsSubmitting(true);
-      const response = await axiosPublic.post("/api/tutors/google-auth", {
+      const response = await tutorAPI.post("/api/tutors/google-auth", {
         credential: credentialResponse.credential
       });
 

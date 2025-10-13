@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 
-const GuestRoute = ({ children, userType }) => {
+const GuestRoute = ({ children }) => {
     const userToken = localStorage.getItem('authToken');
     const tutorToken = localStorage.getItem('tutorAuthToken');
     const adminToken = localStorage.getItem('adminAuthToken');

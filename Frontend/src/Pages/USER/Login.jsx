@@ -3,8 +3,8 @@ import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import LoginBanner from "../../assets/Login.svg";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import DotDotDotSpinner from "../../ui/Spinner/DotSpinner.jsx";
-import { axiosPublic } from '../../api/axios.js';
+import DotDotDotSpinner from "../../ui/Spinner/DotSpinner.jsx"; 
+import { userAPI } from '../../api/axiosConfig.js';
 import { useAuth } from '../../Context/AuthContext.jsx';
 import { GoogleLogin } from "@react-oauth/google";
 import {
@@ -76,7 +76,7 @@ export default function Login() {
     setIsSubmitting(true);
 
     try{
-      const response = await axiosPublic.post('/api/users/login',{email,password});
+      const response = await userAPI.post('/api/users/login',{email,password});
 
       const {accessToken, ...user} = response.data;
 
@@ -115,7 +115,7 @@ export default function Login() {
     const handleGoogleSuccess = async (credentialResponse) => {
     try {
       setIsSubmitting(true);
-      const response = await axiosPublic.post("/api/users/google-auth", {
+      const response = await userAPI.post("/api/users/google-auth", {
         credential: credentialResponse.credential
       });
 

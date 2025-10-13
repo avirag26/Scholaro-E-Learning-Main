@@ -3,7 +3,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 import TutorBanner from "../../assets/TutorBanner.jpg";
 import { useNavigate } from "react-router-dom";
-import { axiosPublic } from "../../api/axios";
+import { publicAPI } from "../../api/axiosConfig";
 import OtpModal from "../../ui/OTP";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner";
 import { GoogleLogin } from "@react-oauth/google";
@@ -67,7 +67,7 @@ export default function TutorRegister() {
     setIsSubmitting(true);
     try {
       const {  ...registerData } = formData;
-      const response = await axiosPublic.post("/api/tutors/register", registerData);
+      const response = await publicAPI.post("/api/tutors/register", registerData);
       toast.success(response.data.message);
       setIsOtpModalOpen(true);
     } catch (err) {
@@ -80,7 +80,7 @@ export default function TutorRegister() {
   const handleVerifyOtp = async (otp) => {
     setIsSubmitting(true);
     try {
-      const response = await axiosPublic.post("/api/tutors/verify-otp", {
+      const response = await publicAPI.post("/api/tutors/verify-otp", {
         email: formData.email,
         otp,
       });
@@ -99,7 +99,7 @@ export default function TutorRegister() {
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       setIsSubmitting(true);
-      const response = await axiosPublic.post("/api/tutors/google-auth", {
+      const response = await publicAPI.post("/api/tutors/google-auth", {
         credential: credentialResponse.credential
       });
 
@@ -372,6 +372,7 @@ export default function TutorRegister() {
         onClose={() => setIsOtpModalOpen(false)}
         onVerify={handleVerifyOtp}
         email={formData.email}
+        userType="tutor"
       />
     </div>
   );
