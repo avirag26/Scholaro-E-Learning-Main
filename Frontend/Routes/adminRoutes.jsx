@@ -11,14 +11,12 @@ import GuestRoute from "../src/components/RouteProtection/GuestRoute";
 const AdminRoutes = () => {
     return (
         <Routes>
-            {/* Public Routes - Only accessible when NOT logged in */}
             <Route path="login" element={
                 <GuestRoute userType="admin">
                     <AdminLogin />
                 </GuestRoute>
             } />
 
-            {/* Protected Routes - Only accessible when logged in as admin */}
             <Route path="dashboard" element={
                 <ProtectedRoute userType="admin">
                     <AdminDashboard />

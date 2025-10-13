@@ -405,7 +405,6 @@ const checkAdminStatus = async (req, res) => {
       return res.status(401).json({ message: 'Authentication invalid.' });
     }
 
-    // Fetch the latest admin state from the database
     const admin = await Admin.findById(req.user._id);
 
     if (!admin) {
@@ -416,7 +415,6 @@ const checkAdminStatus = async (req, res) => {
       return res.status(403).json({ message: "Admin is blocked." });
     }
 
-    // If not blocked, send a 200 OK status.
     res.status(200).json({ message: "Admin is active." });
   } catch (error) {
     res.status(500).json({ message: 'Server error while checking status' });

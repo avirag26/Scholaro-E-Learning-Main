@@ -5,11 +5,11 @@ import { useNavigate } from "react-router-dom";
 import Header from "./COMMON/Header";
 import Footer from "./COMMON/Footer";
 import Swal from "sweetalert2";
-import axios from "axios";
+import axiosInstance from "../../api/axios";
 
 
 
-const profileImage = "https://randomuser.me/api/portraits/men/75.jpg"; // Placeholder image
+const profileImage = "https://randomuser.me/api/portraits/men/75.jpg"; 
 
 const chartData = [
   { name: 'Sun', uv: 400000, pv: 200000 },
@@ -71,10 +71,7 @@ useEffect(() => {
         return;
       }
 
-      const response = await axios.get('http://localhost:5000/api/tutors/check-status', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const response = await axiosInstance.get('/api/tutors/check-status');
       const data = response.data;
 
       if (data.isBlocked) {
@@ -143,9 +140,7 @@ useEffect(() => {
     <div className="min-h-screen bg-[#f2fbf6] w-full flex flex-col">
       <Header />
 
-      {/* Main container */}
       <div className="flex flex-1 w-full">
-        {/* Sidebar */}
         <aside className="w-64 bg-white mx-4 my-6 rounded-2xl shadow-md flex flex-col items-center py-8">
           <img src={profileImage} className="w-24 h-24 rounded-full shadow" alt="profile" />
           <div className="mt-4 text-sky-500 font-semibold text-lg">{tutorName}</div>
@@ -182,9 +177,7 @@ useEffect(() => {
             <FaPlus /> Add New Course
           </button>
         </aside>
-        {/* Dashboard */}
         <main className="flex-1 my-6 mr-4">
-          {/* Top Card */}
           <div className="rounded-2xl shadow-md px-8 py-6 bg-white border-4 border-[#b8eec4]/30">
             <div className="flex items-center justify-between mb-2">
               <div className="text-2xl font-bold text-sky-600">Dashboard</div>
@@ -207,13 +200,11 @@ useEffect(() => {
                 <span className="mt-1 text-[#666] font-normal text-base">Total Revenue</span>
               </div>
             </div>
-            {/* Graph Row */}
             <div className="bg-[#f0f9f5] p-4 rounded-xl mt-4">
               <div className="flex justify-between items-center mb-3">
                 <span className="font-semibold text-[#4e9b8f]">Market Overview</span>
                 <span className="text-sm text-gray-400">This week</span>
               </div>
-              {/* Animated Recharts Graph */}
               <ResponsiveContainer width="100%" height={230}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -225,7 +216,6 @@ useEffect(() => {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            {/* Table */}
             <div className="bg-white rounded-xl p-4 mt-6 border border-[#e3eae2]">
               <table className="w-full text-center">
                 <thead>
@@ -260,10 +250,8 @@ useEffect(() => {
               </table>
             </div>
           </div>
-          {/* Footer */}
         </main>
       </div>
-      {/* Footer */}
       <Footer />
     </div>
   );

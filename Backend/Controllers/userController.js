@@ -17,13 +17,11 @@ const registerUser = async (req, res) => {
     }
 
     if (user && !user.is_verified) {
-     
       user.full_name = full_name;
       user.phone = phone;
       user.password = password;
       await user.save();
     } else {
-    
       user = new User({
         full_name,
         email,
@@ -35,7 +33,6 @@ const registerUser = async (req, res) => {
       await user.save();
     }
 
-   
     await createAndSendOTP(email, 'user');
 
     res.status(201).json({ message: "OTP sent to your Email" });
@@ -56,7 +53,6 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-   
     if (user.is_blocked) {
       return res.status(403).json({
         message: "Your account has been blocked by the administrator. Please contact support.",
@@ -155,7 +151,6 @@ const resendOtp = async (req, res) => {
       return res.status(400).json({ message: "Cannot send OTP to this user" });
     }
 
-   
     await createAndSendOTP(email, 'user');
     
     return res.status(200).json({ message: "A new OTP has been sent to your email." });
@@ -184,7 +179,6 @@ const handleGoogleAuth = async (req, res, Model, userType) => {
     let entity = await Model.findOne({ $or: [{ email }, { googleId }] });
 
     if (!entity) {
-  
       entity = new Model({
         full_name: name,
         email,
@@ -317,7 +311,6 @@ const checkUserStatus = async (req, res) => {
     }
 
     if (user.is_blocked) {
-
       return res.status(403).json({ message: "User is blocked by admin." });
     }
 

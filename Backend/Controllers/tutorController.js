@@ -17,9 +17,7 @@ const registerTutor = async (req, res) => {
       return res.status(400).json({ message: "Tutor already exists" });
     }
 
-    
     if (tutor && !tutor.is_verified) {
-      
       tutor.full_name = full_name;
       tutor.phone = phone;
       
@@ -29,7 +27,6 @@ const registerTutor = async (req, res) => {
       }
       await tutor.save();
     } else {
-      
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -63,14 +60,12 @@ const verifyTutorOtp = async (req, res) => {
       return res.status(400).json({ message: "Tutor not found" });
     }
 
-   
     const otpResult = await verifyOTP(email, otp, 'tutor');
     
     if (!otpResult.success) {
       return res.status(400).json({ message: otpResult.message });
     }
 
- 
     tutor.is_verified = true;
     await tutor.save();
 
@@ -110,7 +105,6 @@ const loginTutor = async (req, res) => {
       if (!tutor.is_verified) {
         return res.status(400).json({ message: "Tutor not verified" });
       }
-     
       if (tutor.is_blocked) {
         return res.status(403).json({
           message: "Your account has been blocked by the administrator. Please contact support.",
@@ -151,7 +145,6 @@ const resendTutorOtp = async (req, res) => {
       return res.status(400).json({ message: "Cannot resend OTP for this tutor." });
     }
 
-  
     await createAndSendOTP(email, 'tutor');
     
     res.status(200).json({ message: "A new OTP has been sent to your email." });
@@ -169,7 +162,6 @@ const googleAuthTutor = async (req, res) => {
       return res.status(400).json({ message: "Google credential is required" });
     }
 
-
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
     const ticket = await client.verifyIdToken({
       idToken: credential,
@@ -183,9 +175,7 @@ const googleAuthTutor = async (req, res) => {
       $or: [{ email }, { googleId }],
     });
 
-
     if (tutor) {
-      // Check if tutor is blocked
       if (tutor.is_blocked) {
         return res.status(403).json({
           message: "Your account has been blocked by the administrator. Please contact support.",
@@ -199,14 +189,12 @@ const googleAuthTutor = async (req, res) => {
         await tutor.save();
       }
 
-
       const accessToken = generateAccessToken(tutor._id);
       const refreshToken = generateRefreshToken(tutor._id);
 
       tutor.refreshToken = refreshToken;
       tutor.lastLogin = new Date();
       await tutor.save();
-
 
       res.cookie("jwt_tutor", refreshToken, {
         httpOnly: true,
@@ -225,7 +213,6 @@ const googleAuthTutor = async (req, res) => {
       });
     }
 
-    // If no tutor found, register new one
     const newTutor = new Tutor({
       full_name: name,
       email,
@@ -237,7 +224,6 @@ const googleAuthTutor = async (req, res) => {
 
     await newTutor.save();
 
-    // Generate tokens for the new tutor
     const accessToken = generateAccessToken(newTutor._id);
     const refreshToken = generateRefreshToken(newTutor._id);
 
@@ -245,7 +231,6 @@ const googleAuthTutor = async (req, res) => {
     newTutor.lastLogin = new Date();
     await newTutor.save();
 
-    // Set refresh token cookie
     res.cookie("jwt_tutor", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV !== "development",
@@ -342,7 +327,6 @@ const checkTutorStatus = async (req, res) => {
     }
 
     if (tutor.is_blocked) {
-   
       return res.status(403).json({ message: "Tutor is blocked by admin." });
     }
 

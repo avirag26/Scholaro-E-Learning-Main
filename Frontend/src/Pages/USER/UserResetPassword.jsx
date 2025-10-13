@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { axiosPublic } from '../../api/axios';
 import { toast, Toaster } from 'sonner';
@@ -44,7 +44,7 @@ export default function UserResetPassword() {
 
     setIsSubmitting(true);
     try {
-      const response = await axiosPublic.patch(`/api/users/reset-password/${token}`, {
+      const response = await axiosPublic.post(`/api/users/reset-password/${token}`, {
         password: formData.password
       });
       toast.success(response.data.message);

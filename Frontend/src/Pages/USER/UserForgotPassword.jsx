@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { axiosPublic } from '../../api/axios';
 import { toast, Toaster } from 'sonner';
 import { Link } from 'react-router-dom';

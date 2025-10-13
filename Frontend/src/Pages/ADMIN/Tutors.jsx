@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchTutors } from "../../Redux/tutorSlice";
 import AdminLayout from "./common/AdminLayout";
 import { toast } from "sonner";
-import axios from "axios";
+import axiosInstance from "../../api/axios";
 import Swal from "sweetalert2";
 
 const Tutors = () => {
@@ -36,12 +36,6 @@ const Tutors = () => {
   }, [searchTerm, statusFilter]);
 
   const handleBlockUnblock = async (tutorId, currentStatus) => {
-    const adminToken = localStorage.getItem('adminAuthToken');
-
-    if (!adminToken) {
-      toast.error("Please login again");
-      return;
-    }
 
     // SweetAlert confirmation dialog
     const action = currentStatus ? 'unblock' : 'block';
@@ -66,15 +60,7 @@ const Tutors = () => {
 
     try {
       const action = currentStatus ? 'unblock' : 'block';
-      const response = await axios.patch(
-        `http://localhost:5000/api/admin/tutors/${tutorId}/${action}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${adminToken}`,
-          },
-        }
-      );
+      const response = await axiosInstance.patch(`/api/admin/tutors/${tutorId}/${action}`);
 
       if (response.data.success) {
         if (action === 'block') {

@@ -71,6 +71,11 @@ export default function AdminLogin() {
       
       redirectAfterLogin(navigate, 'admin');
     } catch (err) {
+      if (err.response?.status === 403 && err.response.data.blocked) {
+        // Handle blocked admin specifically
+        toast.error(err.response.data.message || "Your account has been blocked");
+        return;
+      }
       toast.error(err.response?.data?.message || "Login Failed");
     } finally {
       setIsSubmitting(false);

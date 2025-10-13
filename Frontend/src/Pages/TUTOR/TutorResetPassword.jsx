@@ -1,11 +1,11 @@
-import React from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { axiosPublic } from '../../api/axios';
 import { toast, Toaster } from 'sonner';
 import { Link } from 'react-router-dom';
 import DotDotDotSpinner from '../../ui/Spinner/DotSpinner';
 import { Eye, EyeOff } from 'lucide-react';
-import  { useState } from 'react';
+
 
 export default function TutorResetPassword() {
   const { token } = useParams();

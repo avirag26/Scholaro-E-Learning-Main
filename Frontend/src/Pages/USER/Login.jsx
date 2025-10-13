@@ -97,6 +97,11 @@ export default function Login() {
     } catch (err) {
       if (!err?.response) {
         toast.error("No Server Response");
+      } else if (err.response.status === 403 && err.response.data.blocked) {
+        // Handle blocked user specifically
+        toast.error(err.response.data.message || "Your account has been blocked");
+        // Don't proceed with login, stay on login page
+        return;
       } else {
         toast.error(err.response.data.message || "Login Failed");
       }
@@ -128,6 +133,11 @@ export default function Login() {
       
       redirectAfterLogin(navigate, 'user', from);
     } catch (err) {
+      if (err.response?.status === 403 && err.response.data.blocked) {
+        // Handle blocked user specifically
+        toast.error(err.response.data.message || "Your account has been blocked");
+        return;
+      }
       toast.error(err.response?.data?.message || "Google login failed");
     } finally {
       setIsSubmitting(false);
@@ -141,7 +151,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Section */}
       <div className="hidden lg:flex lg:w-1/2 bg-gray-100 relative">
         <img
           src={LoginBanner}
@@ -150,9 +159,7 @@ export default function Login() {
         />
       </div>
 
-      {/* Right Section */}
       <div className="w-full lg:w-1/2 flex flex-col p-8 lg:p-12 relative">
-        {/* Scholaro Logo */}
         <div className="absolute top-4 right-4 hidden lg:block">
           <h1 className="text-2xl font-bold text-sky-500">Scholaro</h1>
         </div>
@@ -160,7 +167,6 @@ export default function Login() {
           <h1 className="text-2xl font-bold text-sky-500">Scholaro</h1>
         </div>
 
-        {/* Buttons Section */}
         <div className="flex flex-col lg:flex-row lg:justify-center items-center gap-2 mb-8">
           <div className="flex gap-2 p-1 bg-sky-100 rounded-full">
             <button className="px-6 py-2 bg-sky-500 text-white rounded-full transition-colors duration-300">
@@ -175,14 +181,12 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Form Section */}
         <div className="max-w-md w-full mx-auto">
           <div className="mb-8">
             <h2 className="text-2xl font-semibold mb-2">Welcome to Scholaro...!</h2>
             <p className="text-gray-600">Scholaro makes you perfect</p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-            {/* Username Input */}
             <div>
               <label
                 htmlFor="email"
@@ -212,7 +216,6 @@ export default function Login() {
               )}
             </div>
 
-            {/* Password Input with Toggle */}
             <div className="relative">
               <label
                 htmlFor="password"
@@ -250,7 +253,6 @@ export default function Login() {
               )}
             </div>
 
-            {/* Remember Me and Forgot Password */}
             <div className="flex items-center justify-between">
               <label className="flex items-center space-x-2">
                 <input
@@ -264,7 +266,6 @@ export default function Login() {
               </Link>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               className="w-full bg-sky-500 text-white py-3 rounded-lg hover:bg-sky-600 transition-colors duration-300 disabled:opacity-50"
@@ -273,7 +274,6 @@ export default function Login() {
               {isSubmitting ? <DotDotDotSpinner /> : "Login"}
             </button>
 
-            {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
@@ -283,7 +283,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Google Login Button */}
             <div className="mt-6">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
@@ -296,7 +295,6 @@ export default function Login() {
               />
             </div>
 
-            {/* Sign Up Link */}
             <p className="text-center text-sm text-gray-600">
               Don&apos;t have an account?{" "}
               <Link

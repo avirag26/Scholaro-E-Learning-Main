@@ -5,7 +5,6 @@ const GuestRoute = ({ children, userType }) => {
     const tutorToken = localStorage.getItem('tutorAuthToken');
     const adminToken = localStorage.getItem('adminAuthToken');
 
-    // Simple: If anyone is logged in, redirect to their dashboard
     if (userToken) {
         return <Navigate to="/user/home" replace />;
     }
@@ -18,7 +17,6 @@ const GuestRoute = ({ children, userType }) => {
         return <Navigate to="/admin/dashboard" replace />;
     }
 
-    // No one is logged in, show the page
     return children;
 };
 

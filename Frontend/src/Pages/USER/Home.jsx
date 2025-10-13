@@ -8,13 +8,12 @@ import TeamSection from "../../ui/TeamSection";
 import BannerImg from "../../assets/banner.png";
 import { MdFavoriteBorder } from "react-icons/md";
 import Header from "./Common/Header";
-import axios from "axios";
+import axiosInstance from "../../api/axios";
 
 export default function UserHomePage() {
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
 
-  // Simple back button prevention
   useEffect(() => {
     window.history.pushState(null, '', window.location.pathname);
 
@@ -34,20 +33,14 @@ useEffect(() => {
       const token = localStorage.getItem('authToken');
       const storedUserInfo = localStorage.getItem('userInfo');
 
-   
       if (!token) {
         navigate('/user/login');
         return;
       }
 
-      
-      const response = await axios.get('http://localhost:5000/api/users/check-status', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const response = await axiosInstance.get('/api/users/check-status');
       const data = response.data;
 
-      
       if (data.isBlocked) {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userInfo');
@@ -55,7 +48,6 @@ useEffect(() => {
         return;
       }
 
-     
       if (storedUserInfo) {
         setUserInfo(JSON.parse(storedUserInfo));
       } else {
@@ -78,7 +70,6 @@ useEffect(() => {
 
 
 
-  // Mock user progress data
   const userProgress = {
     coursesEnrolled: 3,
     coursesCompleted: 1,
@@ -86,7 +77,6 @@ useEffect(() => {
     certificates: 1
   };
 
-  // Mock enrolled courses
   const enrolledCourses = [
     {
       id: 1,
@@ -114,7 +104,6 @@ useEffect(() => {
     }
   ];
 
-  // Static course data for browsing
   const courses = [
     { _id: '1', title: 'React for Beginners', course_thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=200&fit=crop', tutor: { full_name: 'John Doe' }, rating: 4.5, reviews: { length: 120 }, price: 499, offer_percentage: 10 },
     { _id: '2', title: 'Advanced CSS and Sass', course_thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop', tutor: { full_name: 'Jane Smith' }, rating: 4.8, reviews: { length: 250 }, price: 799, offer_percentage: 20 },
@@ -126,15 +115,9 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <Header
-      //  user={user}
-      //  theme={theme}
-      //  onToggle={handleThemeToggle}
-      //  onMenuClick={handleMenuClick}
       />
 
-      {/* Welcome Section */}
       <section className="bg-gradient-to-br from-teal-50 to-blue-50 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 items-center">
@@ -178,7 +161,6 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* Progress Stats */}
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-6">
@@ -225,7 +207,6 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* Continue Learning */}
       <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
@@ -273,7 +254,6 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* Browse All Courses */}
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
@@ -359,16 +339,12 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* Explore Categories */}
       <CategoryCards />
 
-      {/* Success Stories */}
       <Testimonials />
 
-      {/* Expert Instructors */}
       <TeamSection />
 
-      {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">

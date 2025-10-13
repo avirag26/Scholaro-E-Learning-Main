@@ -1,19 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosInstance from "../api/axios";
 
 export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
   async ({ page = 1, search = "", status = "all" } = {}, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("adminAuthToken");
-      if (!token) {
-        return rejectWithValue("No admin token found. Please login again.");
-      }
-
-      const res = await axios.get("http://localhost:5000/api/admin/users", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const res = await axiosInstance.get("/api/admin/users", {
         params: { page, search, status },
       });
 
