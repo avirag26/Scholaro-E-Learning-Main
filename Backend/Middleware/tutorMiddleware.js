@@ -10,7 +10,7 @@ const protectTutor = async (req, res, next) => {
     const token = req.headers.authorization.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Use the decoded ID to find the tutor
+
     req.user = await Tutor.findById(decoded.id).select('-password');
 
     if (!req.user) {

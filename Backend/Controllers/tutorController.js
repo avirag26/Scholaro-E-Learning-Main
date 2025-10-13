@@ -1,11 +1,11 @@
 import Tutor from "../Model/TutorModel.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateToken.js";
-import { sendOtpEmail, sendPasswordResetEmail } from "../utils/emailService.js";
+import {  sendPasswordResetEmail } from "../utils/emailService.js";
 import { v4 as uuidv4 } from "uuid";
 import crypto from 'crypto'
 import bcrypt from "bcryptjs";
 import { OAuth2Client } from 'google-auth-library';
-import { generateOtp } from "../Helper/OtpHelper.js";
+import { createAndSendOTP, verifyOTP } from '../utils/otpService.js';
 
 
 const registerTutor = async (req, res) => {
@@ -17,19 +17,19 @@ const registerTutor = async (req, res) => {
       return res.status(400).json({ message: "Tutor already exists" });
     }
 
-    const otp = generateOtp();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
-
+    
     if (tutor && !tutor.is_verified) {
-      tutor.otp = otp;
-      tutor.otpExpiry = otpExpiry;
-
+      
+      tutor.full_name = full_name;
+      tutor.phone = phone;
+      
       if (password) {
         const salt = await bcrypt.genSalt(10);
-        tutor.password = await bcrypt.hash(password, salt)
+        tutor.password = await bcrypt.hash(password, salt);
       }
       await tutor.save();
     } else {
+      
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -39,15 +39,18 @@ const registerTutor = async (req, res) => {
         phone,
         password: hashedPassword,
         tutor_id: uuidv4(),
-        otp,
-        otpExpiry,
-      })
+        is_verified: false
+      });
       await tutor.save();
     }
-    await sendOtpEmail(email, otp);
+
+
+    await createAndSendOTP(email, 'tutor');
+    
     res.status(200).json({ message: "OTP sent to your email" });
   } catch (error) {
-    return res.status(500).json({ message: "Server error during registration" })
+    console.error('Tutor registration error:', error);
+    return res.status(500).json({ message: "Server error during registration" });
   }
 }
 
@@ -57,14 +60,18 @@ const verifyTutorOtp = async (req, res) => {
     const tutor = await Tutor.findOne({ email });
 
     if (!tutor) {
-      return res.status(400).json({ message: "Invalid or Expired OTP" });
+      return res.status(400).json({ message: "Tutor not found" });
     }
-    if (tutor.otp !== otp || new Date() > tutor.otpExpiry) {
-      return res.status(400).json({ message: "Invalid OTP" })
+
+   
+    const otpResult = await verifyOTP(email, otp, 'tutor');
+    
+    if (!otpResult.success) {
+      return res.status(400).json({ message: otpResult.message });
     }
+
+ 
     tutor.is_verified = true;
-    tutor.otp = undefined;
-    tutor.otpExpiry = undefined;
     await tutor.save();
 
     const refreshToken = generateRefreshToken(tutor._id);
@@ -103,8 +110,7 @@ const loginTutor = async (req, res) => {
       if (!tutor.is_verified) {
         return res.status(400).json({ message: "Tutor not verified" });
       }
-      
-      // Check if tutor is blocked
+     
       if (tutor.is_blocked) {
         return res.status(403).json({
           message: "Your account has been blocked by the administrator. Please contact support.",
@@ -145,14 +151,9 @@ const resendTutorOtp = async (req, res) => {
       return res.status(400).json({ message: "Cannot resend OTP for this tutor." });
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
-
-    tutor.otp = otp;
-    tutor.otpExpiry = otpExpiry;
-    await tutor.save();
-
-    await sendOtpEmail(email, otp);
+  
+    await createAndSendOTP(email, 'tutor');
+    
     res.status(200).json({ message: "A new OTP has been sent to your email." });
   } catch (error) {
     console.error("Resend Tutor OTP Error:", error);
@@ -295,6 +296,7 @@ const forgotPassword = async (req, res) => {
 
     return res.status(200).json({ message: "PasPassword reset token sent to email" })
   } catch (error) {
+    console.error("Forgot password error:", error);
     const { email } = req.body;
     const tutortoUpdate = await Tutor.findOne({ email });
     if (tutortoUpdate) {
@@ -328,12 +330,11 @@ const resetPassword = async (req, res) => {
 
 const checkTutorStatus = async (req, res) => {
   try {
-    // The `protectTutor` middleware attaches the tutor's ID to req.user
+
     if (!req.user) {
       return res.status(401).json({ message: 'Authentication invalid.' });
     }
 
-    // Fetch the latest tutor state from the database
     const tutor = await Tutor.findById(req.user._id);
 
     if (!tutor) {
@@ -341,11 +342,10 @@ const checkTutorStatus = async (req, res) => {
     }
 
     if (tutor.is_blocked) {
-      // If blocked, send a 403 Forbidden status, which the frontend will catch.
+   
       return res.status(403).json({ message: "Tutor is blocked by admin." });
     }
 
-    // If not blocked, send a 200 OK status.
     res.status(200).json({ message: "Tutor is active." });
   } catch (error) {
     res.status(500).json({ message: 'Server error while checking status' });

@@ -2,9 +2,9 @@ import User from "../Model/usermodel.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateToken.js";
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
-import { sendOtpEmail, sendPasswordResetEmail } from "../utils/emailService.js";
+import {  sendPasswordResetEmail } from "../utils/emailService.js";
 import { OAuth2Client } from 'google-auth-library';
-import { generateOtp } from '../Helper/OtpHelper.js'
+import { createAndSendOTP, verifyOTP } from '../utils/otpService.js';
 
 const registerUser = async (req, res) => {
   try {
@@ -13,34 +13,35 @@ const registerUser = async (req, res) => {
     let user = await User.findOne({ email });
 
     if (user && user.is_verified) {
-      return res.status(400).json({ message: "User already axist and verified" });
+      return res.status(400).json({ message: "User already exists and verified" });
     }
-
-    const otp = generateOtp();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
     if (user && !user.is_verified) {
-      user.otp = otp,
-        user.otpExpiry = otpExpiry,
-        await user.save();
-    }
-    else {
+     
+      user.full_name = full_name;
+      user.phone = phone;
+      user.password = password;
+      await user.save();
+    } else {
+    
       user = new User({
         full_name,
         email,
         phone,
         password,
         user_id: uuidv4(),
-        otp,
-        otpExpiry,
+        is_verified: false
       });
       await user.save();
     }
-    await sendOtpEmail(email, otp);
 
-    res.status(201).json({ message: "OTP sent to your Email" })
+   
+    await createAndSendOTP(email, 'user');
+
+    res.status(201).json({ message: "OTP sent to your Email" });
   } catch (error) {
-    res.status(500).json({ message: "Server error during registration" })
+    console.error('Registration error:', error);
+    res.status(500).json({ message: "Server error during registration" });
   }
 }
 
@@ -55,7 +56,7 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Check if user is blocked
+   
     if (user.is_blocked) {
       return res.status(403).json({
         message: "Your account has been blocked by the administrator. Please contact support.",
@@ -63,7 +64,6 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Check if user is verified
     if (!user.is_verified) {
       return res.status(401).json({
         message: "Please verify your email before logging in.",
@@ -76,7 +76,7 @@ const loginUser = async (req, res) => {
       const accessToken = generateAccessToken(user._id);
 
       user.refreshToken = refreshToken;
-      user.lastLogin = new Date(); // Track last login
+      user.lastLogin = new Date(); 
       await user.save();
 
       res.cookie('jwt', accessToken, {
@@ -113,18 +113,13 @@ const verifyOtp = async (req, res) => {
       return res.status(400).json({ message: "User not found" });
     }
 
-    if (user.otpExpiry < new Date()) {
-      return res.status(400).json({ message: "OTP has expired" });
+    const otpResult = await verifyOTP(email, otp, 'user');
+    
+    if (!otpResult.success) {
+      return res.status(400).json({ message: otpResult.message });
     }
 
-    if (otp !== user.otp) {
-      return res.status(400).json({ message: "Invalid OTP" });
-    }
-
-    // Verify the user
     user.is_verified = true;
-    user.otp = undefined;
-    user.otpExpiry = undefined;
     await user.save();
 
     const refreshToken = generateRefreshToken(user._id);
@@ -157,20 +152,16 @@ const resendOtp = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user || user.is_verified) {
-      return res.status(400).json({ message: "Cannot send otp to this user" });
-
+      return res.status(400).json({ message: "Cannot send OTP to this user" });
     }
-    const otp = generateOtp();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
-    user.otp = otp;
-    user.otpExpiry = otpExpiry;
-    await user.save();
-
-    await sendOtpEmail(email, otp);
-    return res.status(200).json({ message: "A new OTP is sent to yourr email." });
+   
+    await createAndSendOTP(email, 'user');
+    
+    return res.status(200).json({ message: "A new OTP has been sent to your email." });
   } catch (error) {
-    return res.status(500).json({ message: "Server error during OTP resend" })
+    console.error('Resend OTP error:', error);
+    return res.status(500).json({ message: "Server error during OTP resend" });
   }
 }
 
@@ -193,17 +184,16 @@ const handleGoogleAuth = async (req, res, Model, userType) => {
     let entity = await Model.findOne({ $or: [{ email }, { googleId }] });
 
     if (!entity) {
-      // Create new entity
+  
       entity = new Model({
         full_name: name,
         email,
         googleId,
-        profileImage: picture, // Ensure model field is 'profileImage'
+        profileImage: picture,
         [`${userType}_id`]: uuidv4(),
         is_verified: true,
       });
     } else {
-      // Check if existing entity is blocked
       if (entity.is_blocked) {
         return res.status(403).json({
           message: "Your account has been blocked by the administrator. Please contact support.",
@@ -211,9 +201,8 @@ const handleGoogleAuth = async (req, res, Model, userType) => {
         });
       }
       
-      // Update existing entity
       if (!entity.googleId) entity.googleId = googleId;
-      if (!entity.profileImage) entity.profileImage = picture; // Only update if not present
+      if (!entity.profileImage) entity.profileImage = picture;
     }
 
     const accessToken = generateAccessToken(entity._id);
@@ -227,7 +216,7 @@ const handleGoogleAuth = async (req, res, Model, userType) => {
       httpOnly: true,
       secure: process.env.NODE_ENV !== 'development',
       sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     res.status(entity.isNew ? 201 : 200).json({
@@ -239,7 +228,7 @@ const handleGoogleAuth = async (req, res, Model, userType) => {
       message: `Google ${entity.isNew ? 'registration' : 'login'} successful`,
     });
   } catch (error) {
-    console.error(`❌ Google Auth Error for ${userType}:`, error.message);
+    console.error(` Google Auth Error for ${userType}:`, error.message);
     if (error.message.includes('Token used too early') || error.message.includes('Invalid token') || error.message.includes('audience')) {
       return res.status(400).json({ message: 'Invalid Google token. Please try again.' });
     }
@@ -248,24 +237,7 @@ const handleGoogleAuth = async (req, res, Model, userType) => {
 };
 
 const googleAuth = async (req, res) => {
-  try {
-    await handleGoogleAuth(req, res, User, 'user');
-  } catch (error) {
-    console.error('❌ Google Auth Error:', error.message);
-    console.error('Error details:', error);
-
-    if (error.message.includes('Token used too early')) {
-      return res.status(400).json({ message: 'Invalid Google token. Please try again.' });
-    }
-    if (error.message.includes('Invalid token')) {
-      return res.status(400).json({ message: 'Invalid Google token format.' });
-    }
-    if (error.message.includes('audience')) {
-      return res.status(400).json({ message: 'Google Client ID mismatch.' });
-    }
-
-    return res.status(500).json({ message: 'An unexpected error occurred during Google authentication.' });
-  }
+  await handleGoogleAuth(req, res, User, 'user');
 };
 
 const forgotPassword = async (req, res) => {
@@ -289,6 +261,7 @@ const forgotPassword = async (req, res) => {
     return res.status(200).json({ message: " Send password reset tocken " })
 
   } catch (error) {
+    console.error("Forgot password error:", error);
     const { email } = req.body;
     if (email) {
 
@@ -337,7 +310,6 @@ const checkUserStatus = async (req, res) => {
       return res.status(401).json({ message: 'Authentication invalid.' });
     }
 
-    // Fetch the latest user state from the database
     const user = await User.findById(req.user._id);
 
     if (!user) {
@@ -345,11 +317,10 @@ const checkUserStatus = async (req, res) => {
     }
 
     if (user.is_blocked) {
-      // If blocked, send a 403 Forbidden status, which the frontend will catch.
+
       return res.status(403).json({ message: "User is blocked by admin." });
     }
 
-    // If not blocked, send a 200 OK status.
     res.status(200).json({ message: "User is active." });
   } catch (error) {
     res.status(500).json({ message: 'Server error while checking status' });

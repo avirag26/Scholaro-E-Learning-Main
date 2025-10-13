@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "./COMMON/Header";
 import Footer from "./COMMON/Footer";
 import Swal from "sweetalert2";
-
+import axios from "axios";
 
 
 
@@ -60,27 +60,55 @@ export default function TutorDashboard() {
 
 
 
-  useEffect(() => {
-    const token = localStorage.getItem("tutorAuthToken");
-    if (!token) {
-      navigate("/tutor/login");
-    }
-    
-  }, [navigate]);
+useEffect(() => {
+  async function verifyAndLoadTutor() {
+    try {
+      const token = localStorage.getItem('tutorAuthToken');
+      const tutorInfo = localStorage.getItem('tutorInfo');
 
-  useEffect(() => {
-    const tutorInfo = localStorage.getItem("tutorInfo");
-    if (tutorInfo) {
-      try {
-        const parsedInfo = JSON.parse(tutorInfo);
-        if (parsedInfo.name) {
-          setTutorName(parsedInfo.name);
+      if (!token) {
+        navigate('/tutor/login');
+        return;
+      }
+
+      const response = await axios.get('http://localhost:5000/api/tutors/check-status', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = response.data;
+
+      if (data.isBlocked) {
+        localStorage.removeItem('tutorAuthToken');
+        localStorage.removeItem('tutorInfo');
+        navigate('/tutor/login');
+        return;
+      }
+
+      if (tutorInfo) {
+        try {
+          const parsedTutorInfo = JSON.parse(tutorInfo);
+          setTutorName(parsedTutorInfo.name || 'Tutor');
+        } catch (error) {
+          console.error('Error parsing tutorInfo:', error);
+          setTutorName('Tutor');
         }
-      } catch (error) {
-        setTutorName("Tutor");
+      } else {
+        setTutorName('Tutor');
+      }
+
+    } catch (error) {
+      console.error('Error verifying tutor:', error);
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        localStorage.removeItem('tutorAuthToken');
+        localStorage.removeItem('tutorInfo');
+        navigate('/tutor/login');
       }
     }
-  }, []);
+  }
+
+  verifyAndLoadTutor();
+}, [navigate]);
+
 
   const handleLogout = () => {
     Swal.fire({

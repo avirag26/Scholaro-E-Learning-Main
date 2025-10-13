@@ -4,16 +4,15 @@ import Admin from "../Model/AdminModel.js";
 const protectAdmin = async (req, res, next) => {
   let token;
 
-  // Read the JWT from the 'Authorization' header
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
-      // Get token from header
+  
       token = req.headers.authorization.split(' ')[1];
 
-      // Verify token
+ 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Get admin from the token (select everything except the password)
+      
       req.admin = await Admin.findById(decoded.id).select('-password');
 
       if (!req.admin) {
@@ -24,7 +23,7 @@ const protectAdmin = async (req, res, next) => {
         return res.status(403).json({ message: 'Account has been blocked. Please contact support.' });
       }
 
-      // Set req.user for consistency with other middlewares
+      
       req.user = req.admin;
 
       next();

@@ -15,6 +15,7 @@ import { protectTutor } from "../Middleware/tutorMiddleware.js";
 router.post("/", registerTutor);
 router.post("/verify-otp", verifyTutorOtp);
 router.post("/login", loginTutor);
+router.post('/register',registerTutor)
 router.post("/resend-otp", resendTutorOtp);
 router.post("/google-auth", googleAuthTutor);
 router.post("/forgot-password", forgotPassword);

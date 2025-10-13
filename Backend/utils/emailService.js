@@ -3,12 +3,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 if (!process.env.EMAIL_USERNAME || !process.env.EMAIL_PASSWORD) {
-  console.error("Email credentials (EMAIL_USERNAME, EMAIL_PASSWORD) are not defined in your .env file.");
   throw new Error("Missing email credentials in .env file");
 }
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // Or your preferred email service
+  service: 'gmail', 
   auth: {
     user: process.env.EMAIL_USERNAME,
     pass: process.env.EMAIL_PASSWORD,
@@ -27,14 +26,14 @@ const sendOtpEmail = async (to, otp) => {
     await transporter.sendMail(mailOptions);
   } catch (error) {
     console.error('Failed to send OTP email:', error);
-    throw error; // Re-throw or handle error appropriately in calling code
+    throw error; 
   }
 };
 
 
 const sendPasswordResetEmail = async (to, resetToken, userType = 'user') => {
   try {
-    // Use environment variable or fallback to localhost
+    
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetURL = `${frontendUrl}/${userType}/reset-password/${resetToken}`;
 

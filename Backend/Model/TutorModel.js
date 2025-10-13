@@ -89,12 +89,6 @@ const tutorSchema = new mongoose.Schema(
       type: String,
       default: null
     },
-    otp: {
-      type: String,
-    },
-    otpExpiry: {
-      type: Date,
-    },
     passwordResetToken: {
       type: String,
     },
