@@ -10,6 +10,7 @@ const createAxiosInstance = (userType) => {
   const instance = axios.create({
     baseURL: API_BASE_URL,
     timeout: 10000,
+    withCredentials: true,
     headers: {
       'Content-Type': 'application/json',
     },
@@ -180,6 +181,7 @@ export const adminAPI = createAxiosInstance('admin');
 export const publicAPI = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  withCredentials:true,
   headers: {
     'Content-Type': 'application/json',
   },

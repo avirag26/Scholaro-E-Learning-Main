@@ -2,7 +2,7 @@ import User from "../Model/usermodel.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateToken.js";
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
-import {  sendPasswordResetEmail } from "../utils/emailService.js";
+import { sendPasswordResetEmail } from "../utils/emailService.js";
 import { OAuth2Client } from 'google-auth-library';
 import { createAndSendOTP, verifyOTP } from '../utils/otpService.js';
 
@@ -73,7 +73,7 @@ const loginUser = async (req, res) => {
       const accessToken = generateAccessToken(user._id);
 
       user.refreshToken = refreshToken;
-      user.lastLogin = new Date(); 
+      user.lastLogin = new Date();
       await user.save();
 
       res.cookie('jwt', accessToken, {
@@ -111,7 +111,7 @@ const verifyOtp = async (req, res) => {
     }
 
     const otpResult = await verifyOTP(email, otp, 'user');
-    
+
     if (!otpResult.success) {
       return res.status(400).json({ message: otpResult.message });
     }
@@ -153,7 +153,7 @@ const resendOtp = async (req, res) => {
     }
 
     await createAndSendOTP(email, 'user');
-    
+
     return res.status(200).json({ message: "A new OTP has been sent to your email." });
   } catch (error) {
     console.error('Resend OTP error:', error);
@@ -195,7 +195,7 @@ const handleGoogleAuth = async (req, res, Model, userType) => {
           blocked: true
         });
       }
-      
+
       if (!entity.googleId) entity.googleId = googleId;
       if (!entity.profileImage) entity.profileImage = picture;
     }
@@ -321,4 +321,132 @@ const checkUserStatus = async (req, res) => {
   }
 };
 
-export { registerUser, verifyOtp, loginUser, resendOtp, googleAuth, forgotPassword, resetPassword, checkUserStatus };
+const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { name, email, phone } = req.body;
+
+
+
+    // Validate required fields
+    if (!name || !email) {
+      return res.status(400).json({ message: "Name and email are required" });
+    }
+
+    // Check if email is already taken by another user
+    if (email && email !== req.user.email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+      if (existingUser) {
+        return res.status(400).json({ message: "Email already taken" });
+      }
+    }
+
+    // Prepare update data - only include phone if it's provided
+    const updateData = {
+      full_name: name,
+      email: email
+    };
+
+    // Only add phone to update if it's provided and not empty
+    if (phone && phone.trim() !== '') {
+      updateData.phone = phone;
+    }
+
+
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password -refreshToken');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        _id: updatedUser._id,
+        name: updatedUser.full_name,
+        email: updatedUser.email,
+        phone: updatedUser.phone
+      }
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+
+    // Check if it's a validation error
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        message: "Validation error",
+        errors: validationErrors
+      });
+    }
+
+    res.status(500).json({ message: "Server error while updating profile" });
+  }
+};
+
+const sendPasswordChangeOtp = async (req, res) => {
+  try {
+    const user = req.user;
+    
+    if (!user) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // Send OTP for password change
+    await createAndSendOTP(user.email, 'password-change');
+    
+    res.status(200).json({ 
+      message: "OTP sent to your email for password change verification" 
+    });
+  } catch (error) {
+    console.error('Send password change OTP error:', error);
+    res.status(500).json({ message: "Server error while sending OTP" });
+  }
+};
+
+const changePasswordWithOtp = async (req, res) => {
+  try {
+    const user = req.user;
+    const { newPassword, otp } = req.body;
+
+    if (!user) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    if (!newPassword || !otp) {
+      return res.status(400).json({ message: "New password and OTP are required" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
+    // Verify OTP
+    const otpResult = await verifyOTP(user.email, otp, 'password-change');
+    
+    if (!otpResult.success) {
+      return res.status(400).json({ message: otpResult.message });
+    }
+
+    // Update password
+    const userToUpdate = await User.findById(user._id);
+    userToUpdate.password = newPassword;
+    await userToUpdate.save();
+
+    res.status(200).json({ 
+      message: "Password changed successfully" 
+    });
+  } catch (error) {
+    console.error('Change password with OTP error:', error);
+    res.status(500).json({ message: "Server error while changing password" });
+  }
+};
+
+export { registerUser, verifyOtp, loginUser, resendOtp, googleAuth, updateUserProfile, forgotPassword, resetPassword, checkUserStatus, sendPasswordChangeOtp, changePasswordWithOtp };

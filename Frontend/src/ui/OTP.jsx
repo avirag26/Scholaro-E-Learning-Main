@@ -74,7 +74,17 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
     if (isResending || timer > 0) return;
     try {
       setIsResending(true);
-      const response = await publicAPI.post(`/api/${userType}s/resend-otp`, { email });
+      let response;
+      
+      if (userType === 'password-change') {
+        // For password change, use the authenticated API
+        const { userAPI } = await import('../api/axiosConfig.js');
+        response = await userAPI.post('/api/users/change-password/send-otp');
+      } else {
+        // For regular user/tutor registration
+        response = await publicAPI.post(`/api/${userType}s/resend-otp`, { email });
+      }
+      
       if (response.status === 200) {
         const newExpiryTime = new Date().getTime() + 60 * 1000;
         localStorage.setItem(`otpExpiryTime_${email}`, newExpiryTime.toString());

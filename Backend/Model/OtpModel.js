@@ -7,12 +7,13 @@ const otpSchema = new mongoose.Schema({
     index: true
   },
   otp: {
+    
     type: String,
     required: true
   },
   userType: {
     type: String,
-    enum: ['user', 'tutor'],
+    enum: ['user', 'tutor', 'password-change'],
     required: true
   },
   createdAt: {
