@@ -64,14 +64,20 @@ export default function TutorLogin() {
       clearAdminData();
       
       localStorage.setItem("tutorAuthToken", response.data.accessToken);
-      localStorage.setItem("tutorInfo", JSON.stringify({ name: response.data.name, email: response.data.email }));
+      localStorage.setItem("tutorInfo", JSON.stringify(response.data.tutor));
       toast.success("Login successful! Welcome back.");
       
       redirectAfterLogin(navigate, 'tutor');
     } catch (err) {
-      if (err.response?.status === 403 && err.response.data.blocked) {
+      if (err.response?.status === 403 && err.response?.data?.blocked) {
         // Handle blocked tutor specifically
         toast.error(err.response.data.message || "Your account has been blocked");
+        // Clear any existing tokens to prevent conflicts
+        localStorage.removeItem('tutorAuthToken');
+        localStorage.removeItem('tutorInfo');
+        // Reset form state
+        setEmail("");
+        setPassword("");
         return;
       }
       toast.error(err.response?.data?.message || "Login Failed");
@@ -91,11 +97,7 @@ export default function TutorLogin() {
       clearAdminData();
 
       localStorage.setItem("tutorAuthToken", response.data.accessToken);
-      localStorage.setItem("tutorInfo", JSON.stringify({ 
-        name: response.data.name, 
-        email: response.data.email,
-        profileImage: response.data.profileImage 
-      }));
+      localStorage.setItem("tutorInfo", JSON.stringify(response.data.tutor));
 
       toast.success(response.data.message || "Google login successful!");
       redirectAfterLogin(navigate, 'tutor');
@@ -255,16 +257,18 @@ export default function TutorLogin() {
             </div>
 
             {/* Google Login Button */}
-            <div className="mt-6">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                theme="outline"
-                size="large"
-                width="100%"
-                text="signin_with"
-                shape="rectangular"
-              />
+            <div className="mt-6 flex justify-center">
+              <div className="w-full">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme="outline"
+                  size="large"
+                  width="100%"
+                  text="signin_with"
+                  shape="rectangular"
+                />
+              </div>
             </div>
 
             {/* Sign Up Link */}

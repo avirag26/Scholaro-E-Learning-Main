@@ -4,8 +4,10 @@ import { User, BookOpen, GraduationCap, ShoppingBag, Heart, Award, LogOut, Edit2
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import ChangePasswordModal from '../../ui/ChangePasswordModal';
+import EmailChangeModal from '../../ui/EmailChangeModal';
 import Swal from "sweetalert2";
 import { userAPI } from '../../api/axiosConfig';
+import { uploadToCloudinary, validateImageFile } from '../../utils/cloudinary';
 
 
 const UserProfile = () => {
@@ -13,10 +15,13 @@ const UserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isChangingEmail, setIsChangingEmail] = useState(false);
   const [activeSection, setActiveSection] = useState('profile');
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -26,15 +31,36 @@ const UserProfile = () => {
 
   // Load user data on component mount
   useEffect(() => {
-    const loadUserData = () => {
+    const loadUserData = async () => {
       try {
-        const storedUserInfo = localStorage.getItem('userInfo');
-        if (storedUserInfo) {
-          const userData = JSON.parse(storedUserInfo);
-          setUserInfo(userData);
-        }
+        // First try to fetch from backend
+        const response = await userAPI.get('/api/users/profile');
+        const userData = response.data.user;
+        setUserInfo(userData);
+        localStorage.setItem('userInfo', JSON.stringify(userData));
       } catch (error) {
-        console.error('Error loading user data:', error);
+        // If API fails, try localStorage as fallback
+        try {
+          const storedUserInfo = localStorage.getItem('userInfo');
+          if (storedUserInfo) {
+            const userData = JSON.parse(storedUserInfo);
+            setUserInfo(userData);
+          } else {
+            // Set empty data if no user info found
+            setUserInfo({
+              name: '',
+              email: '',
+              phone: ''
+            });
+          }
+        } catch (localError) {
+          // Set empty data on error
+          setUserInfo({
+            name: '',
+            email: '',
+            phone: ''
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -61,14 +87,59 @@ const UserProfile = () => {
     }));
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
+    if (!file) return;
+
+    // Validate file
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      toast.error(validation.error);
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      
+      // Show preview immediately
       const reader = new FileReader();
       reader.onloadend = () => {
         setSelectedImage(reader.result);
       };
       reader.readAsDataURL(file);
+
+      // Upload to Cloudinary
+      const uploadResult = await uploadToCloudinary(file);
+      
+      if (!uploadResult.success) {
+        toast.error(uploadResult.error || 'Failed to upload image');
+        setSelectedImage(null);
+        return;
+      }
+
+      // Update profile photo in backend
+      await userAPI.post('/api/users/upload-profile-photo', {
+        imageUrl: uploadResult.url
+      });
+
+      // Update userInfo state and localStorage
+      const updatedUserInfo = { ...userInfo, profileImage: uploadResult.url };
+      setUserInfo(updatedUserInfo);
+      localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
+      
+      // Dispatch custom event to notify header of update
+      window.dispatchEvent(new CustomEvent('userInfoUpdated'));
+
+      // Clear the preview image so it shows the uploaded image from userInfo
+      setSelectedImage(null);
+
+      toast.success('Profile photo updated successfully!');
+      
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to upload profile photo');
+      setSelectedImage(null);
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -78,6 +149,16 @@ const UserProfile = () => {
 
   const handleCancelEdit = () => {
     setIsEditing(false);
+    // Reset form data to original values
+    if (userInfo) {
+      setFormData({
+        name: userInfo.name || userInfo.full_name || '',
+        email: userInfo.email || '',
+        phone: userInfo.phone || ''
+      });
+    }
+    // Clear any preview image
+    setSelectedImage(null);
   };
 
 
@@ -93,19 +174,22 @@ const UserProfile = () => {
 
       const response = await userAPI.put('/api/users/profile', profileData);
 
-      // Update userInfo state with new data
-      setUserInfo(response.data.user);
-
-      // Update localStorage
-      localStorage.setItem('userInfo', JSON.stringify(response.data.user));
+      // Preserve the existing profile image when updating other fields
+      const updatedUserInfo = {
+        ...response.data.user,
+        profileImage: userInfo?.profileImage || response.data.user.profileImage
+      };
+      
+      setUserInfo(updatedUserInfo);
+      localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
+      
+      // Dispatch custom event to notify header of update
+      window.dispatchEvent(new CustomEvent('userInfoUpdated'));
 
       setIsEditing(false);
       toast.success('Profile updated successfully!');
 
     } catch (error) {
-      console.error('Profile update error:', error);
-      
-      // Show more specific error message
       const errorMessage = error.response?.data?.message || 
                           error.response?.data?.errors?.join(', ') || 
                           'Failed to update profile';
@@ -121,11 +205,11 @@ const UserProfile = () => {
     setIsChangingPassword(true);
     try {
       if (passwordData.action === 'sendOtp') {
-        // Send OTP for password change
+       
         await userAPI.post('/api/users/change-password/send-otp');
         toast.success('OTP sent to your email!');
       } else if (passwordData.action === 'changePassword') {
-        // Verify OTP and change password
+       
         await userAPI.post('/api/users/change-password/verify', {
           newPassword: passwordData.password,
           otp: passwordData.otp
@@ -135,16 +219,45 @@ const UserProfile = () => {
         toast.success('Password changed successfully!');
       }
     } catch (error) {
-      console.error('Password change error:', error);
       const errorMessage = error.response?.data?.message || 'Failed to change password';
       toast.error(errorMessage);
-      
-      // If there's an error, don't close the modal so user can try again
-      if (passwordData.action === 'changePassword') {
-        // The OTP modal will stay open for user to retry
-      }
     } finally {
       setIsChangingPassword(false);
+    }
+  };
+
+  const handleEmailChange = async (emailData) => {
+    setIsChangingEmail(true);
+    try {
+      if (emailData.action === 'sendOtp') {
+        await userAPI.post('/api/users/change-email/send-otp', {
+          newEmail: emailData.newEmail
+        });
+      } else if (emailData.action === 'verifyOtp') {
+        const response = await userAPI.post('/api/users/change-email/verify', {
+          otp: emailData.otp,
+          newEmail: emailData.newEmail
+        });
+        
+        // Update user info with new email
+        const updatedUserInfo = {
+          ...userInfo,
+          email: emailData.newEmail
+        };
+        setUserInfo(updatedUserInfo);
+        localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
+        
+        // Dispatch custom event to notify header of update
+        window.dispatchEvent(new CustomEvent('userInfoUpdated'));
+        
+        setShowEmailChangeModal(false);
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to change email';
+      toast.error(errorMessage);
+      throw error; // Re-throw to let modal handle it
+    } finally {
+      setIsChangingEmail(false);
     }
   };
 
@@ -215,7 +328,7 @@ const UserProfile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <Header user={userInfo} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">
@@ -225,24 +338,28 @@ const UserProfile = () => {
             <div className="text-center mb-8">
               <div className="relative inline-block">
                 <img
-                  src={selectedImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"}
+                  src={selectedImage || userInfo?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"}
                   alt="Profile"
                   className="w-20 h-20 rounded-full object-cover mx-auto"
                 />
-                {isEditing && (
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute -bottom-1 -right-1 bg-teal-600 text-white p-1.5 rounded-full hover:bg-teal-700 transition-colors"
-                  >
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingImage}
+                  className="absolute -bottom-1 -right-1 bg-teal-600 text-white p-1.5 rounded-full hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {uploadingImage ? (
+                    <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
                     <Camera className="w-3 h-3" />
-                  </button>
-                )}
+                  )}
+                </button>
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
                   className="hidden"
+                  disabled={uploadingImage}
                 />
               </div>
               <h3 className="mt-3 font-semibold text-teal-600 text-lg">
@@ -364,24 +481,25 @@ const UserProfile = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Email
                   </label>
-                  <div className="relative">
+                  <div className="flex gap-3">
                     <input
                       type="email"
                       value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      disabled={!isEditing}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'
-                        }`}
+                      disabled
+                      className="flex-1 px-4 py-3 border border-gray-200 bg-gray-50 rounded-lg text-gray-600"
                       placeholder="Enter your email"
                     />
-                    {isEditing && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                          <Edit2 className="w-3 h-3 text-green-600" />
-                        </div>
-                      </div>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowEmailChangeModal(true)}
+                      className="px-4 py-3 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 transition-colors font-medium"
+                    >
+                      Change Email
+                    </button>
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Email changes require verification for security
+                  </p>
                 </div>
 
                 {/* Change Password Button */}
@@ -406,6 +524,15 @@ const UserProfile = () => {
         onClose={() => setShowPasswordModal(false)}
         onSubmit={handlePasswordChange}
         isLoading={isChangingPassword}
+      />
+
+      {/* Change Email Modal */}
+      <EmailChangeModal
+        isOpen={showEmailChangeModal}
+        onClose={() => setShowEmailChangeModal(false)}
+        onSubmit={handleEmailChange}
+        isLoading={isChangingEmail}
+        currentEmail={userInfo?.email || ''}
       />
     </div>
   );

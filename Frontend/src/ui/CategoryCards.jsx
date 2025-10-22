@@ -13,7 +13,7 @@ export default function CategoryCards() {
       name: 'Development', 
       icon: '💻', 
       courses: '200+ Courses', 
-      color: 'bg-blue-100 text-blue-600',
+      color: 'bg-sky-100 text-sky-600',
       description: 'Web, Mobile, Software Development'
     },
     { 
@@ -27,7 +27,7 @@ export default function CategoryCards() {
       name: 'Business', 
       icon: '💼', 
       courses: '150+ Courses', 
-      color: 'bg-purple-100 text-purple-600',
+      color: 'bg-sky-100 text-sky-600',
       description: 'Management, Finance, Entrepreneurship'
     },
   ];

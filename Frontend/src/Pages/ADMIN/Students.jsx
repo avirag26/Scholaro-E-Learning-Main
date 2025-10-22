@@ -13,27 +13,33 @@ const Students = () => {
   const stats = useSelector((state) => state.users.stats);
   const loading = useSelector((state) => state.users.loading);
   const error = useSelector((state) => state.users.error);
-  
+
   const [actionLoading, setActionLoading] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetch users when component mounts or filters change
+  // Fetch users when component mounts or page/filter changes
   useEffect(() => {
-    dispatch(fetchUsers({ 
-      page: currentPage, 
-      search: searchTerm, 
-      status: statusFilter 
+    dispatch(fetchUsers({
+      page: currentPage,
+      search: "", // Remove search from API call
+      status: statusFilter
     }));
-  }, [dispatch, currentPage, searchTerm, statusFilter]);
+  }, [dispatch, currentPage, statusFilter]);
 
-  // Reset to first page when search or filter changes
-  useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
-  }, [searchTerm, statusFilter]);
+  // Client-side filtering
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = searchTerm === "" || 
+      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" ||
+      (statusFilter === "active" && !user.is_blocked) ||
+      (statusFilter === "blocked" && user.is_blocked);
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const handleBlockUnblock = async (userId, currentStatus) => {
 
@@ -41,7 +47,7 @@ const Students = () => {
     const action = currentStatus ? 'unblock' : 'block';
     const result = await Swal.fire({
       title: `${action.charAt(0).toUpperCase() + action.slice(1)} Student?`,
-      text: currentStatus 
+      text: currentStatus
         ? 'This student will regain access to their account and can login again.'
         : 'This student will be logged out immediately and unable to access their account.',
       icon: currentStatus ? 'question' : 'warning',
@@ -69,10 +75,10 @@ const Students = () => {
           toast.success(`✅ Student has been unblocked successfully. They can now access their account.`);
         }
         // Refresh current page
-        dispatch(fetchUsers({ 
-          page: currentPage, 
-          search: searchTerm, 
-          status: statusFilter 
+        dispatch(fetchUsers({
+          page: currentPage,
+          search: searchTerm,
+          status: statusFilter
         }));
       }
     } catch (error) {
@@ -102,7 +108,7 @@ const Students = () => {
       <AdminLayout title="Students">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800">Error: {error}</p>
-          <button 
+          <button
             onClick={() => dispatch(fetchUsers({ page: 1, search: '', status: 'all' }))}
             className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
           >
@@ -128,7 +134,7 @@ const Students = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
             <div className="text-2xl text-green-500 mr-3">✅</div>
@@ -140,7 +146,7 @@ const Students = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
             <div className="text-2xl text-red-500 mr-3">🚫</div>
@@ -163,7 +169,7 @@ const Students = () => {
               <h2 className="text-lg font-semibold text-gray-900">
                 Student List
               </h2>
-              
+
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -174,7 +180,7 @@ const Students = () => {
                 <option value="blocked">Blocked Only</option>
               </select>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <input
                 type="text"
@@ -183,12 +189,12 @@ const Students = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500 w-64"
               />
-              
-              <button 
-                onClick={() => dispatch(fetchUsers({ 
-                  page: currentPage, 
-                  search: searchTerm, 
-                  status: statusFilter 
+
+              <button
+                onClick={() => dispatch(fetchUsers({
+                  page: currentPage,
+                  search: searchTerm,
+                  status: statusFilter
                 }))}
                 className="px-4 py-2 bg-sky-500 text-white text-sm rounded-lg hover:bg-sky-600"
               >
@@ -197,7 +203,7 @@ const Students = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -211,8 +217,8 @@ const Students = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {Array.isArray(users) && users.length > 0 ? (
-                users.map((user) => (
+              {Array.isArray(filteredUsers) && filteredUsers.length > 0 ? (
+                filteredUsers.map((user) => (
                   <tr key={user._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -230,20 +236,18 @@ const Students = () => {
                       {user.phone && <div className="text-xs text-gray-500">{user.phone}</div>}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        user.is_blocked 
-                          ? 'bg-red-100 text-red-800' 
-                          : 'bg-green-100 text-green-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${user.is_blocked
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-green-100 text-green-800'
+                        }`}>
                         {user.is_blocked ? 'Blocked' : 'Active'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        user.is_verified 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${user.is_verified
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                        }`}>
                         {user.is_verified ? 'Verified' : 'Pending'}
                       </span>
                     </td>
@@ -251,11 +255,10 @@ const Students = () => {
                       <button
                         onClick={() => handleBlockUnblock(user._id, user.is_blocked)}
                         disabled={actionLoading[user._id]}
-                        className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                          user.is_blocked
-                            ? 'bg-green-600 hover:bg-green-700 text-white'
-                            : 'bg-red-600 hover:bg-red-700 text-white'
-                        } ${actionLoading[user._id] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`px-3 py-1 rounded text-xs font-medium transition-colors ${user.is_blocked
+                          ? 'bg-green-600 hover:bg-green-700 text-white'
+                          : 'bg-red-600 hover:bg-red-700 text-white'
+                          } ${actionLoading[user._id] ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         {actionLoading[user._id] ? (
                           'Processing...'
@@ -275,7 +278,7 @@ const Students = () => {
                       <div className="text-4xl mb-2">👥</div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
                       <p className="text-sm">
-                        {searchTerm || statusFilter !== "all" 
+                        {searchTerm || statusFilter !== "all"
                           ? "Try adjusting your search or filter criteria"
                           : "Students will appear here once they register"
                         }
@@ -289,57 +292,56 @@ const Students = () => {
         </div>
 
         {/* Server-side Pagination */}
-        {pagination && pagination.totalPages > 1 && (
+        {pagination && (pagination.totalUsers > 0 || pagination.totalPages > 0) && (
           <div className="px-6 py-4 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                Showing {((pagination.currentPage - 1) * 5) + 1} to {Math.min(pagination.currentPage * 5, pagination.totalUsers)} of {pagination.totalUsers} students
+                Showing {((pagination.currentPage - 1) * (pagination.limit || 5)) + 1} to {Math.min(pagination.currentPage * (pagination.limit || 5), pagination.totalUsers || 0)} of {pagination.totalUsers || 0} students
               </div>
-              
-              <div className="flex items-center space-x-2">
-                {/* Previous Button */}
-                <button
-                  onClick={() => handlePageChange(pagination.currentPage - 1)}
-                  disabled={!pagination.hasPrev}
-                  className={`px-3 py-1 rounded text-sm font-medium ${
-                    !pagination.hasPrev
+
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center space-x-2">
+                  {/* Previous Button */}
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    disabled={!pagination.hasPrev}
+                    className={`px-3 py-1 rounded text-sm font-medium ${!pagination.hasPrev
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Previous
-                </button>
+                      }`}
+                  >
+                    Previous
+                  </button>
 
-                {/* Page Numbers */}
-                <div className="flex space-x-1">
-                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1 rounded text-sm font-medium ${
-                        pagination.currentPage === page
+                  {/* Page Numbers */}
+                  <div className="flex space-x-1">
+                    {pagination.totalPages > 1 && Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-1 rounded text-sm font-medium ${pagination.currentPage === page
                           ? 'bg-sky-500 text-white'
                           : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
+                          }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
 
-                {/* Next Button */}
-                <button
-                  onClick={() => handlePageChange(pagination.currentPage + 1)}
-                  disabled={!pagination.hasNext}
-                  className={`px-3 py-1 rounded text-sm font-medium ${
-                    !pagination.hasNext
+                  {/* Next Button */}
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    disabled={!pagination.hasNext}
+                    className={`px-3 py-1 rounded text-sm font-medium ${!pagination.hasNext
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Next
-                </button>
-              </div>
+                      }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

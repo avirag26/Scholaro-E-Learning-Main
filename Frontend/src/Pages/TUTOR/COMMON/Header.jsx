@@ -7,14 +7,39 @@ export default function Header() {
   const [tutorInfo, setTutorInfo] = useState(null);
 
   useEffect(() => {
-    const storedTutorInfo = localStorage.getItem('tutorInfo');
-    if (storedTutorInfo) {
-      try {
-        setTutorInfo(JSON.parse(storedTutorInfo));
-      } catch (error) {
-        console.error("Failed to parse tutorInfo from localStorage", error);
+    const loadTutorInfo = () => {
+      const storedTutorInfo = localStorage.getItem('tutorInfo');
+      if (storedTutorInfo) {
+        try {
+          setTutorInfo(JSON.parse(storedTutorInfo));
+        } catch (error) {
+          // Handle parsing error silently
+        }
       }
-    }
+    };
+
+    // Load initial data
+    loadTutorInfo();
+
+    // Listen for localStorage changes
+    const handleStorageChange = (e) => {
+      if (e.key === 'tutorInfo') {
+        loadTutorInfo();
+      }
+    };
+
+    // Listen for custom events (for same-tab updates)
+    const handleTutorInfoUpdate = () => {
+      loadTutorInfo();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('tutorInfoUpdated', handleTutorInfoUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('tutorInfoUpdated', handleTutorInfoUpdate);
+    };
   }, []);
 
   return (

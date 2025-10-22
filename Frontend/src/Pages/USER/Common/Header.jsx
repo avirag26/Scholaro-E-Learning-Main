@@ -1,14 +1,52 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Menu, Search, X, ShoppingCart, Bell, MoreVertical } from "lucide-react";
+import { Menu, Search, ShoppingCart, Bell, MoreVertical } from "lucide-react";
 import Button from "../../../ui/Button";
 import avatar from "../../../assets/avt.webp";
 import { useNavigate } from "react-router-dom";
 
-export default function Header({ user,  onMenuClick }) {
+export default function Header({ user: initialUser, onMenuClick }) {
+  const [user, setUser] = useState(initialUser);
   const navigate = useNavigate();
   const cartItemCount = 0;
   const notificationCount = 0;
+
+  useEffect(() => {
+    setUser(initialUser);
+  }, [initialUser]);
+
+  useEffect(() => {
+    const loadUserInfo = () => {
+      const storedUserInfo = localStorage.getItem('userInfo');
+      if (storedUserInfo) {
+        try {
+          setUser(JSON.parse(storedUserInfo));
+        } catch (error) {
+          // Handle parsing error silently
+        }
+      }
+    };
+
+    // Listen for localStorage changes
+    const handleStorageChange = (e) => {
+      if (e.key === 'userInfo') {
+        loadUserInfo();
+      }
+    };
+
+    // Listen for custom events (for same-tab updates)
+    const handleUserInfoUpdate = () => {
+      loadUserInfo();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('userInfoUpdated', handleUserInfoUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('userInfoUpdated', handleUserInfoUpdate);
+    };
+  }, []);
 
   return (
     <header className="border-b bg-white border-gray-200">
@@ -95,7 +133,7 @@ export default function Header({ user,  onMenuClick }) {
             >
               <Bell className="h-5 w-5" />
               {notificationCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                <span className="absolute -top-2 -right-2 bg-sky-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                   {notificationCount}
                 </span>
               )}
@@ -123,7 +161,7 @@ export default function Header({ user,  onMenuClick }) {
             className="h-8 w-8 rounded-full object-cover"
             onClick={() => navigate("/user/profile")}
           />
-          
+
           <div className="relative lg:hidden">
             <Button variant="ghost" size="icon" className="ml-2">
               <MoreVertical className="h-5 w-5" />

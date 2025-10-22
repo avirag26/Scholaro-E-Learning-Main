@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { sendPasswordResetEmail } from "../utils/emailService.js";
 import { OAuth2Client } from 'google-auth-library';
-import { createAndSendOTP, verifyOTP } from '../utils/otpService.js';
+import { sendOtpToEmail, verifyEmailOtp, sendOtpWithData, verifyOtpWithData } from '../utils/otpService.js';
 
 const registerUser = async (req, res) => {
   try {
@@ -12,9 +12,8 @@ const registerUser = async (req, res) => {
 
     let user = await User.findOne({ email });
 
-
     if (user && user.is_verified) {
-      return res.status(400).json({ message: "User already exists " });
+      return res.status(400).json({ message: "User already exists" });
     }
 
     if (user && !user.is_verified) {
@@ -34,15 +33,13 @@ const registerUser = async (req, res) => {
       await user.save();
     }
 
-    await createAndSendOTP(email, 'user');
+    await sendOtpToEmail(email, 'user');
 
     res.status(201).json({ message: "OTP sent to your Email" });
   } catch (error) {
-    console.error('Registration error:', error);
     res.status(500).json({ message: "Server error during registration" });
   }
-}
-
+};
 
 const loginUser = async (req, res) => {
   try {
@@ -51,54 +48,47 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    if (user.is_blocked) {
-      return res.status(403).json({
-        message: "Your account has been blocked by the administrator. Please contact support.",
-        blocked: true
-      });
+      return res.status(400).json({ message: "Invalid email or password" });
     }
 
     if (!user.is_verified) {
-      return res.status(401).json({
-        message: "Please verify your email before logging in.",
-        verified: false
-      });
+      return res.status(400).json({ message: "Please verify your email first" });
     }
 
-    if (await user.matchPassword(password)) {
-      const refreshToken = generateRefreshToken(user._id);
-      const accessToken = generateAccessToken(user._id);
-
-      user.refreshToken = refreshToken;
-      user.lastLogin = new Date();
-      await user.save();
-
-      res.cookie('jwt', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV !== "development",
-        sameSite: 'strict',
-        maxAge: 30 * 24 * 60 * 1000, //30 days
-      })
-      res.json({
-        _id: user._id,
-        name: user.full_name,
-        email: user.email,
-        accessToken: accessToken,
-      });
-    } else {
-      res.status(401).json({ message: "Invalid email or password" })
+    if (user.is_blocked) {
+      return res.status(403).json({ message: "Your account has been blocked" });
     }
+
+    const isPasswordValid = await user.matchPassword(password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    user.refreshToken = refreshToken;
+    user.lastLogin = new Date();
+    await user.save();
+
+    const userInfo = {
+      _id: user._id,
+      name: user.full_name,
+      email: user.email,
+      phone: user.phone,
+      profileImage: user.profileImage
+    };
+
+    res.status(200).json({
+      message: "Login successful",
+      accessToken,
+      refreshToken,
+      user: userInfo
+    });
   } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({ message: "Server error while login" })
+    res.status(500).json({ message: "Server error during login" });
   }
-}
-
-
-
+};
 
 const verifyOtp = async (req, res) => {
   try {
@@ -107,10 +97,10 @@ const verifyOtp = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const otpResult = await verifyOTP(email, otp, 'user');
+    const otpResult = await verifyEmailOtp(email, otp, 'user');
 
     if (!otpResult.success) {
       return res.status(400).json({ message: otpResult.message });
@@ -119,27 +109,28 @@ const verifyOtp = async (req, res) => {
     user.is_verified = true;
     await user.save();
 
-    const refreshToken = generateRefreshToken(user._id);
     const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
 
-    res.cookie('jwt', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV !== "development",
-      sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+    user.refreshToken = refreshToken;
+    await user.save();
 
-    res.status(200).json({
+    const userInfo = {
       _id: user._id,
       name: user.full_name,
       email: user.email,
-      accessToken: accessToken,
-      message: "User verified successfully",
-    });
+      phone: user.phone,
+      profileImage: user.profileImage
+    };
 
+    res.status(200).json({
+      message: "Email verified successfully",
+      accessToken,
+      refreshToken,
+      user: userInfo
+    });
   } catch (error) {
-    console.error("OTP verification error:", error);
-    res.status(500).json({ message: "Server error during OTP verification" });
+    res.status(500).json({ message: "Server error during verification" });
   }
 };
 
@@ -148,305 +139,433 @@ const resendOtp = async (req, res) => {
     const { email } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user || user.is_verified) {
-      return res.status(400).json({ message: "Cannot send OTP to this user" });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    await createAndSendOTP(email, 'user');
+    if (user.is_verified) {
+      return res.status(400).json({ message: "User is already verified" });
+    }
+
+    await sendOtpToEmail(email, 'user');
 
     return res.status(200).json({ message: "A new OTP has been sent to your email." });
   } catch (error) {
-    console.error('Resend OTP error:', error);
-    return res.status(500).json({ message: "Server error during OTP resend" });
-  }
-}
-
-
-const handleGoogleAuth = async (req, res, Model, userType) => {
-  const { credential } = req.body;
-  if (!credential) {
-    return res.status(400).json({ message: 'Google credential is required' });
-  }
-
-  try {
-    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-    const ticket = await client.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
-    const { sub: googleId, email, name, picture } = payload;
-
-    let entity = await Model.findOne({ $or: [{ email }, { googleId }] });
-
-    if (!entity) {
-      entity = new Model({
-        full_name: name,
-        email,
-        googleId,
-        profileImage: picture,
-        [`${userType}_id`]: uuidv4(),
-        is_verified: true,
-      });
-    } else {
-      if (entity.is_blocked) {
-        return res.status(403).json({
-          message: "Your account has been blocked by the administrator. Please contact support.",
-          blocked: true
-        });
-      }
-
-      if (!entity.googleId) entity.googleId = googleId;
-      if (!entity.profileImage) entity.profileImage = picture;
-    }
-
-    const accessToken = generateAccessToken(entity._id);
-    const refreshToken = generateRefreshToken(entity._id);
-    entity.refreshToken = refreshToken;
-    entity.lastLogin = new Date();
-    await entity.save();
-
-    const cookieName = userType === 'tutor' ? 'jwt_tutor' : 'jwt';
-    res.cookie(cookieName, refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV !== 'development',
-      sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
-
-    res.status(entity.isNew ? 201 : 200).json({
-      _id: entity._id,
-      name: entity.full_name,
-      email: entity.email,
-      profileImage: entity.profileImage,
-      accessToken,
-      message: `Google ${entity.isNew ? 'registration' : 'login'} successful`,
-    });
-  } catch (error) {
-    console.error(` Google Auth Error for ${userType}:`, error.message);
-    if (error.message.includes('Token used too early') || error.message.includes('Invalid token') || error.message.includes('audience')) {
-      return res.status(400).json({ message: 'Invalid Google token. Please try again.' });
-    }
-    res.status(500).json({ message: 'Google authentication failed' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 const googleAuth = async (req, res) => {
-  await handleGoogleAuth(req, res, User, 'user');
+  try {
+    const { credential } = req.body;
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (user && user.is_blocked) {
+      return res.status(403).json({ message: "Your account has been blocked" });
+    }
+
+    if (!user) {
+      user = new User({
+        full_name: name,
+        email,
+        googleId: payload.sub,
+        profileImage: picture,
+        is_verified: true,
+        user_id: uuidv4()
+      });
+      await user.save();
+    } else if (!user.googleId) {
+      user.googleId = payload.sub;
+      user.is_verified = true;
+      if (!user.profileImage) {
+        user.profileImage = picture;
+      }
+      await user.save();
+    }
+
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    user.refreshToken = refreshToken;
+    user.lastLogin = new Date();
+    await user.save();
+
+    const userInfo = {
+      _id: user._id,
+      name: user.full_name,
+      email: user.email,
+      phone: user.phone,
+      profileImage: user.profileImage
+    };
+
+    res.status(200).json({
+      message: "Google authentication successful",
+      accessToken,
+      refreshToken,
+      user: userInfo
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Google authentication failed" });
+  }
+};
+
+const refreshToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Refresh token required" });
+    }
+
+    const user = await User.findOne({ refreshToken });
+
+    if (!user) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    const newAccessToken = generateAccessToken(user._id);
+    const newRefreshToken = generateRefreshToken(user._id);
+
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    res.status(200).json({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password -refreshToken');
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      user: {
+        _id: user._id,
+        name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        profileImage: user.profileImage,
+        wallet: user.wallet
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const updateUserProfile = async (req, res) => {
+  try {
+    const { name, phone } = req.body;
+    const userId = req.user._id;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (name) user.full_name = name;
+    if (phone) user.phone = phone;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        _id: user._id,
+        name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        profileImage: user.profileImage
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const uploadProfilePhoto = async (req, res) => {
+  try {
+    const { imageUrl } = req.body;
+    const userId = req.user._id;
+
+    if (!imageUrl) {
+      return res.status(400).json({ message: "Image URL is required" });
+    }
+
+    // Basic URL validation
+    try {
+      new URL(imageUrl);
+    } catch (error) {
+      return res.status(400).json({ message: "Invalid image URL format" });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.profileImage = imageUrl;
+    await user.save();
+
+    res.status(200).json({
+      message: "Profile photo updated successfully",
+      profileImage: user.profileImage
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error while uploading profile photo" });
+  }
 };
 
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
+
     const user = await User.findOne({ email });
+
     if (!user) {
-      return res.status(400).json({ message: "User not found" })
+      return res.status(404).json({ message: "User not found" });
     }
-    const resetToken = crypto.randomBytes(32).toString("hex");
 
-    user.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest("hex");
-
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.passwordResetToken = resetToken;
     user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+    await user.save();
 
+    await sendPasswordResetEmail(email, resetToken);
 
-    await user.save({ validateBeforeSave: false })
-
-    await sendPasswordResetEmail(user.email, resetToken, 'user');
-
-    return res.status(200).json({ message: " Send password reset tocken " })
-
+    res.status(200).json({ message: "Password reset email sent" });
   } catch (error) {
-    console.error("Forgot password error:", error);
-    const { email } = req.body;
-    if (email) {
-
-      const usertoupdate = await User.findOne({ email });
-      if (usertoupdate) {
-        usertoupdate.passwordResetToken = undefined;
-        usertoupdate.passwordResetExpires = undefined;
-        await usertoupdate.save({ validateBeforeSave: false });
-      }
-    }
-    return res.status(500).json({ message: "Error for sending the email" })
+    res.status(500).json({ message: "Server error" });
   }
-}
-
-
-
+};
 
 const resetPassword = async (req, res) => {
   try {
-    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+    const { token, newPassword } = req.body;
 
     const user = await User.findOne({
-      passwordResetToken: hashedToken,
+      passwordResetToken: token,
       passwordResetExpires: { $gt: Date.now() }
     });
 
     if (!user) {
-      return res.status(400).json({ message: "Token is invalid or expired" });
+      return res.status(400).json({ message: "Invalid or expired reset token" });
     }
 
-    user.password = req.body.password;
+    user.password = newPassword;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();
 
-    return res.status(200).json({ message: "Password reset successful" });
+    res.status(200).json({ message: "Password reset successful" });
   } catch (error) {
-    console.error("Reset password error:", error);
-    return res.status(500).json({ message: "Server error during reset password" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 const checkUserStatus = async (req, res) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Authentication invalid.' });
-    }
-
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('is_blocked');
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     if (user.is_blocked) {
-      return res.status(403).json({ message: "User is blocked by admin." });
+      return res.status(403).json({ message: "Account blocked", blocked: true });
     }
 
-    res.status(200).json({ message: "User is active." });
+    res.status(200).json({ message: "Account active", blocked: false });
   } catch (error) {
-    res.status(500).json({ message: 'Server error while checking status' });
-  }
-};
-
-const updateUserProfile = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const { name, email, phone } = req.body;
-
-
-
-    // Validate required fields
-    if (!name || !email) {
-      return res.status(400).json({ message: "Name and email are required" });
-    }
-
-    // Check if email is already taken by another user
-    if (email && email !== req.user.email) {
-      const existingUser = await User.findOne({ email, _id: { $ne: userId } });
-      if (existingUser) {
-        return res.status(400).json({ message: "Email already taken" });
-      }
-    }
-
-    // Prepare update data - only include phone if it's provided
-    const updateData = {
-      full_name: name,
-      email: email
-    };
-
-    // Only add phone to update if it's provided and not empty
-    if (phone && phone.trim() !== '') {
-      updateData.phone = phone;
-    }
-
-
-
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      updateData,
-      { new: true, runValidators: true }
-    ).select('-password -refreshToken');
-
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-
-
-    res.status(200).json({
-      message: "Profile updated successfully",
-      user: {
-        _id: updatedUser._id,
-        name: updatedUser.full_name,
-        email: updatedUser.email,
-        phone: updatedUser.phone
-      }
-    });
-  } catch (error) {
-    console.error('Update profile error:', error);
-
-    // Check if it's a validation error
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        message: "Validation error",
-        errors: validationErrors
-      });
-    }
-
-    res.status(500).json({ message: "Server error while updating profile" });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 const sendPasswordChangeOtp = async (req, res) => {
   try {
     const user = req.user;
-    
-    if (!user) {
-      return res.status(401).json({ message: "User not authenticated" });
-    }
 
-    // Send OTP for password change
-    await createAndSendOTP(user.email, 'password-change');
-    
-    res.status(200).json({ 
-      message: "OTP sent to your email for password change verification" 
+    await sendOtpToEmail(user.email, 'password-change');
+
+    res.status(200).json({
+      message: "OTP sent to your email address"
     });
   } catch (error) {
-    console.error('Send password change OTP error:', error);
-    res.status(500).json({ message: "Server error while sending OTP" });
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
   }
 };
 
 const changePasswordWithOtp = async (req, res) => {
   try {
+    const { otp, newPassword } = req.body;
     const user = req.user;
-    const { newPassword, otp } = req.body;
 
-    if (!user) {
-      return res.status(401).json({ message: "User not authenticated" });
+    if (!otp || !newPassword) {
+      return res.status(400).json({
+        message: "OTP and new password are required"
+      });
     }
 
-    if (!newPassword || !otp) {
-      return res.status(400).json({ message: "New password and OTP are required" });
-    }
+    const otpResult = await verifyEmailOtp(user.email, otp, 'password-change');
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters long" });
-    }
-
-    // Verify OTP
-    const otpResult = await verifyOTP(user.email, otp, 'password-change');
-    
     if (!otpResult.success) {
-      return res.status(400).json({ message: otpResult.message });
+      return res.status(400).json({
+        message: otpResult.message
+      });
     }
 
-    // Update password
-    const userToUpdate = await User.findById(user._id);
-    userToUpdate.password = newPassword;
-    await userToUpdate.save();
+    const userDoc = await User.findById(user._id);
+    userDoc.password = newPassword;
+    await userDoc.save();
 
-    res.status(200).json({ 
-      message: "Password changed successfully" 
+    res.status(200).json({
+      message: "Password changed successfully"
     });
   } catch (error) {
-    console.error('Change password with OTP error:', error);
-    res.status(500).json({ message: "Server error while changing password" });
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
   }
 };
 
-export { registerUser, verifyOtp, loginUser, resendOtp, googleAuth, updateUserProfile, forgotPassword, resetPassword, checkUserStatus, sendPasswordChangeOtp, changePasswordWithOtp };
+const sendEmailChangeOtp = async (req, res) => {
+  try {
+    const { newEmail } = req.body;
+    const userId = req.user._id;
+
+    if (!newEmail) {
+      return res.status(400).json({
+        message: "New email is required"
+      });
+    }
+
+    const existingUser = await User.findOne({ email: newEmail });
+    if (existingUser) {
+      return res.status(400).json({
+        message: "Email is already taken by another user"
+      });
+    }
+
+    const otpResult = await sendOtpWithData(newEmail, 'email-change', {
+      userId: userId.toString(),
+      newEmail: newEmail,
+      userType: 'user'
+    });
+
+    if (!otpResult.success) {
+      return res.status(500).json({
+        message: otpResult.message
+      });
+    }
+
+    res.status(200).json({
+      message: "OTP sent to your new email address"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
+const verifyEmailChangeOtp = async (req, res) => {
+  try {
+    const { otp, newEmail } = req.body;
+    const userId = req.user._id;
+
+    if (!otp || !newEmail) {
+      return res.status(400).json({
+        message: "OTP and new email are required"
+      });
+    }
+
+    const verifyResult = await verifyOtpWithData(newEmail, otp, 'email-change');
+    
+    if (!verifyResult.success) {
+      return res.status(400).json({
+        message: verifyResult.message
+      });
+    }
+
+    if (verifyResult.data.userId !== userId.toString()) {
+      return res.status(400).json({
+        message: "Invalid OTP for this user"
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { email: newEmail },
+      { new: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+    }
+
+    res.status(200).json({
+      message: "Email changed successfully",
+      user: {
+        _id: user._id,
+        name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        profileImage: user.profileImage
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
+export {
+  registerUser,
+  verifyOtp,
+  loginUser,
+  resendOtp,
+  googleAuth,
+  refreshToken,
+  getUserProfile,
+  updateUserProfile,
+  uploadProfilePhoto,
+  forgotPassword,
+  resetPassword,
+  checkUserStatus,
+  sendPasswordChangeOtp,
+  changePasswordWithOtp,
+  sendEmailChangeOtp,
+  verifyEmailChangeOtp
+};

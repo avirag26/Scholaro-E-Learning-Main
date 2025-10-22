@@ -32,25 +32,15 @@ export const clearAllData = () => {
 };
 
 export const redirectAfterLogin = (navigate, userType, destination) => {
-  // Clear browser history to prevent going back to login pages
-  window.history.replaceState(null, '', window.location.pathname);
-
-  setTimeout(() => {
-    if (destination) {
-      navigate(destination, { replace: true });
-    } else if (userType === 'user') {
-      navigate('/user/home', { replace: true });
-    } else if (userType === 'tutor') {
-      navigate('/tutor/home', { replace: true });
-    } else if (userType === 'admin') {
-      navigate('/admin/dashboard', { replace: true });
-    }
-
-    // Clear history again after navigation
-    setTimeout(() => {
-      window.history.replaceState(null, '', window.location.pathname);
-    }, 100);
-  }, 100);
+  if (destination) {
+    navigate(destination, { replace: true });
+  } else if (userType === 'user') {
+    navigate('/user/home', { replace: true });
+  } else if (userType === 'tutor') {
+    navigate('/tutor/home', { replace: true });
+  } else if (userType === 'admin') {
+    navigate('/admin/dashboard', { replace: true });
+  }
 };
 
 export const clearBrowserHistory = () => {
