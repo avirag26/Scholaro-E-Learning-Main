@@ -4,18 +4,18 @@ import { toast } from "react-toastify";
 import { Search, Plus } from "lucide-react";
 import AdminLayout from "./common/AdminLayout";
 import Swal from "sweetalert2";
-import { 
-  fetchCategories, 
-  createCategory, 
-  updateCategoryAPI, 
-  deleteCategoryAPI, 
-  clearError 
+import {
+  fetchCategories,
+  createCategory,
+  updateCategoryAPI,
+  toggleCategoryListingAPI,
+  clearError
 } from "../../Redux/categorySlice";
 
 const Categories = () => {
   const dispatch = useDispatch();
   const { categoryDatas: categories, loading, error } = useSelector(state => state.category);
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -63,9 +63,9 @@ const Categories = () => {
     }
 
     try {
-      const result = await dispatch(updateCategoryAPI({ 
-        id: selectedCategory.id, 
-        categoryData: formData 
+      const result = await dispatch(updateCategoryAPI({
+        id: selectedCategory.id,
+        categoryData: formData
       }));
       if (updateCategoryAPI.fulfilled.match(result)) {
         setFormData({ name: "", description: "" });
@@ -78,24 +78,27 @@ const Categories = () => {
     }
   };
 
-  const handleDeleteCategory = async (categoryId, categoryName) => {
+  const handleToggleListing = async (category) => {
+    const action = category.isVisible ? "unlist" : "list";
+    const actionPast = category.isVisible ? "unlisted" : "listed";
+
     const result = await Swal.fire({
-      title: "Delete Category?",
-      text: `Are you sure you want to delete "${categoryName}"? This action cannot be undone.`,
-      icon: "warning",
+      title: `${action.charAt(0).toUpperCase() + action.slice(1)} Category?`,
+      text: `Are you sure you want to ${action} "${category.name}"?`,
+      icon: "question",
       showCancelButton: true,
-      confirmButtonColor: "#ef4444",
+      confirmButtonColor: category.isVisible ? "#ef4444" : "#10b981",
       cancelButtonColor: "#6b7280",
-      confirmButtonText: "Yes, delete it!",
+      confirmButtonText: `Yes, ${action} it!`,
       cancelButtonText: "Cancel"
     });
 
     if (!result.isConfirmed) return;
 
     try {
-      const result = await dispatch(deleteCategoryAPI(categoryId));
-      if (deleteCategoryAPI.fulfilled.match(result)) {
-        toast.success("Category deleted successfully!");
+      const result = await dispatch(toggleCategoryListingAPI(category.id));
+      if (toggleCategoryListingAPI.fulfilled.match(result)) {
+        toast.success(`Category ${actionPast} successfully!`);
       }
     } catch (error) {
       // Error is handled by Redux and useEffect
@@ -141,7 +144,7 @@ const Categories = () => {
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-semibold text-gray-900">List of Categories</h2>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -153,7 +156,7 @@ const Categories = () => {
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500 w-64"
               />
             </div>
-            
+
             <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors font-medium"
@@ -172,14 +175,22 @@ const Categories = () => {
             <div key={category.id} className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-sky-600 mb-1">
-                    {category.name}
-                  </h3>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-lg font-semibold text-sky-600">
+                      {category.name}
+                    </h3>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${category.isVisible
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                      }`}>
+                      {category.isVisible ? 'Listed' : 'Unlisted'}
+                    </span>
+                  </div>
                   {category.description && (
                     <p className="text-gray-600 text-sm">{category.description}</p>
                   )}
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => openEditModal(category)}
@@ -187,15 +198,18 @@ const Categories = () => {
                   >
                     Edit
                   </button>
-                  
+
                   <button
-                    onClick={() => handleDeleteCategory(category.id, category.name)}
+                    onClick={() => handleToggleListing(category)}
                     disabled={loading}
-                    className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium text-sm disabled:opacity-50"
+                    className={`px-4 py-2 rounded-lg transition-colors font-medium text-sm disabled:opacity-50 ${category.isVisible
+                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                      }`}
                   >
-                    {loading ? "Deleting..." : "Delete"}
+                    {loading ? "Updating..." : (category.isVisible ? "Unlist" : "List")}
                   </button>
-                  
+
                   <button className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 transition-colors font-medium text-sm">
                     View
                   </button>
@@ -209,8 +223,8 @@ const Categories = () => {
               <div className="text-6xl mb-4">📂</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No categories found</h3>
               <p className="text-sm">
-                {searchTerm 
-                  ? "Try adjusting your search criteria" 
+                {searchTerm
+                  ? "Try adjusting your search criteria"
                   : "Get started by adding your first category"
                 }
               </p>
@@ -232,7 +246,7 @@ const Categories = () => {
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg border border-gray-300 shadow-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Add New Category</h3>
-            
+
             <form onSubmit={handleAddCategory} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -247,7 +261,7 @@ const Categories = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description
@@ -260,7 +274,7 @@ const Categories = () => {
                   rows="3"
                 />
               </div>
-              
+
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
@@ -287,7 +301,7 @@ const Categories = () => {
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg border border-gray-300 shadow-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Edit Category</h3>
-            
+
             <form onSubmit={handleEditCategory} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -302,7 +316,7 @@ const Categories = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description
@@ -315,7 +329,7 @@ const Categories = () => {
                   rows="3"
                 />
               </div>
-              
+
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"

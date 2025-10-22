@@ -2,6 +2,8 @@ import User from "../Model/usermodel.js";
 import Admin from "../Model/AdminModel.js";
 import Tutor from "../Model/TutorModel.js";
 import Category from "../Model/CategoryModel.js";
+import { updateCoursesByCategory, Course } from "../Model/CourseModel.js";
+import mongoose from "mongoose";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -596,13 +598,26 @@ const deleteCategory = async (req,res) =>{
   const {id} = req.params;
 
   try{
-    const category = await Category.findByIdAndDelete(id);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid category ID" });
+    }
+
+    const category = await Category.findById(id);
 
     if(!category) return res.status(404).json({message:"Category not found"});
 
-    res.status(200).json({message:"Category deleted successflly"});
+    // Toggle visibility instead of hard delete
+    category.isVisible = !category.isVisible;
+    await category.save();
+
+    const action = category.isVisible ? "listed" : "unlisted";
+    res.status(200).json({
+      message: `Category ${action} successfully`,
+      category
+    });
   } catch(error){
-    res.status(500).json({message:"failed to delete category"});
+    console.error("Error toggling category visibility:", error);
+    res.status(500).json({message:"Failed to update category visibility"});
   }
 }
 
@@ -627,6 +642,7 @@ const toggleCategoryVisibility = async (req, res) => {
     category.isVisible = !category.isVisible;
     await category.save();
 
+    // Update all courses in this category to match visibility
     await updateCoursesByCategory(id, category.isVisible);
 
     res.json({

@@ -312,7 +312,7 @@ const resetTutorPassword = async (req, res) => {
 
 const getTutorProfile = async (req, res) => {
   try {
-    const tutor = await Tutor.findById(req.user._id).select('-password -refreshToken');
+    const tutor = await Tutor.findById(req.tutor._id).select('-password -refreshToken');
 
     if (!tutor) {
       return res.status(404).json({ message: "Tutor not found" });
@@ -337,7 +337,7 @@ const getTutorProfile = async (req, res) => {
 const updateTutorProfile = async (req, res) => {
   try {
     const { name, phone, subjects, bio } = req.body;
-    const tutorId = req.user._id;
+    const tutorId = req.tutor._id;
 
     const tutor = await Tutor.findById(tutorId);
 
@@ -372,7 +372,7 @@ const updateTutorProfile = async (req, res) => {
 const sendTutorEmailChangeOtp = async (req, res) => {
   try {
     const { newEmail } = req.body;
-    const tutorId = req.user._id;
+    const tutorId = req.tutor._id;
 
     if (!newEmail) {
       return res.status(400).json({
@@ -414,7 +414,7 @@ const sendTutorEmailChangeOtp = async (req, res) => {
 const verifyTutorEmailChangeOtp = async (req, res) => {
   try {
     const { otp, newEmail } = req.body;
-    const tutorId = req.user._id;
+    const tutorId = req.tutor._id;
 
     if (!otp || !newEmail) {
       return res.status(400).json({
@@ -471,7 +471,7 @@ const verifyTutorEmailChangeOtp = async (req, res) => {
 
 const checkTutorStatus = async (req, res) => {
   try {
-    const tutor = await Tutor.findById(req.user._id).select('is_blocked');
+    const tutor = await Tutor.findById(req.tutor._id).select('is_blocked');
 
     if (!tutor) {
       return res.status(404).json({ message: "Tutor not found" });
@@ -490,7 +490,7 @@ const checkTutorStatus = async (req, res) => {
 const uploadTutorProfilePhoto = async (req, res) => {
   try {
     const { imageUrl } = req.body;
-    const tutorId = req.user._id;
+    const tutorId = req.tutor._id;
 
     if (!imageUrl) {
       return res.status(400).json({ message: "Image URL is required" });
@@ -572,7 +572,7 @@ const resetPassword = async (req, res) => {
 
 const sendTutorPasswordChangeOtp = async (req, res) => {
   try {
-    const tutor = req.user;
+    const tutor = req.tutor;
 
     await sendOtpToEmail(tutor.email, 'password-change');
 
@@ -590,7 +590,7 @@ const sendTutorPasswordChangeOtp = async (req, res) => {
 const changeTutorPasswordWithOtp = async (req, res) => {
   try {
     const { otp, newPassword } = req.body;
-    const tutor = req.user;
+    const tutor = req.tutor;
 
     if (!otp || !newPassword) {
       return res.status(400).json({

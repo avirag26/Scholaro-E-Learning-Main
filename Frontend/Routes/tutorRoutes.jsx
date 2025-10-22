@@ -6,6 +6,8 @@ import TutorResetPassword from "../src/Pages/TUTOR/TutorResetPassword";
 import TutorHome from "../src/Pages/TUTOR/TutorHome";
 import NotFoundPage from '../src/ui/NotFound';
 import TutorProfile from "../src/Pages/TUTOR/TutorProfile";
+import TutorCourses from "../src/Pages/TUTOR/TutorCourses";
+import AddCourse from "../src/Pages/TUTOR/AddCourse";
 const TutorRoutes = () => {
   return (
     <Routes>
@@ -16,7 +18,8 @@ const TutorRoutes = () => {
       <Route path="register" element={<TutorRegister />} />
       <Route path="login" element={<TutorLogin />} />
       <Route path="profile" element={<TutorProfile />} />
-
+      <Route path="courses" element={<TutorCourses/>}/>
+      <Route path="add-course" element={<AddCourse/>}/>
 
       <Route path="home" element={<TutorHome />} />
 

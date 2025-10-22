@@ -43,14 +43,14 @@ export const updateCategoryAPI = createAsyncThunk(
   }
 );
 
-export const deleteCategoryAPI = createAsyncThunk(
-  'categories/deleteCategory',
+export const toggleCategoryListingAPI = createAsyncThunk(
+  'categories/toggleListing',
   async (categoryId, { rejectWithValue }) => {
     try {
-      await adminAPI.delete(`/api/admin/categories/${categoryId}`);
-      return categoryId;
+      const response = await adminAPI.delete(`/api/admin/categories/${categoryId}`);
+      return response.data.category;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete category');
+      return rejectWithValue(error.response?.data?.message || 'Failed to update category');
     }
   }
 );
@@ -94,7 +94,6 @@ const categorySlice = createSlice({
         state.loading = false;
         state.categoryDatas = action.payload.map(category => ({
           ...category,
-          id: category._id,
           name: category.title
         }));
       })
@@ -143,18 +142,23 @@ const categorySlice = createSlice({
         state.error = action.payload;
       })
 
-      // Delete Category
-      .addCase(deleteCategoryAPI.pending, (state) => {
+      // Toggle Category Listing
+      .addCase(toggleCategoryListingAPI.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(deleteCategoryAPI.fulfilled, (state, action) => {
+      .addCase(toggleCategoryListingAPI.fulfilled, (state, action) => {
         state.loading = false;
-        state.categoryDatas = state.categoryDatas.filter(category =>
-          category.id !== action.payload
+        const updatedCategory = {
+          ...action.payload,
+          id: action.payload._id,
+          name: action.payload.title
+        };
+        state.categoryDatas = state.categoryDatas.map(category =>
+          category.id === updatedCategory.id ? updatedCategory : category
         );
       })
-      .addCase(deleteCategoryAPI.rejected, (state, action) => {
+      .addCase(toggleCategoryListingAPI.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

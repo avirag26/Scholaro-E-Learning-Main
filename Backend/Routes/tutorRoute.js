@@ -17,6 +17,14 @@ import {
   sendTutorEmailChangeOtp,
   verifyTutorEmailChangeOtp,
 } from "../Controllers/tutorController.js";
+import {
+  addCourse,
+  getTutorCourses,
+  updateCourse,
+  toggleCourseListing,
+  getCourseDetails,
+  getCategories
+} from "../Controllers/courseController.js";
 import { protectTutor } from "../Middleware/tutorMiddleware.js";
 
 router.post("/", registerTutor);
@@ -37,5 +45,13 @@ router.post("/change-password/send-otp", protectTutor, sendTutorPasswordChangeOt
 router.post("/change-password/verify", protectTutor, changeTutorPasswordWithOtp);
 router.post("/change-email/send-otp", protectTutor, sendTutorEmailChangeOtp);
 router.post("/change-email/verify", protectTutor, verifyTutorEmailChangeOtp);
+
+// Course management routes
+router.post("/courses", protectTutor, addCourse);
+router.get("/courses", protectTutor, getTutorCourses);
+router.get("/courses/:id", protectTutor, getCourseDetails);
+router.put("/courses/:id", protectTutor, updateCourse);
+router.patch("/courses/:id/toggle-listing", protectTutor, toggleCourseListing);
+router.get("/categories", protectTutor, getCategories);
 
 export default router;

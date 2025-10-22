@@ -11,13 +11,13 @@ const protectTutor = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
 
-    req.user = await Tutor.findById(decoded.id).select('-password');
+    req.tutor = await Tutor.findById(decoded.id).select('-password');
 
-    if (!req.user) {
+    if (!req.tutor) {
       return res.status(401).json({ message: 'Not authorized, tutor not found' });
     }
 
-    if (req.user.is_blocked) {
+    if (req.tutor.is_blocked) {
       return res.status(403).json({ message: 'Account has been blocked. Please contact support.' });
     }
 
