@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Eye, EyeOff, Key, Shield, CheckCircle } from "lucide-react";
+import { X, Eye, EyeOff, Key } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import OtpModal from "./OTP";
 
@@ -40,10 +40,15 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
     const validatePasswordForm = () => {
         const newErrors = {};
 
+        // Password validation with same rules as registration
         if (!formData.newPassword) {
             newErrors.newPassword = 'New password is required';
-        } else if (formData.newPassword.length < 6) {
-            newErrors.newPassword = 'Password must be at least 6 characters';
+        } else if (formData.newPassword.length < 8) {
+            newErrors.newPassword = 'Password must be at least 8 characters';
+        } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.newPassword)) {
+            newErrors.newPassword = 'Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character';
+        } else if (/\s/.test(formData.newPassword)) {
+            newErrors.newPassword = 'Password cannot contain spaces';
         }
 
         if (!formData.confirmPassword) {
@@ -113,14 +118,14 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.95, opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="bg-white rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl"
+                    className="bg-white rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl max-h-[90vh] overflow-y-auto"
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-                                <Key className="w-5 h-5 text-teal-600" />
+                            <div className="w-10 h-10 bg-sky-100 rounded-full flex items-center justify-center">
+                                <Key className="w-5 h-5 text-sky-600" />
                             </div>
                             <div>
                                 <h3 className="text-xl font-bold text-gray-900">Change Password</h3>
@@ -146,7 +151,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                                     type={showPasswords.new ? "text" : "password"}
                                     value={formData.newPassword}
                                     onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors ${errors.newPassword ? 'border-red-300' : 'border-gray-300'
+                                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors ${errors.newPassword ? 'border-red-300' : 'border-gray-300'
                                         }`}
                                     placeholder="Enter new password"
                                 />
@@ -173,7 +178,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                                     type={showPasswords.confirm ? "text" : "password"}
                                     value={formData.confirmPassword}
                                     onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                                         }`}
                                     placeholder="Confirm new password"
                                 />
@@ -190,26 +195,14 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                             )}
                         </div>
 
-                        {/* Password Requirements */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Shield className="w-4 h-4 text-gray-500" />
-                                <span className="text-sm font-medium text-gray-700">Password Requirements:</span>
-                            </div>
-                            <ul className="text-sm text-gray-600 space-y-1">
-                                <li className="flex items-center gap-2">
-                                    <CheckCircle className={`w-3 h-3 ${formData.newPassword.length >= 6 ? 'text-green-500' : 'text-gray-300'}`} />
-                                    At least 6 characters long
-                                </li>
-                            </ul>
-                        </div>
+
 
                         {/* Action Buttons */}
                         <div className="flex gap-3 pt-6">
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="flex-1 bg-teal-600 text-white py-3 rounded-lg hover:bg-teal-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="flex-1 bg-sky-600 text-white py-3 rounded-lg hover:bg-sky-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {isLoading ? (
                                     <>

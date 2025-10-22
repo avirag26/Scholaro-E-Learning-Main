@@ -24,14 +24,39 @@ export default function AdminLayout({ children, title, subtitle }) {
     };
 
     useEffect(() => {
-        const storedAdminInfo = localStorage.getItem('adminInfo');
-        if (storedAdminInfo) {
-            try {
-                setAdminInfo(JSON.parse(storedAdminInfo));
-            } catch (error) {
-                console.error('Failed to parse adminInfo from localStorage', error);
+        const loadAdminInfo = () => {
+            const storedAdminInfo = localStorage.getItem('adminInfo');
+            if (storedAdminInfo) {
+                try {
+                    setAdminInfo(JSON.parse(storedAdminInfo));
+                } catch (error) {
+                    // Handle parsing error silently
+                }
             }
-        }
+        };
+
+        // Load initial data
+        loadAdminInfo();
+
+        // Listen for localStorage changes
+        const handleStorageChange = (e) => {
+            if (e.key === 'adminInfo') {
+                loadAdminInfo();
+            }
+        };
+
+        // Listen for custom events (for same-tab updates)
+        const handleAdminInfoUpdate = () => {
+            loadAdminInfo();
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('adminInfoUpdated', handleAdminInfoUpdate);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('adminInfoUpdated', handleAdminInfoUpdate);
+        };
     }, []);
 
     const handleLogout = () => {
@@ -86,11 +111,19 @@ export default function AdminLayout({ children, title, subtitle }) {
                     {/* Profile Section */}
                     <div className="p-6 border-b">
                         <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-sky-500 rounded-full flex items-center justify-center">
-                                <span className="text-white font-medium text-lg">
-                                    {adminInfo?.name?.charAt(0) || 'A'}
-                                </span>
-                            </div>
+                            {adminInfo?.profileImage ? (
+                                <img
+                                    src={adminInfo.profileImage}
+                                    alt="Admin Profile"
+                                    className="w-12 h-12 rounded-full object-cover border-2 border-sky-200"
+                                />
+                            ) : (
+                                <div className="w-12 h-12 bg-sky-500 rounded-full flex items-center justify-center">
+                                    <span className="text-white font-medium text-lg">
+                                        {adminInfo?.name?.charAt(0) || 'A'}
+                                    </span>
+                                </div>
+                            )}
                             <div>
                                 <h3 className="font-semibold text-gray-900">
                                     {adminInfo?.name || 'Admin'}

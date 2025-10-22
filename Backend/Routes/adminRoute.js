@@ -8,9 +8,19 @@ import {
   getAllTutors,
   blockTutor,
   unblockTutor,
+  getDashboardStats,
   forgotPassword,
   resetPassword,
-  checkAdminStatus
+  checkAdminStatus,
+  getAdminProfile,
+  updateAdminProfile,
+  uploadAdminProfilePhoto,
+
+  toggleCategoryVisibility,
+  updateCategory,
+  deleteCategory,
+  getAllCategories,
+  addcategory
 } from '../Controllers/adminController.js';
 import { protectAdmin } from '../Middleware/adminMiddleware.js';
 
@@ -24,8 +34,21 @@ router.patch('/users/:userId/unblock', protectAdmin, unblockUser);
 router.get('/tutors', protectAdmin, getAllTutors);
 router.patch('/tutors/:tutorId/block', protectAdmin, blockTutor);
 router.patch('/tutors/:tutorId/unblock', protectAdmin, unblockTutor);
+router.get('/dashboard-stats', protectAdmin, getDashboardStats);
 router.post('/forgot-password', forgotPassword);
 router.patch('/reset-password/:token', resetPassword);
 router.get('/check-status', protectAdmin, checkAdminStatus);
+
+// Profile management routes
+router.get('/profile', protectAdmin, getAdminProfile);
+router.put('/profile', protectAdmin, updateAdminProfile);
+router.post('/upload-profile-photo', protectAdmin, uploadAdminProfilePhoto);
+
+router.post('/addcategory', addcategory);
+router.get('/categories', getAllCategories);
+router.put('/categories/:id',updateCategory);
+router.delete('/categories/:id',deleteCategory);
+router.patch('/categories/:id/toggle-visibility',toggleCategoryVisibility)
+
 
 export default router;

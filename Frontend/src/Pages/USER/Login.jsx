@@ -78,7 +78,7 @@ export default function Login() {
     try{
       const response = await userAPI.post('/api/users/login',{email,password});
 
-      const {accessToken, ...user} = response.data;
+      const { accessToken, user } = response.data;
 
       clearTutorData();
       clearAdminData();
@@ -97,19 +97,24 @@ export default function Login() {
     } catch (err) {
       if (!err?.response) {
         toast.error("No Server Response");
-      } else if (err.response.status === 403 && err.response.data.blocked) {
+      } else if (err.response?.status === 403 && err.response?.data?.blocked) {
         // Handle blocked user specifically
         toast.error(err.response.data.message || "Your account has been blocked");
+        // Clear any existing tokens to prevent conflicts
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userInfo');
+        // Reset form state
+        setEmail("");
+        setPassword("");
         // Don't proceed with login, stay on login page
         return;
       } else {
-        toast.error(err.response.data.message || "Login Failed");
+        toast.error(err.response?.data?.message || "Login Failed");
       }
     } finally {
       setIsSubmitting(false);
     }
-
-    }
+  };
 
 
     const handleGoogleSuccess = async (credentialResponse) => {
@@ -119,7 +124,7 @@ export default function Login() {
         credential: credentialResponse.credential
       });
 
-      const { accessToken, ...user } = response.data;
+      const { accessToken, user } = response.data;
 
       clearTutorData();
       clearAdminData();
@@ -283,16 +288,18 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="mt-6">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                theme="outline"
-                size="large"
-                width="100%"
-                text="signin_with"
-                shape="rectangular"
-              />
+            <div className="mt-6 flex justify-center">
+              <div className="w-full">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme="outline"
+                  size="large"
+                  width="100%"
+                  text="signin_with"
+                  shape="rectangular"
+                />
+              </div>
             </div>
 
             <p className="text-center text-sm text-gray-600">

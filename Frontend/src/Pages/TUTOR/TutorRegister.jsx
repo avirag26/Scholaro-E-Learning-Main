@@ -86,7 +86,14 @@ export default function TutorRegister() {
       });
       toast.success(response.data.message);
       localStorage.setItem("tutorAuthToken", response.data.accessToken);
-      localStorage.setItem("tutorInfo", JSON.stringify({ name: response.data.name, email: response.data.email }));
+      localStorage.setItem("tutorInfo", JSON.stringify({ 
+        name: response.data.name, 
+        email: response.data.email,
+        phone: response.data.phone,
+        subjects: response.data.subjects,
+        bio: response.data.bio,
+        profileImage: response.data.profileImage
+      }));
       setIsOtpModalOpen(false);
       navigate("/tutor/home");
     } catch (error) {
@@ -104,16 +111,11 @@ export default function TutorRegister() {
       });
 
       localStorage.setItem("tutorAuthToken", response.data.accessToken);
-      localStorage.setItem("tutorInfo", JSON.stringify({ 
-        name: response.data.name, 
-        email: response.data.email,
-        profileImage: response.data.profileImage 
-      }));
+      localStorage.setItem("tutorInfo", JSON.stringify(response.data.tutor));
 
       toast.success(response.data.message || "Google registration successful!");
       navigate("/tutor/home");
     } catch (err) {
-      console.error('Google registration error:', err);
       toast.error(err.response?.data?.message || "Google registration failed");
     } finally {
       setIsSubmitting(false);
@@ -352,16 +354,18 @@ export default function TutorRegister() {
             </div>
 
             {/* Google Registration Button */}
-            <div className="mt-6">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                theme="outline"
-                size="large"
-                width="100%"
-                text="signup_with"
-                shape="rectangular"
-              />
+            <div className="mt-6 flex justify-center">
+              <div className="w-full">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme="outline"
+                  size="large"
+                  width="100%"
+                  text="signup_with"
+                  shape="rectangular"
+                />
+              </div>
             </div>
           </form>
         </div>

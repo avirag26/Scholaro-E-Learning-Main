@@ -65,6 +65,8 @@ export default function AdminLogin() {
       localStorage.setItem("adminInfo", JSON.stringify({ 
         name: response.data.name, 
         email: response.data.email,
+        phone: response.data.phone,
+        profileImage: response.data.profileImage,
         role: response.data.role 
       }));
       toast.success("Admin login successful! Welcome back.");

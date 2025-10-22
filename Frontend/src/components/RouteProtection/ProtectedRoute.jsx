@@ -47,7 +47,7 @@ const ProtectedRoute = ({ children, userType }) => {
             localStorage.removeItem('tutorInfo');
             localStorage.removeItem('adminInfo');
           } else {
-            console.error('Error checking account status:', error);
+            // Handle other errors silently
           }
         }
       }

@@ -50,13 +50,21 @@ const tutorSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    profileImage: {
+      type: String,
+      default: null,
+    },
     bio: {
       type: String,
       default: "",
     },
     subject: {
       type: String,
-      required: null,
+      default: null,
+    },
+    subjects: {
+      type: String,
+      default: "",
     },
     status: {
       type: Boolean,

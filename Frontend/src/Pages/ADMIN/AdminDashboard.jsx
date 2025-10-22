@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, Download, FileText, Users, BookOpen, GraduationCap, DollarSign, TrendingUp } from 'lucide-react';
 import Button from '../../ui/Button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import AdminLayout from './common/AdminLayout';
 import { useNavigate } from 'react-router-dom';
+import { adminAPI } from '../../api/axiosConfig';
 // Mock data for the chart
 const chartData = [
     { month: 'Jan', income: 45000, profit: 35000 },
@@ -52,8 +53,32 @@ const courseData = [
 ];
 
 export default function AdminDashboard() {
-    const navigate=useNavigate()
+    const navigate = useNavigate();
     const [dateFilter, setDateFilter] = useState('This Month');
+    const [stats, setStats] = useState({
+        totalUsers: 0,
+        totalTutors: 0,
+        verifiedUsers: 0,
+        verifiedTutors: 0,
+        blockedUsers: 0,
+        blockedTutors: 0
+    });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchDashboardStats();
+    }, []);
+
+    const fetchDashboardStats = async () => {
+        try {
+            const response = await adminAPI.get('/api/admin/dashboard-stats');
+            setStats(response.data);
+        } catch (error) {
+            console.error('Error fetching dashboard stats:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleDownloadPDF = () => {
         console.log('Downloading PDF...');
@@ -128,7 +153,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-600 text-sm">Total Students</p>
-                                <p className="text-2xl font-bold text-gray-800">551</p>
+                                <p className="text-2xl font-bold text-gray-800">{loading ? '...' : stats.totalUsers}</p>
                             </div>
                             <Users className="w-8 h-8 text-sky-500" />
                         </div>
@@ -138,7 +163,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-600 text-sm">Total Tutors</p>
-                                <p className="text-2xl font-bold text-gray-800">551</p>
+                                <p className="text-2xl font-bold text-gray-800">{loading ? '...' : stats.totalTutors}</p>
                             </div>
                             <GraduationCap className="w-8 h-8 text-green-500" />
                         </div>

@@ -19,21 +19,34 @@ const Tutors = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetch users when component mounts or filters change
+  // Fetch tutors when component mounts or page/filter changes
   useEffect(() => {
     dispatch(fetchTutors({
       page: currentPage,
-      search: searchTerm,
+      search: "", // Remove search from API call
       status: statusFilter
     }));
-  }, [dispatch, currentPage, searchTerm, statusFilter]);
+  }, [dispatch, currentPage, statusFilter]);
 
-  // Reset to first page when search or filter changes
+  // Reset to first page when filter changes
   useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [searchTerm, statusFilter]);
+  }, [statusFilter]);
+
+  // Client-side filtering
+  const filteredTutors = tutors.filter(tutor => {
+    const matchesSearch = searchTerm === "" || 
+      tutor.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tutor.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" ||
+      (statusFilter === "active" && !tutor.is_blocked) ||
+      (statusFilter === "blocked" && tutor.is_blocked);
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const handleBlockUnblock = async (tutorId, currentStatus) => {
 
@@ -119,7 +132,7 @@ const Tutors = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
-            <div className="text-2xl text-blue-500 mr-3">👥</div>
+            <div className="text-2xl text-sky-500 mr-3">👥</div>
             <div>
               <p className="text-sm text-gray-500">Total Tutors</p>
               <p className="text-xl font-semibold text-gray-900">
@@ -211,8 +224,8 @@ const Tutors = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {Array.isArray(tutors) && tutors.length > 0 ? (
-                tutors.map((tutor) => (
+              {Array.isArray(filteredTutors) && filteredTutors.length > 0 ? (
+                filteredTutors.map((tutor) => (
                   <tr key={tutor._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -239,7 +252,7 @@ const Tutors = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${tutor.is_verified
-                        ? 'bg-blue-100 text-blue-800'
+                        ? 'bg-sky-100 text-sky-800'
                         : 'bg-yellow-100 text-yellow-800'
                         }`}>
                         {tutor.is_verified ? 'Verified' : 'Pending'}
@@ -286,14 +299,15 @@ const Tutors = () => {
         </div>
 
         {/* Server-side Pagination */}
-        {pagination && pagination.totalPages > 1 && (
+        {pagination && (pagination.totalTutors > 0 || pagination.totalPages > 0) && (
           <div className="px-6 py-4 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to {Math.min(pagination.currentPage * pagination.limit, pagination.totalTutors)} of {pagination.totalTutors} tutors
+                Showing {((pagination.currentPage - 1) * (pagination.limit || 5)) + 1} to {Math.min(pagination.currentPage * (pagination.limit || 5), pagination.totalTutors || 0)} of {pagination.totalTutors || 0} tutors
               </div>
 
-              <div className="flex items-center space-x-2">
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center space-x-2">
                 {/* Previous Button */}
                 <button
                   onClick={() => handlePageChange(pagination.currentPage - 1)}
@@ -308,7 +322,7 @@ const Tutors = () => {
 
                 {/* Page Numbers */}
                 <div className="flex space-x-1">
-                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                  {pagination.totalPages > 1 && Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
                     <button
                       key={page}
                       onClick={() => handlePageChange(page)}
@@ -333,7 +347,8 @@ const Tutors = () => {
                 >
                   Next
                 </button>
-              </div>
+                </div>
+              )}
             </div>
           </div>
         )}

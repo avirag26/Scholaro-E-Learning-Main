@@ -55,8 +55,6 @@ useEffect(() => {
       }
 
     } catch (error) {
-      console.error('Error verifying user:', error);
-      
       if (error.response?.status === 401 || error.response?.status === 403) {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userInfo');
@@ -116,6 +114,7 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
+        user={userInfo}
       />
 
       <section className="bg-gradient-to-br from-teal-50 to-blue-50 py-12">
@@ -167,10 +166,10 @@ useEffect(() => {
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-600 text-sm font-medium">Courses Enrolled</p>
-                  <p className="text-2xl font-bold text-blue-900">{userProgress.coursesEnrolled}</p>
+                  <p className="text-sky-600 text-sm font-medium">Courses Enrolled</p>
+                  <p className="text-2xl font-bold text-sky-900">{userProgress.coursesEnrolled}</p>
                 </div>
-                <BookOpen className="w-8 h-8 text-blue-600" />
+                <BookOpen className="w-8 h-8 text-sky-600" />
               </div>
             </div>
 
@@ -187,10 +186,10 @@ useEffect(() => {
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-2xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-600 text-sm font-medium">Learning Hours</p>
-                  <p className="text-2xl font-bold text-purple-900">{userProgress.totalHours}</p>
+                  <p className="text-sky-600 text-sm font-medium">Learning Hours</p>
+                  <p className="text-2xl font-bold text-sky-900">{userProgress.totalHours}</p>
                 </div>
-                <Clock className="w-8 h-8 text-purple-600" />
+                <Clock className="w-8 h-8 text-sky-600" />
               </div>
             </div>
 

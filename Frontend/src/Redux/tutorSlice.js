@@ -35,11 +35,16 @@ const tutorSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      .addCase(fetchTutors.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(fetchTutors.fulfilled, (state, action) => {
         state.loading = false;
         state.tutors = action.payload.data || [];
         state.pagination = action.payload.pagination || null;
         state.stats = action.payload.stats || null;
+        state.error = null;
       })
       .addCase(fetchTutors.rejected, (state, action) => {
         state.loading = false;

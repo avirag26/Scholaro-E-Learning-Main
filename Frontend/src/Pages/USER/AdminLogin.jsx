@@ -62,11 +62,7 @@ export default function AdminLogin() {
       clearTutorData();
       
       localStorage.setItem("adminAuthToken", response.data.accessToken);
-      localStorage.setItem("adminInfo", JSON.stringify({ 
-        name: response.data.name, 
-        email: response.data.email,
-        role: response.data.role 
-      }));
+      localStorage.setItem("adminInfo", JSON.stringify(response.data.admin));
       toast.success("Admin login successful! Welcome back.");
       
       redirectAfterLogin(navigate, 'admin');

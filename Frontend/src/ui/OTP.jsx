@@ -77,11 +77,22 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
       let response;
       
       if (userType === 'password-change') {
-        // For password change, use the authenticated API
         const { userAPI } = await import('../api/axiosConfig.js');
         response = await userAPI.post('/api/users/change-password/send-otp');
+      } else if (userType === 'email-change') {
+        // For email change, we need to get the stored new email and resend OTP
+        const storedNewEmail = localStorage.getItem('pendingEmailChange');
+        if (storedNewEmail) {
+          const { userAPI } = await import('../api/axiosConfig.js');
+          response = await userAPI.post('/api/users/change-email/send-otp', {
+            newEmail: storedNewEmail
+          });
+        } else {
+          toast.error('Email change session expired. Please try again.');
+          onClose();
+          return;
+        }
       } else {
-        // For regular user/tutor registration
         response = await publicAPI.post(`/api/${userType}s/resend-otp`, { email });
       }
       
@@ -97,7 +108,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
         toast.error(response.data.message || "Failed to resend OTP.");
       }
     } catch (error) {
-      console.error("Error resending OTP:", error.response?.data);
       toast.error(error.response?.data?.message || "An error occurred.");
     } finally {
       setIsResending(false);
@@ -125,7 +135,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
 
   if (!isOpen) return null;
 
-  // Enhanced animation variants
   const backdropVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -216,7 +225,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Enhanced backdrop with blur */}
           <motion.div
             variants={backdropVariants}
             initial="hidden"
@@ -226,7 +234,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
             onClick={handleModalClose}
           />
           
-          {/* Modal container */}
           <motion.div
             variants={modalVariants}
             initial="hidden"
@@ -235,14 +242,10 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
             className="fixed inset-0 flex items-center justify-center z-50 p-4"
             onClick={(e) => e.stopPropagation()}
           >
-
-            
             <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-sky-100 relative overflow-hidden">
-              {/* Decorative background elements */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-sky-100 to-blue-100 rounded-full -translate-y-16 translate-x-16 opacity-50" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-sky-50 to-blue-50 rounded-full translate-y-12 -translate-x-12 opacity-30" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-sky-100 to-sky-200 rounded-full -translate-y-16 translate-x-16 opacity-50" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-sky-50 to-sky-100 rounded-full translate-y-12 -translate-x-12 opacity-30" />
               
-              {/* Header */}
               <div className="relative flex justify-between items-start mb-6">
                 <div className="flex items-center space-x-3">
                   <motion.div
@@ -268,7 +271,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
                 </motion.button>
               </div>
 
-              {/* Email info */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -284,7 +286,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
                 </div>
               </motion.div>
 
-              {/* OTP Input */}
               <div className="mb-6">
                 <p className="text-center text-gray-600 mb-4">Enter the 6-digit code</p>
                 <div className="flex justify-center gap-3">
@@ -314,7 +315,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
                 </div>
               </div>
 
-              {/* Timer and Resend */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -329,7 +329,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
                         Resend available in <span className="font-semibold text-sky-600">{timer}s</span>
                       </span>
                     </div>
-                    {/* Progress bar */}
                     <div className="w-full bg-gray-200 rounded-full h-1">
                       <motion.div
                         variants={progressVariants}
@@ -361,7 +360,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
                 )}
               </motion.div>
 
-              {/* Verify Button */}
               <motion.button
                 onClick={handleVerify}
                 disabled={isVerifying || otp.join("").length !== 6}
@@ -385,7 +383,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
                 )}
               </motion.button>
 
-              {/* Help text */}
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

@@ -9,9 +9,13 @@ import {
   forgotPassword,
   resetPassword,
   checkUserStatus,
+  getUserProfile,
   updateUserProfile,
+  uploadProfilePhoto,
   sendPasswordChangeOtp,
-  changePasswordWithOtp
+  changePasswordWithOtp,
+  sendEmailChangeOtp,
+  verifyEmailChangeOtp
 } from "../Controllers/userController.js";
 import { protectUser } from "../Middleware/userMiddleware.js";
 
@@ -23,8 +27,12 @@ router.post("/google-auth", googleAuth);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
 router.get("/check-status", protectUser, checkUserStatus);
+router.get("/profile", protectUser, getUserProfile);
 router.put("/profile", protectUser, updateUserProfile);
+router.post("/upload-profile-photo", protectUser, uploadProfilePhoto);
 router.post("/change-password/send-otp", protectUser, sendPasswordChangeOtp);
 router.post("/change-password/verify", protectUser, changePasswordWithOtp);
+router.post("/change-email/send-otp", protectUser, sendEmailChangeOtp);
+router.post("/change-email/verify", protectUser, verifyEmailChangeOtp);
 
 export default router;

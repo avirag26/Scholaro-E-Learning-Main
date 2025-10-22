@@ -13,7 +13,7 @@ export default function FeatureTabs() {
     { 
       label: "Expert Instructors", 
       icon: Users,
-      color: "bg-blue-100 text-blue-600",
+      color: "bg-sky-100 text-sky-600",
       description: "Learn from industry professionals and thought leaders"
     },
     { 
@@ -25,7 +25,7 @@ export default function FeatureTabs() {
     { 
       label: "Career Growth", 
       icon: TrendingUp,
-      color: "bg-purple-100 text-purple-600",
+      color: "bg-sky-100 text-sky-600",
       description: "Advance your career with in-demand skills"
     }
   ];

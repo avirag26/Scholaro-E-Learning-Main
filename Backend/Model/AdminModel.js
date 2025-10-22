@@ -29,6 +29,14 @@ const adminSchema = new mongoose.Schema(
       enum: ['super_admin', 'admin'],
       default: 'admin'
     },
+    phone: {
+      type: String,
+      default: null,
+    },
+    profileImage: {
+      type: String,
+      default: null,
+    },
     profile_image: {
       type: String,
       default: null,
