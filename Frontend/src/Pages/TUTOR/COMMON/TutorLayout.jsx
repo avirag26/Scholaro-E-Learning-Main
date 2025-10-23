@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "./Header";
-import Footer from "./Footer";
+import Footer from "../../../components/Common/Footer";
 import TutorSidebar from "./TutorSidebar";
 import { tutorAPI } from "../../../api/axiosConfig";
 

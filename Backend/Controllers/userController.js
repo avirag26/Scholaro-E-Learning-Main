@@ -1,4 +1,6 @@
 import User from "../Model/usermodel.js";
+import { Course } from "../Model/CourseModel.js";
+import Category from "../Model/CategoryModel.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateToken.js";
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
@@ -312,7 +314,6 @@ const uploadProfilePhoto = async (req, res) => {
       return res.status(400).json({ message: "Image URL is required" });
     }
 
-    // Basic URL validation
     try {
       new URL(imageUrl);
     } catch (error) {
@@ -507,7 +508,7 @@ const verifyEmailChangeOtp = async (req, res) => {
     }
 
     const verifyResult = await verifyOtpWithData(newEmail, otp, 'email-change');
-    
+
     if (!verifyResult.success) {
       return res.status(400).json({
         message: verifyResult.message
@@ -567,5 +568,302 @@ export {
   sendPasswordChangeOtp,
   changePasswordWithOtp,
   sendEmailChangeOtp,
-  verifyEmailChangeOtp
+  verifyEmailChangeOtp,
+  getPublicCategories,
+  getPublicCourses,
+  getCoursesByCategory,
+  getCourseDetails
+};
+
+// Get all visible categories for users
+const getPublicCategories = async (req, res) => {
+  try {
+    const categories = await Category.find({ isVisible: true })
+      .select('title description')
+      .sort({ title: 1 });
+
+    const formattedCategories = categories.map(category => ({
+      id: category._id,
+      title: category.title,
+      description: category.description
+    }));
+
+    res.status(200).json({ 
+      success: true,
+      categories: formattedCategories 
+    });
+  } catch (error) {
+    console.error("Error fetching public categories:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to fetch categories" 
+    });
+  }
+};
+
+// Get all listed courses for users
+const getPublicCourses = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const skip = (page - 1) * limit;
+    const search = req.query.search || '';
+    const category = req.query.category || '';
+    const minPrice = req.query.minPrice ? parseFloat(req.query.minPrice) : null;
+    const maxPrice = req.query.maxPrice ? parseFloat(req.query.maxPrice) : null;
+    const rating = req.query.rating ? parseFloat(req.query.rating) : null;
+    const sort = req.query.sort || 'newest';
+
+    // Build query
+    let query = { 
+      listed: true, 
+      isActive: true,
+      isBanned: false 
+    };
+    
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    if (category) {
+      query.category = category;
+    }
+    
+    if (minPrice !== null || maxPrice !== null) {
+      query.price = {};
+      if (minPrice !== null) query.price.$gte = minPrice;
+      if (maxPrice !== null) query.price.$lte = maxPrice;
+    }
+    
+    if (rating !== null) {
+      query.average_rating = { $gte: rating };
+    }
+
+    // Sort options
+    let sortOption = {};
+    switch (sort) {
+      case 'newest':
+        sortOption = { createdAt: -1 };
+        break;
+      case 'oldest':
+        sortOption = { createdAt: 1 };
+        break;
+      case 'price_low':
+        sortOption = { price: 1 };
+        break;
+      case 'price_high':
+        sortOption = { price: -1 };
+        break;
+      case 'rating':
+        sortOption = { average_rating: -1 };
+        break;
+      case 'popular':
+        sortOption = { enrolled_count: -1 };
+        break;
+      default:
+        sortOption = { createdAt: -1 };
+    }
+
+    const courses = await Course.find(query)
+      .populate('category', 'title')
+      .populate('tutor', 'full_name profileImage')
+      .skip(skip)
+      .limit(limit)
+      .sort(sortOption);
+
+    const totalCourses = await Course.countDocuments(query);
+
+    const formattedCourses = courses.map((course) => ({
+      id: course._id,
+      title: course.title,
+      description: course.description,
+      price: course.price,
+      offer_percentage: course.offer_percentage,
+      category: course.category,
+      tutor: course.tutor,
+      course_thumbnail: course.course_thumbnail,
+      enrolled_count: course.enrolled_count,
+      average_rating: course.average_rating,
+      total_reviews: course.total_reviews,
+      createdAt: course.createdAt,
+    }));
+
+    res.status(200).json({
+      success: true,
+      courses: formattedCourses,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCourses / limit),
+        totalItems: totalCourses,
+        hasNext: page < Math.ceil(totalCourses / limit),
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching public courses:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to fetch courses", 
+      error: error.message 
+    });
+  }
+};
+
+// Get courses by category for users
+const getCoursesByCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const skip = (page - 1) * limit;
+    const sort = req.query.sort || 'newest';
+
+    // Check if category exists and is visible
+    const category = await Category.findOne({ 
+      _id: categoryId, 
+      isVisible: true 
+    });
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found or not available"
+      });
+    }
+
+    let query = {
+      category: categoryId,
+      listed: true,
+      isActive: true,
+      isBanned: false
+    };
+
+    // Sort options
+    let sortOption = {};
+    switch (sort) {
+      case 'newest':
+        sortOption = { createdAt: -1 };
+        break;
+      case 'oldest':
+        sortOption = { createdAt: 1 };
+        break;
+      case 'price_low':
+        sortOption = { price: 1 };
+        break;
+      case 'price_high':
+        sortOption = { price: -1 };
+        break;
+      case 'rating':
+        sortOption = { average_rating: -1 };
+        break;
+      case 'popular':
+        sortOption = { enrolled_count: -1 };
+        break;
+      default:
+        sortOption = { createdAt: -1 };
+    }
+
+    const courses = await Course.find(query)
+      .populate('category', 'title')
+      .populate('tutor', 'full_name profileImage')
+      .skip(skip)
+      .limit(limit)
+      .sort(sortOption);
+
+    const totalCourses = await Course.countDocuments(query);
+
+    const formattedCourses = courses.map((course) => ({
+      id: course._id,
+      title: course.title,
+      description: course.description,
+      price: course.price,
+      offer_percentage: course.offer_percentage,
+      category: course.category,
+      tutor: course.tutor,
+      course_thumbnail: course.course_thumbnail,
+      enrolled_count: course.enrolled_count,
+      average_rating: course.average_rating,
+      total_reviews: course.total_reviews,
+      createdAt: course.createdAt,
+    }));
+
+    res.status(200).json({
+      success: true,
+      category: {
+        id: category._id,
+        title: category.title,
+        description: category.description
+      },
+      courses: formattedCourses,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCourses / limit),
+        totalItems: totalCourses,
+        hasNext: page < Math.ceil(totalCourses / limit),
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching courses by category:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to fetch courses by category", 
+      error: error.message 
+    });
+  }
+};
+
+// Get single course details for users
+const getCourseDetails = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    const course = await Course.findOne({
+      _id: courseId,
+      listed: true,
+      isActive: true,
+      isBanned: false
+    })
+      .populate('category', 'title description')
+      .populate('tutor', 'full_name profileImage email')
+      .populate('lessons', 'title description duration');
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found or not available"
+      });
+    }
+
+    const formattedCourse = {
+      id: course._id,
+      title: course.title,
+      description: course.description,
+      price: course.price,
+      offer_percentage: course.offer_percentage,
+      category: course.category,
+      tutor: course.tutor,
+      course_thumbnail: course.course_thumbnail,
+      enrolled_count: course.enrolled_count,
+      average_rating: course.average_rating,
+      total_reviews: course.total_reviews,
+      lessons: course.lessons,
+      createdAt: course.createdAt,
+    };
+
+    res.status(200).json({
+      success: true,
+      course: formattedCourse
+    });
+  } catch (error) {
+    console.error("Error fetching course details:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to fetch course details", 
+      error: error.message 
+    });
+  }
 };

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Search, Users, BookOpen, GraduationCap, DollarSign, TrendingUp, LogOut, User } from 'lucide-react';
 import { toast } from 'sonner';
 import Swal from "sweetalert2";
+import Footer from '../../../components/Common/Footer';
 
 export default function AdminLayout({ children, title, subtitle }) {
     const navigate = useNavigate();
@@ -224,11 +225,10 @@ export default function AdminLayout({ children, title, subtitle }) {
                         </div>
                     )}
                     {children}
-
-                    {/* Footer */}
-                
                 </main>
             </div>
+            
+            <Footer />
         </div>
     );
 }

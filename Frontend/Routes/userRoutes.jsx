@@ -6,6 +6,7 @@ import UserForgotPassword from '../src/Pages/USER/UserForgotPassword';
 import UserResetPassword from '../src/Pages/USER/UserResetPassword';
 import NotFoundPage from '../src/ui/NotFound';
 import UserProfile from '../src/Pages/USER/UserProfile';
+import CourseListing from '../src/Pages/USER/CourseListing';
 
 const UserRoutes = () => {
 
@@ -20,6 +21,8 @@ const UserRoutes = () => {
 
             <Route path="home" element={<HomePage />} />
             <Route path="profile" element={<UserProfile />} />
+            <Route path="courses" element={<CourseListing />} />
+            <Route path="browse" element={<CourseListing />} />
 
             <Route path='*' element={<NotFoundPage />} />
         </Routes>

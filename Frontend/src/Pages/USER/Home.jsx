@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from 'react-router-dom';
 import { BookOpen, Clock, Award, TrendingUp, Star } from 'lucide-react';
 import Button from "../../ui/Button";
+import PriceDisplay from "../../components/PriceDisplay";
 import CategoryCards from "../../ui/CategoryCards";
 import Testimonials from "../../ui/Testmonials";
 import TeamSection from "../../ui/TeamSection";
 import BannerImg from "../../assets/banner.png";
 import { MdFavoriteBorder } from "react-icons/md";
 import Header from "./Common/Header"; 
+import Footer from "../../components/Common/Footer";
 import { userAPI } from "../../api/axiosConfig";
 
 export default function UserHomePage() {
@@ -132,7 +134,7 @@ useEffect(() => {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
-                  onClick={() => navigate('/user/browse')}
+                  onClick={() => navigate('/user/courses')}
                   className="bg-teal-600 hover:bg-teal-700 px-6 py-3"
                 >
                   Browse Courses
@@ -257,7 +259,7 @@ useEffect(() => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Browse All Courses</h2>
-            <Link to="/user/browse" className="text-teal-600 hover:underline font-medium">
+            <Link to="/user/courses" className="text-teal-600 hover:underline font-medium">
               See All
             </Link>
           </div>
@@ -311,24 +313,7 @@ useEffect(() => {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-teal-600 font-semibold">
-                        ₹
-                        {Math.round(
-                          course.price -
-                          course.price *
-                          ((course.offer_percentage || 0) / 100)
-                        )}
-                      </span>
-                      {course.offer_percentage > 0 && (
-                        <>
-                          <span className="text-gray-400 line-through text-sm">
-                            ₹{course.price}
-                          </span>
-                          <span className="bg-teal-100 text-teal-600 text-xs px-2 py-1 rounded">
-                            {course.offer_percentage}% OFF
-                          </span>
-                        </>
-                      )}
+                      <PriceDisplay price={course.price} offerPercentage={course.offer_percentage} />
                     </div>
                   </div>
                 </div>
@@ -344,48 +329,7 @@ useEffect(() => {
 
       <TeamSection />
 
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-xl font-bold text-teal-400 mb-4">Scholaro</h3>
-              <p className="text-gray-400 mb-4">
-                Your learning journey continues here.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/user/courses" className="hover:text-white">My Courses</Link></li>
-                <li><Link to="/user/certificates" className="hover:text-white">Certificates</Link></li>
-                <li><Link to="/user/profile" className="hover:text-white">Profile</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white">Help Center</a></li>
-                <li><a href="#" className="hover:text-white">Contact Support</a></li>
-                <li><a href="#" className="hover:text-white">FAQ</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold mb-4">Account</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><Link to="/user/profile" className="hover:text-white">Settings</Link></li>
-
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Scholaro. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

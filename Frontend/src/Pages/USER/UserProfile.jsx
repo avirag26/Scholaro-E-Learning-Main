@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { User, BookOpen, GraduationCap, ShoppingBag, Heart, Award, LogOut, Edit2, Camera, Key } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
+import Footer from '../../components/Common/Footer';
 import ChangePasswordModal from '../../ui/ChangePasswordModal';
 import EmailChangeModal from '../../ui/EmailChangeModal';
 import Swal from "sweetalert2";
@@ -517,6 +518,8 @@ const UserProfile = () => {
           </div>
         </div>
       </div>
+
+      <Footer />
 
       {/* Change Password Modal */}
       <ChangePasswordModal

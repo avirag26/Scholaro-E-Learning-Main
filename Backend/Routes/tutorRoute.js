@@ -23,8 +23,19 @@ import {
   updateCourse,
   toggleCourseListing,
   getCourseDetails,
-  getCategories
+  getCategories,
+  deleteCourse,
+  submitCourse,
+  getCourseByCategory,
 } from "../Controllers/courseController.js";
+import {
+  createLesson,
+  getCourseLessons,
+  updateLesson,
+  deleteLesson,
+  toggleLessonPublish,
+  getLessonDetails
+} from "../Controllers/lessonController.js";
 import { protectTutor } from "../Middleware/tutorMiddleware.js";
 
 router.post("/", registerTutor);
@@ -53,5 +64,16 @@ router.get("/courses/:id", protectTutor, getCourseDetails);
 router.put("/courses/:id", protectTutor, updateCourse);
 router.patch("/courses/:id/toggle-listing", protectTutor, toggleCourseListing);
 router.get("/categories", protectTutor, getCategories);
+router.delete("/courses/:courseId", deleteCourse);
+router.post("/lessons/:courseId", protectTutor, createLesson);
+router.get("/lessons/:courseId", protectTutor, getCourseLessons);
+router.get("/lesson/:lessonId", protectTutor, getLessonDetails);
+router.put("/lessons/:lessonId", protectTutor, updateLesson);
+router.delete("/lessons/:lessonId", protectTutor, deleteLesson);
+router.patch("/lessons/:lessonId/toggle-publish", protectTutor, toggleLessonPublish);
+router.post("/submit-course/:courseId", submitCourse);
+
+// Public routes (no authentication required)
+router.get("/courses/category/:categoryId", getCourseByCategory);
 
 export default router;

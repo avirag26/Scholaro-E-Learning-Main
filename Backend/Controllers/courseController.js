@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { Course } from "../Model/CourseModel.js";
 import Category from "../Model/CategoryModel.js";
 import Tutor from "../Model/TutorModel.js";
-
+import Lesson from "../Model/LessonModel.js";
 
 
 const addCourse = async (req,res)=>{
@@ -13,7 +13,6 @@ const addCourse = async (req,res)=>{
       description,
       price,
       offer_percentage,
-      tutor,
       lessons,
       duration,
       quiz,
@@ -21,13 +20,14 @@ const addCourse = async (req,res)=>{
       level,
         } = req.body;
 
+        // Get tutor from authenticated user
+        const tutor = req.tutor._id;
 
         if (
       !title ||
       !category ||
       !description ||
       !price ||
-      !tutor ||
       !course_thumbnail ||
       !level ||
       !duration
@@ -47,18 +47,15 @@ const addCourse = async (req,res)=>{
       return res.status(404).json({ message: "Category not found." });
     }
 
-    const tutorExists = await Tutor.findById(tutor);
-    if (!tutorExists) {
-      return res.status(404).json({ message: "Tutor not found." });
-    }
 
-    // Note: Lesson validation can be added when Lesson model is implemented
-    // if (lessons && lessons.length) {
-    //   const validLessons = await Lesson.find({ _id: { $in: lessons } });
-    //   if (validLessons.length !== lessons.length) {
-    //     return res.status(400).json({ message: "Some lessons are invalid." });
-    //   }
-    // }
+
+    
+    if (lessons && lessons.length) {
+      const validLessons = await Lesson.find({ _id: { $in: lessons } });
+      if (validLessons.length !== lessons.length) {
+        return res.status(400).json({ message: "Some lessons are invalid." });
+      }
+    }
      const newCourse = new Course({
       title,
       category: categoryData._id,
@@ -140,8 +137,6 @@ const getTutorCourses = async (req, res) => {
       offer_percentage: course.offer_percentage,
       category: course.category,
       course_thumbnail: course.course_thumbnail,
-      level: course.level,
-      duration: course.duration,
       enrolled_count: course.enrolled_count,
       average_rating: course.average_rating,
       total_reviews: course.total_reviews,
@@ -290,11 +285,173 @@ const getCategories = async (req, res) => {
   }
 };
 
+    
+//Delete Courses
+const deleteCourse = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    await Category.findByIdAndUpdate(course.category, {
+      $pull: { courses: courseId },
+    });
+
+    await Course.findByIdAndDelete(courseId);
+
+    res.status(200).json({
+      success: true,
+      message: "Course deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error in deleteCourse:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting course",
+      error: error.message,
+    });
+  }
+};
+
+
+
+
+//Submit Courses
+const submitCourse = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    const course = await Course.findById(courseId).populate("lessons");
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    if (!course.lessons || course.lessons.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Course must have at least one lesson before submission",
+      });
+    }
+
+    course.status = "completed";
+    course.publishedAt = new Date();
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Course submitted successfully",
+      data: course,
+    });
+  } catch (error) {
+    console.error("Error in submitCourse:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to submit course",
+      error: error.message,
+    });
+  }
+};
+
+//Get Course By Category
+const getCourseByCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+
+
+    const {
+      page = 1,
+      limit = 10,
+      sort = "createdAt",
+      order = "desc",
+      minPrice,
+      maxPrice,
+      rating,
+    } = req.query;
+
+    const category = await Category.findById(categoryId);
+
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    let query = {
+      category: categoryId,
+      listed: true,
+    };
+
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = parseFloat(minPrice);
+      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+    }
+
+    if (rating) {
+      query.rating = { $gte: parseFloat(rating) };
+    }
+
+
+
+    const sortOptions = {};
+    sortOptions[sort] = order === "desc" ? -1 : 1;
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const courses = await Course.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limitNumber)
+      .populate("tutor", "full_name profile_image")
+      .populate("category", "title");
+
+
+
+    const totalCourses = await Course.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      courses,
+      totalCourses,
+      totalPages: Math.ceil(totalCourses / limitNumber),
+      currentPage: pageNumber,
+    });
+  } catch (error) {
+    console.error("Error in getCourseByCategory:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching courses by category",
+      error: error.message,
+    });
+  }
+};
+
+
+
 export {
   addCourse,
   getTutorCourses,
   updateCourse,
   toggleCourseListing,
   getCourseDetails,
-  getCategories
+  getCategories,
+  deleteCourse,
+  submitCourse,
+  getCourseByCategory,
 };

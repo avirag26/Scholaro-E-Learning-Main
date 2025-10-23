@@ -15,7 +15,11 @@ import {
   sendPasswordChangeOtp,
   changePasswordWithOtp,
   sendEmailChangeOtp,
-  verifyEmailChangeOtp
+  verifyEmailChangeOtp,
+  getPublicCategories,
+  getPublicCourses,
+  getCoursesByCategory,
+  getCourseDetails
 } from "../Controllers/userController.js";
 import { protectUser } from "../Middleware/userMiddleware.js";
 
@@ -34,5 +38,11 @@ router.post("/change-password/send-otp", protectUser, sendPasswordChangeOtp);
 router.post("/change-password/verify", protectUser, changePasswordWithOtp);
 router.post("/change-email/send-otp", protectUser, sendEmailChangeOtp);
 router.post("/change-email/verify", protectUser, verifyEmailChangeOtp);
+
+// Public course and category routes
+router.get("/categories", getPublicCategories);
+router.get("/courses", getPublicCourses);
+router.get("/courses/category/:categoryId", getCoursesByCategory);
+router.get("/courses/:courseId", getCourseDetails);
 
 export default router;

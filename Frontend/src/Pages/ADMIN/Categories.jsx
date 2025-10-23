@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import AdminLayout from "./common/AdminLayout";
 import Swal from "sweetalert2";
 import {
@@ -14,9 +14,11 @@ import {
 
 const Categories = () => {
   const dispatch = useDispatch();
-  const { categoryDatas: categories, loading, error } = useSelector(state => state.category);
+  const { categoryDatas: categories, pagination, loading, error } = useSelector(state => state.category);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Fixed to 5 items per page
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -26,8 +28,11 @@ const Categories = () => {
   });
 
   useEffect(() => {
-    dispatch(fetchCategories());
-  }, [dispatch]);
+    dispatch(fetchCategories({
+      page: currentPage,
+      limit: itemsPerPage
+    }));
+  }, [dispatch, currentPage, itemsPerPage]);
 
   useEffect(() => {
     if (error) {
@@ -49,6 +54,11 @@ const Categories = () => {
         setFormData({ name: "", description: "" });
         setShowAddModal(false);
         toast.success("Category added successfully!");
+        // Refresh current page
+        dispatch(fetchCategories({
+          page: currentPage,
+          limit: itemsPerPage
+        }));
       }
     } catch (error) {
       // Error is handled by Redux and useEffect
@@ -72,6 +82,11 @@ const Categories = () => {
         setShowEditModal(false);
         setSelectedCategory(null);
         toast.success("Category updated successfully!");
+        // Refresh current page
+        dispatch(fetchCategories({
+          page: currentPage,
+          limit: itemsPerPage
+        }));
       }
     } catch (error) {
       // Error is handled by Redux and useEffect
@@ -99,6 +114,11 @@ const Categories = () => {
       const result = await dispatch(toggleCategoryListingAPI(category.id));
       if (toggleCategoryListingAPI.fulfilled.match(result)) {
         toast.success(`Category ${actionPast} successfully!`);
+        // Refresh current page
+        dispatch(fetchCategories({
+          page: currentPage,
+          limit: itemsPerPage
+        }));
       }
     } catch (error) {
       // Error is handled by Redux and useEffect
@@ -121,6 +141,12 @@ const Categories = () => {
     setFormData({ name: "", description: "" });
   };
 
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  // Filter categories locally for search
   const filteredCategories = categories.filter(category =>
     category.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     category.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -240,6 +266,80 @@ const Categories = () => {
           </div>
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {!searchTerm && pagination && pagination.totalPages > 1 && (
+        <div className="bg-white rounded-lg shadow p-6 mt-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Total items info */}
+            <div className="text-sm text-gray-700">
+              Total: {pagination.totalItems} categories
+            </div>
+
+            {/* Pagination buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={!pagination.hasPrevPage}
+                className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </button>
+
+              {/* Page numbers */}
+              <div className="flex items-center gap-1">
+                {[...Array(pagination.totalPages)].map((_, index) => {
+                  const page = index + 1;
+                  const isCurrentPage = page === currentPage;
+                  
+                  // Show first page, last page, current page, and pages around current
+                  const showPage = 
+                    page === 1 || 
+                    page === pagination.totalPages || 
+                    (page >= currentPage - 1 && page <= currentPage + 1);
+
+                  if (!showPage) {
+                    // Show ellipsis for gaps
+                    if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <span key={page} className="px-2 text-gray-500">...</span>;
+                    }
+                    return null;
+                  }
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-2 border rounded-lg transition-colors ${
+                        isCurrentPage
+                          ? 'bg-sky-600 text-white border-sky-600'
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={!pagination.hasNextPage}
+                className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Page info */}
+          <div className="mt-4 text-sm text-gray-600 text-center">
+            Showing {((currentPage - 1) * 5) + 1} to {Math.min(currentPage * 5, pagination.totalItems)} of {pagination.totalItems} entries
+          </div>
+        </div>
+      )}
 
       {/* Add Category Modal */}
       {showAddModal && (

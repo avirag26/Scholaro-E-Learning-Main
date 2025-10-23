@@ -106,9 +106,7 @@ const CourseSchema = new mongoose.Schema(
             ref: "Tutor",
             required: true,
         },
-        duration: {
-            type: Number,
-        },
+       
         isActive: {
             type: Boolean,
             default: true
@@ -149,10 +147,7 @@ const CourseSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        level: {
-            type: String,
-            required: true,
-        },
+      
         notificationSent: {
             type: Boolean,
             default: false

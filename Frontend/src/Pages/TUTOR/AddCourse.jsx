@@ -4,16 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Upload, X } from "lucide-react";
 import TutorLayout from "./COMMON/TutorLayout";
+import { uploadToCloudinary, validateImageFile } from "../../utils/cloudinary";
+import { calculatePrice } from "../../utils/priceUtils";
 import {
     createCourse,
     fetchCategories,
     clearError
-} from "../../Redux/tutorCourseSlice";
+} from "../../Redux/courseSlice";
 
 const AddCourse = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { categories, loading, error } = useSelector((state) => state.tutorCourses);
+    const { categories, loading, error } = useSelector((state) => state.courses);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -26,6 +28,7 @@ const AddCourse = () => {
 
     const [imagePreview, setImagePreview] = useState(null);
     const [dragActive, setDragActive] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     // Fetch categories on component mount
     useEffect(() => {
@@ -50,19 +53,43 @@ const AddCourse = () => {
     };
 
     // Handle image upload
-    const handleImageUpload = (file) => {
-        if (file && file.type.startsWith('image/')) {
+    const handleImageUpload = async (file) => {
+        // Validate file
+        const validation = validateImageFile(file);
+        if (!validation.valid) {
+            toast.error(validation.error);
+            return;
+        }
+
+        setUploading(true);
+
+        try {
+            // Show preview immediately
             const reader = new FileReader();
             reader.onload = (e) => {
                 setImagePreview(e.target.result);
-                setFormData(prev => ({
-                    ...prev,
-                    course_thumbnail: e.target.result
-                }));
             };
             reader.readAsDataURL(file);
-        } else {
-            toast.error("Please select a valid image file");
+
+            // Upload to Cloudinary
+            const uploadResult = await uploadToCloudinary(file);
+
+            if (uploadResult.success) {
+                setFormData(prev => ({
+                    ...prev,
+                    course_thumbnail: uploadResult.url
+                }));
+                toast.success("Image uploaded successfully!");
+            } else {
+                toast.error(uploadResult.error);
+                // Clear preview on upload failure
+                setImagePreview(null);
+            }
+        } catch (error) {
+            toast.error("Failed to upload image. Please try again.");
+            setImagePreview(null);
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -109,7 +136,7 @@ const AddCourse = () => {
         e.preventDefault();
 
         // Validation
-        if (!formData.title.trim()) {
+        if (!formData.title || !formData.title.trim()) {
             toast.error("Course title is required");
             return;
         }
@@ -117,7 +144,7 @@ const AddCourse = () => {
             toast.error("Please select a category");
             return;
         }
-        if (!formData.description.trim()) {
+        if (!formData.description || !formData.description.trim()) {
             toast.error("Course description is required");
             return;
         }
@@ -140,19 +167,24 @@ const AddCourse = () => {
             };
 
             const result = await dispatch(createCourse(courseData));
+
             if (createCourse.fulfilled.match(result)) {
                 toast.success("Course created successfully!");
-                navigate("/tutor/courses");
+                setTimeout(() => {
+                    navigate("/tutor/courses");
+                }, 1000);
+            } else {
+                toast.error(result.payload || "Failed to create course");
             }
         } catch (error) {
-            // Error is handled by Redux and useEffect
+            toast.error("Failed to create course");
         }
     };
 
     return (
         <TutorLayout title="Add New Course" subtitle="Create a new course for your students">
             <div className="max-w-4xl mx-auto">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-6">
                     <div className="bg-white rounded-lg shadow p-6">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Add New Course</h2>
 
@@ -240,14 +272,16 @@ const AddCourse = () => {
                                         Upload Cover Image *
                                     </label>
                                     <div
-                                        className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors bg-green-50 ${dragActive
+                                        className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors bg-green-50 ${uploading
+                                            ? 'border-gray-200 cursor-not-allowed'
+                                            : dragActive
                                                 ? 'border-teal-500 bg-teal-50'
                                                 : 'border-gray-300 hover:border-teal-400'
                                             }`}
-                                        onDragEnter={handleDrag}
-                                        onDragLeave={handleDrag}
-                                        onDragOver={handleDrag}
-                                        onDrop={handleDrop}
+                                        onDragEnter={!uploading ? handleDrag : undefined}
+                                        onDragLeave={!uploading ? handleDrag : undefined}
+                                        onDragOver={!uploading ? handleDrag : undefined}
+                                        onDrop={!uploading ? handleDrop : undefined}
                                     >
                                         {imagePreview ? (
                                             <div className="relative">
@@ -266,17 +300,30 @@ const AddCourse = () => {
                                             </div>
                                         ) : (
                                             <div className="space-y-4">
-                                                <Upload className="w-12 h-12 text-teal-500 mx-auto" />
-                                                <div>
-                                                    <p className="text-teal-600 font-medium">Upload cover image</p>
-                                                    <p className="text-gray-500 text-sm mt-1">Drag your file here</p>
-                                                </div>
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={handleFileChange}
-                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                />
+                                                {uploading ? (
+                                                    <>
+                                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto"></div>
+                                                        <div>
+                                                            <p className="text-teal-600 font-medium">Uploading image...</p>
+                                                            <p className="text-gray-500 text-sm mt-1">Please wait</p>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Upload className="w-12 h-12 text-teal-500 mx-auto" />
+                                                        <div>
+                                                            <p className="text-teal-600 font-medium">Upload cover image</p>
+                                                            <p className="text-gray-500 text-sm mt-1">Drag your file here</p>
+                                                        </div>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={handleFileChange}
+                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                            disabled={uploading}
+                                                        />
+                                                    </>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -300,18 +347,22 @@ const AddCourse = () => {
                             </div>
                         </div>
 
-                        {/* Add Course Lessons Button */}
+
+
+                        {/* Submit Button */}
                         <div className="mt-8 text-center">
                             <button
-                                type="button"
-                                className="px-8 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
-                                onClick={() => toast.info("Lesson management functionality coming soon!")}
+                                type="submit"
+                                onClick={handleSubmit}
+                                disabled={loading}
+                                className="px-8 py-4 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Add Course Lessons
+                                {loading ? "Creating Course..." : "🚀 CREATE COURSE"}
                             </button>
                         </div>
+
                     </div>
-                </form>
+                </div>
             </div>
         </TutorLayout>
     );

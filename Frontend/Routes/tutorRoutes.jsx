@@ -8,6 +8,9 @@ import NotFoundPage from '../src/ui/NotFound';
 import TutorProfile from "../src/Pages/TUTOR/TutorProfile";
 import TutorCourses from "../src/Pages/TUTOR/TutorCourses";
 import AddCourse from "../src/Pages/TUTOR/AddCourse";
+import AddLesson from "../src/Pages/TUTOR/AddLesson";
+import EditCourse from "../src/Pages/TUTOR/EditCourse";
+import EditLesson from "../src/Pages/TUTOR/EditLesson";
 const TutorRoutes = () => {
   return (
     <Routes>
@@ -20,6 +23,9 @@ const TutorRoutes = () => {
       <Route path="profile" element={<TutorProfile />} />
       <Route path="courses" element={<TutorCourses/>}/>
       <Route path="add-course" element={<AddCourse/>}/>
+      <Route path="edit-course/:courseId" element={<EditCourse/>}/>
+      <Route path="add-lesson/:courseId" element={<AddLesson/>}/>
+      <Route path="edit-lesson/:lessonId" element={<EditLesson/>}/>
 
       <Route path="home" element={<TutorHome />} />
 

@@ -3,10 +3,16 @@ import { adminAPI } from "../api/axiosConfig";
 // Async thunks for API calls
 export const fetchCategories = createAsyncThunk(
   'categories/fetchCategories',
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const response = await adminAPI.get('/api/admin/categories');
-      return response.data.categories;
+      const queryParams = new URLSearchParams();
+      
+      if (params.page) queryParams.append('page', params.page);
+      if (params.limit) queryParams.append('limit', params.limit);
+      if (params.all) queryParams.append('all', 'true');
+
+      const response = await adminAPI.get(`/api/admin/categories?${queryParams}`);
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch categories');
     }
@@ -71,12 +77,26 @@ const categorySlice = createSlice({
   name: "category",
   initialState: {
     categoryDatas: [],
+    pagination: {
+      currentPage: 1,
+      totalPages: 1,
+      totalItems: 0,
+      hasNextPage: false,
+      hasPrevPage: false
+    },
     loading: false,
     error: null,
   },
   reducers: {
     clearCategories: (state) => {
       state.categoryDatas = [];
+      state.pagination = {
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 0,
+        hasNextPage: false,
+        hasPrevPage: false
+      };
       state.error = null;
     },
     clearError: (state) => {
@@ -92,10 +112,13 @@ const categorySlice = createSlice({
       })
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.loading = false;
-        state.categoryDatas = action.payload.map(category => ({
+        state.categoryDatas = action.payload.categories.map(category => ({
           ...category,
           name: category.title
         }));
+        if (action.payload.pagination) {
+          state.pagination = action.payload.pagination;
+        }
       })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.loading = false;

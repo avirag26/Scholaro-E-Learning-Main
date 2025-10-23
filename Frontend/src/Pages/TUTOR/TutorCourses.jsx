@@ -2,28 +2,28 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Search, Plus, Eye, X, Edit, BookOpen } from "lucide-react";
+import { Search, Plus, Edit, BookOpen } from "lucide-react";
 import TutorLayout from "./COMMON/TutorLayout";
 import Swal from "sweetalert2";
+import PriceDisplay from "../../components/PriceDisplay";
 import {
     fetchTutorCourses,
     toggleCourseListing,
     fetchCategories,
     clearError
-} from "../../Redux/tutorCourseSlice";
+} from "../../Redux/courseSlice";
 
 const TutorCourses = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { courses, categories, pagination, stats, loading, error } = useSelector(
-        (state) => state.tutorCourses
+    const { tutorCourses: courses, categories, pagination, stats, loading, error } = useSelector(
+        (state) => state.courses
     );
 
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [currentPage, setCurrentPage] = useState(1);
-    const [modalType, setModalType] = useState(""); // 'view'
-    const [selected, setSelected] = useState(null);
+
 
     // Fetch courses and categories on component mount
     useEffect(() => {
@@ -90,34 +90,9 @@ const TutorCourses = () => {
         }
     };
 
-    // Open modal
-    const openModal = (type, course = null) => {
-        setModalType(type);
-        setSelected(course);
-    };
 
-    // Close modal
-    const closeModal = () => {
-        setModalType("");
-        setSelected(null);
-    };
 
-    // Format price
-    const formatPrice = (price, offerPercentage = 0) => {
-        if (offerPercentage > 0) {
-            const discountedPrice = price - (price * offerPercentage / 100);
-            return (
-                <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-green-600">₹{discountedPrice.toFixed(0)}</span>
-                    <span className="text-sm text-gray-500 line-through">₹{price}</span>
-                    <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">
-                        {offerPercentage}% OFF
-                    </span>
-                </div>
-            );
-        }
-        return <span className="text-lg font-bold text-gray-900">₹{price}</span>;
-    };
+
 
     // Generate pagination numbers
     const generatePaginationNumbers = () => {
@@ -209,6 +184,8 @@ const TutorCourses = () => {
                 </div>
             </div>
 
+
+
             {/* Courses Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 {courses.length > 0 ? (
@@ -263,24 +240,16 @@ const TutorCourses = () => {
                                 </div>
 
                                 <div className="flex items-center justify-between mb-4">
-                                    {formatPrice(course.price, course.offer_percentage)}
+                                    <PriceDisplay price={course.price} offerPercentage={course.offer_percentage} />
                                     <span className="text-sm text-gray-500">
                                         {course.enrolled_count} enrolled
                                     </span>
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 mb-2">
                                     <button
-                                        onClick={() => openModal("view", course)}
-                                        className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
-                                    >
-                                        <Eye className="w-4 h-4 inline mr-1" />
-                                        View
-                                    </button>
-
-                                    <button
-                                        onClick={() => openModal("edit", course)}
+                                        onClick={() => navigate(`/tutor/edit-course/${course.id}`)}
                                         className="flex-1 px-3 py-2 bg-pink-100 text-pink-700 rounded-lg hover:bg-pink-200 transition-colors text-sm font-medium"
                                     >
                                         <Edit className="w-4 h-4 inline mr-1" />
@@ -298,6 +267,15 @@ const TutorCourses = () => {
                                         {loading ? "..." : (course.listed ? "Unlist" : "List")}
                                     </button>
                                 </div>
+
+                                {/* Lesson Management Button */}
+                                <button
+                                    onClick={() => navigate(`/tutor/add-lesson/${course.id}`)}
+                                    className="w-full px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-bold border-2 border-teal-600"
+                                >
+                                    <Plus className="w-4 h-4 inline mr-2" />
+                                    📚 MANAGE LESSONS
+                                </button>
                             </div>
                         </div>
                     ))
@@ -367,144 +345,7 @@ const TutorCourses = () => {
                 </div>
             )}
 
-            {/* View Modal */}
-            {modalType === "view" && selected && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        {/* Modal Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                            <h3 className="text-xl font-semibold text-gray-900">Course Details</h3>
-                            <button
-                                onClick={closeModal}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                            >
-                                <X className="w-5 h-5 text-gray-500" />
-                            </button>
-                        </div>
 
-                        {/* Modal Content */}
-                        <div className="p-6 space-y-6">
-                            {/* Course Image */}
-                            <div className="w-full h-48 bg-gray-200 rounded-lg overflow-hidden">
-                                <img
-                                    src={selected.course_thumbnail}
-                                    alt={selected.title}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        e.target.src = '/api/placeholder/400/200';
-                                    }}
-                                />
-                            </div>
-
-                            {/* Course Info */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Course Title</label>
-                                    <div className="p-3 bg-gray-50 rounded-lg border">
-                                        <p className="text-gray-900 font-medium">{selected.title}</p>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                                    <div className="p-3 bg-gray-50 rounded-lg border">
-                                        <p className="text-gray-700">{selected.category?.title || 'N/A'}</p>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
-                                    <div className="p-3 bg-gray-50 rounded-lg border">
-                                        {formatPrice(selected.price, selected.offer_percentage)}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Level</label>
-                                    <div className="p-3 bg-gray-50 rounded-lg border">
-                                        <p className="text-gray-700">{selected.level}</p>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
-                                    <div className="p-3 bg-gray-50 rounded-lg border">
-                                        <p className="text-gray-700">{selected.duration} hours</p>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                                    <div className="p-3 bg-gray-50 rounded-lg border">
-                                        <div className="flex gap-2">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${selected.listed
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-red-100 text-red-800'
-                                                }`}>
-                                                {selected.listed ? 'Listed' : 'Unlisted'}
-                                            </span>
-                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${selected.isActive
-                                                ? 'bg-blue-100 text-blue-800'
-                                                : 'bg-gray-100 text-gray-800'
-                                                }`}>
-                                                {selected.isActive ? 'Active' : 'Inactive'}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                                <div className="p-3 bg-gray-50 rounded-lg border min-h-[100px]">
-                                    <p className="text-gray-700">{selected.description}</p>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Enrolled Students</label>
-                                    <div className="p-3 bg-gray-50 rounded-lg border text-center">
-                                        <p className="text-2xl font-bold text-teal-600">{selected.enrolled_count}</p>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Average Rating</label>
-                                    <div className="p-3 bg-gray-50 rounded-lg border text-center">
-                                        <p className="text-2xl font-bold text-yellow-600">{selected.average_rating || 0}</p>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Reviews</label>
-                                    <div className="p-3 bg-gray-50 rounded-lg border text-center">
-                                        <p className="text-2xl font-bold text-blue-600">{selected.total_reviews || 0}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    onClick={() => {
-                                        closeModal();
-                                        openModal("edit", selected);
-                                    }}
-                                    className="flex-1 bg-teal-600 text-white py-2.5 rounded-lg hover:bg-teal-700 transition-colors font-medium"
-                                >
-                                    Edit Course
-                                </button>
-                                <button
-                                    onClick={closeModal}
-                                    className="flex-1 bg-gray-200 text-gray-700 py-2.5 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                                >
-                                    Close
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </TutorLayout>
     );
 };
