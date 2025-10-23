@@ -1,21 +1,23 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "./Header";
 import Footer from "../../../components/Common/Footer";
 import TutorSidebar from "./TutorSidebar";
 import { tutorAPI } from "../../../api/axiosConfig";
-
+import { toast } from "sonner";
 const TutorLayout = ({ children }) => {
   const navigate = useNavigate();
+  const hasCheckedStatus = useRef(false);
 
   useEffect(() => {
-    
+    if (hasCheckedStatus.current) return;
+    hasCheckedStatus.current = true;
+
     const token = localStorage.getItem('tutorAuthToken');
     if (!token) {
       navigate('/tutor/login');
       return;
     }
-
 
     tutorAPI.get('/api/tutors/check-status')
       .then(response => {

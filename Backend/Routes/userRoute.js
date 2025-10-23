@@ -39,7 +39,7 @@ router.post("/change-password/verify", protectUser, changePasswordWithOtp);
 router.post("/change-email/send-otp", protectUser, sendEmailChangeOtp);
 router.post("/change-email/verify", protectUser, verifyEmailChangeOtp);
 
-// Public course and category routes
+
 router.get("/categories", getPublicCategories);
 router.get("/courses", getPublicCourses);
 router.get("/courses/category/:categoryId", getCoursesByCategory);

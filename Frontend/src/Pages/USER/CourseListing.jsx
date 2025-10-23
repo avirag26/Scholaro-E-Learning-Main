@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, Filter, Grid, List, Star, Users, ChevronDown, X } from 'lucide-react';
+import { Search, Filter, Star, Users, ChevronDown, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
@@ -20,7 +20,7 @@ const CourseListing = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const {
     categories,
     courses,
@@ -32,7 +32,7 @@ const CourseListing = () => {
   } = useSelector((state) => state.userCourses);
 
   const [userInfo, setUserInfo] = useState(null);
-  const [viewMode, setViewMode] = useState('grid');
+
   const [showFilters, setShowFilters] = useState(false);
   const [localFilters, setLocalFilters] = useState({
     search: '',
@@ -50,7 +50,6 @@ const CourseListing = () => {
       try {
         setUserInfo(JSON.parse(storedUserInfo));
       } catch (error) {
-        console.error('Error parsing user info:', error);
       }
     }
   }, []);
@@ -128,6 +127,15 @@ const CourseListing = () => {
     if (localFilters.category) {
       filterParams.category = localFilters.category;
     }
+    if (localFilters.minPrice) {
+      filterParams.minPrice = localFilters.minPrice;
+    }
+    if (localFilters.maxPrice) {
+      filterParams.maxPrice = localFilters.maxPrice;
+    }
+    if (localFilters.rating) {
+      filterParams.rating = localFilters.rating;
+    }
 
     updateURLParams(filterParams);
     setShowFilters(false);
@@ -148,7 +156,7 @@ const CourseListing = () => {
 
   const updateURLParams = (params) => {
     const newParams = new URLSearchParams(searchParams);
-    
+
     Object.entries(params).forEach(([key, value]) => {
       if (value) {
         newParams.set(key, value);
@@ -167,7 +175,7 @@ const CourseListing = () => {
   const handleCategorySelect = (categoryId) => {
     // Always set the category (empty string for "All Categories")
     setLocalFilters(prev => ({ ...prev, category: categoryId }));
-    
+
     if (categoryId) {
       updateURLParams({ category: categoryId, page: 1 });
     } else {
@@ -201,23 +209,23 @@ const CourseListing = () => {
       <Header user={userInfo} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Section */}
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {selectedCategory ? `${selectedCategory.title} Courses` : 'All Courses'}
           </h1>
           <p className="text-gray-600">
-            {selectedCategory 
-              ? selectedCategory.description 
+            {selectedCategory
+              ? selectedCategory.description
               : 'Discover amazing courses from expert tutors'
             }
           </p>
         </div>
 
-        {/* Search and Filters */}
+
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
+
             <form onSubmit={handleSearch} className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -231,7 +239,7 @@ const CourseListing = () => {
               </div>
             </form>
 
-            {/* Sort */}
+
             <div className="relative">
               <select
                 value={localFilters.sort}
@@ -250,7 +258,7 @@ const CourseListing = () => {
               <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
             </div>
 
-            {/* Filter Toggle */}
+
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -259,28 +267,15 @@ const CourseListing = () => {
               Filters
             </button>
 
-            {/* View Mode Toggle */}
-            <div className="flex border border-gray-300 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-3 ${viewMode === 'grid' ? 'bg-teal-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-              >
-                <Grid className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-3 ${viewMode === 'list' ? 'bg-teal-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
-              >
-                <List className="w-5 h-5" />
-              </button>
-            </div>
+
+
           </div>
 
-          {/* Advanced Filters */}
+
           {showFilters && (
             <div className="mt-6 pt-6 border-t border-gray-200">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Category Filter */}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Category
@@ -299,7 +294,6 @@ const CourseListing = () => {
                   </select>
                 </div>
 
-                {/* Price Range */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Min Price
@@ -326,7 +320,6 @@ const CourseListing = () => {
                   />
                 </div>
 
-                {/* Rating Filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Minimum Rating
@@ -362,22 +355,21 @@ const CourseListing = () => {
           )}
         </div>
 
-        {/* Categories */}
+
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Browse by Category</h2>
           <div className="flex flex-wrap gap-3">
-            {/* All Categories Button */}
+
             <button
               onClick={() => handleCategorySelect('')}
-              className={`px-4 py-2 rounded-full border transition-colors ${
-                !localFilters.category
-                  ? 'bg-teal-600 text-white border-teal-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-teal-600 hover:text-teal-600'
-              }`}
+              className={`px-4 py-2 rounded-full border transition-colors ${!localFilters.category
+                ? 'bg-teal-600 text-white border-teal-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:border-teal-600 hover:text-teal-600'
+                }`}
             >
               All Categories
             </button>
-            
+
             {categoriesLoading ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-teal-500"></div>
@@ -388,11 +380,10 @@ const CourseListing = () => {
                 <button
                   key={category.id}
                   onClick={() => handleCategorySelect(category.id)}
-                  className={`px-4 py-2 rounded-full border transition-colors ${
-                    localFilters.category === category.id
-                      ? 'bg-teal-600 text-white border-teal-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-teal-600 hover:text-teal-600'
-                  }`}
+                  className={`px-4 py-2 rounded-full border transition-colors ${localFilters.category === category.id
+                    ? 'bg-teal-600 text-white border-teal-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-teal-600 hover:text-teal-600'
+                    }`}
                 >
                   {category.title}
                 </button>
@@ -401,7 +392,7 @@ const CourseListing = () => {
           </div>
         </div>
 
-        {/* Results Info */}
+
         <div className="flex justify-between items-center mb-6">
           <div className="text-gray-600">
             {loading ? (
@@ -410,7 +401,7 @@ const CourseListing = () => {
               `Showing ${courses.length} of ${pagination.totalItems} courses`
             )}
           </div>
-          
+
           {(localFilters.search || localFilters.category) && (
             <button
               onClick={clearFilters}
@@ -422,7 +413,7 @@ const CourseListing = () => {
           )}
         </div>
 
-        {/* Course Grid/List */}
+
         {loading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500"></div>
@@ -444,22 +435,18 @@ const CourseListing = () => {
             </button>
           </div>
         ) : (
-          <div className={viewMode === 'grid' 
-            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' 
-            : 'space-y-6'
-          }>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {courses.map((course) => (
               <CourseCard
                 key={course.id}
                 course={course}
-                viewMode={viewMode}
                 onClick={() => handleCourseClick(course.id)}
               />
             ))}
           </div>
         )}
 
-        {/* Pagination */}
+
         {pagination.totalPages > 1 && (
           <div className="flex justify-center mt-12">
             <div className="flex items-center gap-2">
@@ -470,26 +457,25 @@ const CourseListing = () => {
               >
                 Previous
               </button>
-              
+
               {[...Array(pagination.totalPages)].map((_, index) => {
                 const page = index + 1;
                 const isCurrentPage = page === pagination.currentPage;
-                
+
                 return (
                   <button
                     key={page}
                     onClick={() => handlePageChange(page)}
-                    className={`px-4 py-2 border rounded-lg ${
-                      isCurrentPage
-                        ? 'bg-teal-600 text-white border-teal-600'
-                        : 'border-gray-300 hover:bg-gray-50'
-                    }`}
+                    className={`px-4 py-2 border rounded-lg ${isCurrentPage
+                      ? 'bg-teal-600 text-white border-teal-600'
+                      : 'border-gray-300 hover:bg-gray-50'
+                      }`}
                   >
                     {page}
                   </button>
                 );
               })}
-              
+
               <button
                 onClick={() => handlePageChange(pagination.currentPage + 1)}
                 disabled={!pagination.hasNext}
@@ -508,82 +494,21 @@ const CourseListing = () => {
 };
 
 // Course Card Component
-const CourseCard = ({ course, viewMode, onClick }) => {
+const CourseCard = ({ course, onClick }) => {
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
       <Star
         key={i}
-        className={`w-4 h-4 ${
-          i < Math.floor(rating) 
-            ? 'text-yellow-400 fill-current' 
-            : 'text-gray-300'
-        }`}
+        className={`w-4 h-4 ${i < Math.floor(rating)
+          ? 'text-yellow-400 fill-current'
+          : 'text-gray-300'
+          }`}
       />
     ));
   };
 
-  if (viewMode === 'list') {
-    return (
-      <div 
-        onClick={onClick}
-        className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
-      >
-        <div className="flex">
-          <img
-            src={course.course_thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300&h=200&fit=crop"}
-            alt={course.title}
-            className="w-48 h-32 object-cover flex-shrink-0"
-          />
-          <div className="flex-1 p-6">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                  {course.title}
-                </h3>
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                  {course.description}
-                </p>
-                
-                <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    {course.enrolled_count} students
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {renderStars(course.average_rating)}
-                    <span className="ml-1">
-                      {course.average_rating.toFixed(1)} ({course.total_reviews})
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <img
-                      src={course.tutor?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"}
-                      alt={course.tutor?.full_name}
-                      className="w-8 h-8 rounded-full"
-                    />
-                    <span className="text-sm text-gray-600">
-                      {course.tutor?.full_name}
-                    </span>
-                  </div>
-                  
-                  <PriceDisplay 
-                    price={course.price} 
-                    offerPercentage={course.offer_percentage} 
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div 
+    <div
       onClick={onClick}
       className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
     >
@@ -596,7 +521,7 @@ const CourseCard = ({ course, viewMode, onClick }) => {
         <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
           {course.title}
         </h3>
-        
+
         <div className="flex items-center gap-2 mb-2">
           <img
             src={course.tutor?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"}
@@ -607,7 +532,7 @@ const CourseCard = ({ course, viewMode, onClick }) => {
             {course.tutor?.full_name}
           </span>
         </div>
-        
+
         <div className="flex items-center gap-2 mb-3">
           <div className="flex">
             {renderStars(course.average_rating)}
@@ -616,15 +541,15 @@ const CourseCard = ({ course, viewMode, onClick }) => {
             {course.average_rating.toFixed(1)} ({course.total_reviews})
           </span>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Users className="w-4 h-4" />
             {course.enrolled_count}
           </div>
-          <PriceDisplay 
-            price={course.price} 
-            offerPercentage={course.offer_percentage} 
+          <PriceDisplay
+            price={course.price}
+            offerPercentage={course.offer_percentage}
           />
         </div>
       </div>

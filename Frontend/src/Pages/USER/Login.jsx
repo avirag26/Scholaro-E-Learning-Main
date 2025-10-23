@@ -18,16 +18,14 @@ export default function Login() {
   const { setAuth } = useAuth();
   const from = location.state?.from?.pathname || "/user/home";
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) navigate("/user/home", { replace: true });
   }, [navigate]);
-
-
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -191,6 +189,7 @@ export default function Login() {
             <h2 className="text-2xl font-semibold mb-2">Welcome to Scholaro...!</h2>
             <p className="text-gray-600">Scholaro makes you perfect</p>
           </div>
+
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
               <label

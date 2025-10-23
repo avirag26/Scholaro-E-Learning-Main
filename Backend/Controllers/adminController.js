@@ -589,7 +589,6 @@ const updateCategory = async (req,res) =>{
 
     res.status(200).json({message:"Category updted successfully",category});
   } catch (error) {
-    console.error("Error updating category", error);
     res.status(500).json({ message: "Failed to update category" });
   }
 }
@@ -616,7 +615,6 @@ const deleteCategory = async (req,res) =>{
       category
     });
   } catch(error){
-    console.error("Error toggling category visibility:", error);
     res.status(500).json({message:"Failed to update category visibility"});
   }
 }
@@ -652,7 +650,6 @@ const toggleCategoryVisibility = async (req, res) => {
       category,
     });
   } catch (error) {
-    console.error("Error toggling visibility:", error);
     res.status(500).json({
       message: "Failed to update category visibility",
       error: error.message,

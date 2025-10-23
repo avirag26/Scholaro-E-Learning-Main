@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from 'react-router-dom';
 import { BookOpen, Clock, Award, TrendingUp, Star } from 'lucide-react';
 import Button from "../../ui/Button";
@@ -11,10 +11,13 @@ import { MdFavoriteBorder } from "react-icons/md";
 import Header from "./Common/Header"; 
 import Footer from "../../components/Common/Footer";
 import { userAPI } from "../../api/axiosConfig";
+// import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export default function UserHomePage() {
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
+  const hasCheckedStatus = useRef(false);
 
   useEffect(() => {
     window.history.pushState(null, '', window.location.pathname);
@@ -31,6 +34,9 @@ export default function UserHomePage() {
 
 useEffect(() => {
   async function verifyAndLoadUser() {
+    if (hasCheckedStatus.current) return;
+    hasCheckedStatus.current = true;
+
     try {
       const token = localStorage.getItem('authToken');
       const storedUserInfo = localStorage.getItem('userInfo');

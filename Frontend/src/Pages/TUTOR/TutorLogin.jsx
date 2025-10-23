@@ -17,8 +17,6 @@ export default function TutorLogin() {
   const [passwordError, setPasswordError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-
-
   const validateEmail = (inputEmail) => {
     if (!inputEmail) {
       setEmailError("Email is required");
@@ -59,14 +57,14 @@ export default function TutorLogin() {
     setIsSubmitting(true);
     try {
       const response = await tutorAPI.post("/api/tutors/login", { email, password });
-      
+
       clearUserData();
       clearAdminData();
-      
+
       localStorage.setItem("tutorAuthToken", response.data.accessToken);
       localStorage.setItem("tutorInfo", JSON.stringify(response.data.tutor));
       toast.success("Login successful! Welcome back.");
-      
+
       redirectAfterLogin(navigate, 'tutor');
     } catch (err) {
       if (err.response?.status === 403 && err.response?.data?.blocked) {
@@ -146,7 +144,7 @@ export default function TutorLogin() {
               Login
             </button>
             <button className="px-6 py-2 text-sky-700 rounded-full hover:bg-sky-300 transition-colors duration-300"
-            onClick={()=>navigate('/tutor/register')}>
+              onClick={() => navigate('/tutor/register')}>
               Register
             </button>
           </div>
@@ -158,6 +156,7 @@ export default function TutorLogin() {
             <h2 className="text-2xl font-semibold mb-2">Welcome to Scholaro...!</h2>
             <p className="text-sky-700">Scholaro makes you perfect</p>
           </div>
+
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             {/* Username Input */}
             <div>
@@ -173,9 +172,8 @@ export default function TutorLogin() {
                 name="email"
                 value={email}
                 onChange={handleEmailChange}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  emailError ? "border-red-500" : "border-sky-300"
-                } focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all duration-300`}
+                className={`w-full px-4 py-3 rounded-lg border ${emailError ? "border-red-500" : "border-sky-300"
+                  } focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all duration-300`}
                 placeholder="Enter your User name"
                 required
               />
@@ -201,9 +199,8 @@ export default function TutorLogin() {
                 name="password"
                 value={password}
                 onChange={handlePasswordChange}
-                className={`w-full px-4 py-3 rounded-lg border ${
-                  passwordError ? "border-red-500" : "border-sky-300"
-                } focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all duration-300`}
+                className={`w-full px-4 py-3 rounded-lg border ${passwordError ? "border-red-500" : "border-sky-300"
+                  } focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-all duration-300`}
                 placeholder="Enter your Password"
                 required
               />
@@ -284,4 +281,3 @@ export default function TutorLogin() {
     </div>
   );
 }
-     

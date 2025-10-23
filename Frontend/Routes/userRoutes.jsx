@@ -7,7 +7,7 @@ import UserResetPassword from '../src/Pages/USER/UserResetPassword';
 import NotFoundPage from '../src/ui/NotFound';
 import UserProfile from '../src/Pages/USER/UserProfile';
 import CourseListing from '../src/Pages/USER/CourseListing';
-
+import CourseDetail from '../src/Pages/USER/CourseDetail';
 const UserRoutes = () => {
 
     return (
@@ -23,7 +23,7 @@ const UserRoutes = () => {
             <Route path="profile" element={<UserProfile />} />
             <Route path="courses" element={<CourseListing />} />
             <Route path="browse" element={<CourseListing />} />
-
+            <Route path="course/:courseId" element={<CourseDetail />} />
             <Route path='*' element={<NotFoundPage />} />
         </Routes>
     )

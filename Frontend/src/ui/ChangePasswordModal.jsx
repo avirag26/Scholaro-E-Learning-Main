@@ -121,7 +121,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                     className="bg-white rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl max-h-[90vh] overflow-y-auto"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {/* Header */}
+
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-sky-100 rounded-full flex items-center justify-center">
@@ -141,7 +141,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                     </div>
 
                     <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                        {/* New Password */}
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 New Password
@@ -168,7 +168,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                             )}
                         </div>
 
-                        {/* Confirm Password */}
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Confirm New Password
@@ -197,7 +197,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
 
 
 
-                        {/* Action Buttons */}
+
                         <div className="flex gap-3 pt-6">
                             <button
                                 type="submit"
@@ -226,7 +226,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                 </motion.div>
             </motion.div>
 
-            {/* OTP Modal */}
+
             <OtpModal
                 isOpen={showOtpModal}
                 onClose={handleOtpModalClose}

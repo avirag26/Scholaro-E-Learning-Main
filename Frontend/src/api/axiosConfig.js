@@ -1,6 +1,8 @@
 import axios from "axios";
 import { toast } from "sonner";
 
+
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 let isRefreshing = false;
@@ -95,8 +97,8 @@ const createAxiosInstance = (userType) => {
       }
 
       if (response.status === 403) {
-        if (response.data?.blocked) {
-          toast.error("Your account has been blocked by the admin.");
+        if (response.data?.blocked || response.data?.message?.includes('blocked')) {
+          toast.error("Your account has been blocked by the admin. Please contact support.");
           clearUserTokens(userType);
           redirectToLogin(userType);
         } else {

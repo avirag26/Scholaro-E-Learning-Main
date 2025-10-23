@@ -1,6 +1,8 @@
 import User from "../Model/usermodel.js";
 import { Course } from "../Model/CourseModel.js";
 import Category from "../Model/CategoryModel.js";
+import Lesson from "../Model/LessonModel.js";
+import mongoose from "mongoose";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateToken.js";
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
@@ -552,30 +554,8 @@ const verifyEmailChangeOtp = async (req, res) => {
   }
 };
 
-export {
-  registerUser,
-  verifyOtp,
-  loginUser,
-  resendOtp,
-  googleAuth,
-  refreshToken,
-  getUserProfile,
-  updateUserProfile,
-  uploadProfilePhoto,
-  forgotPassword,
-  resetPassword,
-  checkUserStatus,
-  sendPasswordChangeOtp,
-  changePasswordWithOtp,
-  sendEmailChangeOtp,
-  verifyEmailChangeOtp,
-  getPublicCategories,
-  getPublicCourses,
-  getCoursesByCategory,
-  getCourseDetails
-};
 
-// Get all visible categories for users
+
 const getPublicCategories = async (req, res) => {
   try {
     const categories = await Category.find({ isVisible: true })
@@ -593,7 +573,6 @@ const getPublicCategories = async (req, res) => {
       categories: formattedCategories 
     });
   } catch (error) {
-    console.error("Error fetching public categories:", error);
     res.status(500).json({ 
       success: false,
       message: "Failed to fetch categories" 
@@ -601,7 +580,7 @@ const getPublicCategories = async (req, res) => {
   }
 };
 
-// Get all listed courses for users
+
 const getPublicCourses = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -614,7 +593,7 @@ const getPublicCourses = async (req, res) => {
     const rating = req.query.rating ? parseFloat(req.query.rating) : null;
     const sort = req.query.sort || 'newest';
 
-    // Build query
+
     let query = { 
       listed: true, 
       isActive: true,
@@ -642,7 +621,6 @@ const getPublicCourses = async (req, res) => {
       query.average_rating = { $gte: rating };
     }
 
-    // Sort options
     let sortOption = {};
     switch (sort) {
       case 'newest':
@@ -703,7 +681,6 @@ const getPublicCourses = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Error fetching public courses:", error);
     res.status(500).json({ 
       success: false,
       message: "Failed to fetch courses", 
@@ -712,7 +689,7 @@ const getPublicCourses = async (req, res) => {
   }
 };
 
-// Get courses by category for users
+
 const getCoursesByCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
@@ -721,7 +698,7 @@ const getCoursesByCategory = async (req, res) => {
     const skip = (page - 1) * limit;
     const sort = req.query.sort || 'newest';
 
-    // Check if category exists and is visible
+
     const category = await Category.findOne({ 
       _id: categoryId, 
       isVisible: true 
@@ -741,7 +718,6 @@ const getCoursesByCategory = async (req, res) => {
       isBanned: false
     };
 
-    // Sort options
     let sortOption = {};
     switch (sort) {
       case 'newest':
@@ -807,7 +783,6 @@ const getCoursesByCategory = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Error fetching courses by category:", error);
     res.status(500).json({ 
       success: false,
       message: "Failed to fetch courses by category", 
@@ -816,19 +791,28 @@ const getCoursesByCategory = async (req, res) => {
   }
 };
 
-// Get single course details for users
+
 const getCourseDetails = async (req, res) => {
   try {
     const { courseId } = req.params;
 
-    const course = await Course.findOne({
+
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid course ID format"
+      });
+    }
+
+
+    let course = await Course.findOne({
       _id: courseId,
       listed: true,
       isActive: true,
       isBanned: false
     })
       .populate('category', 'title description')
-      .populate('tutor', 'full_name profileImage email')
+      .populate('tutor', 'full_name profileImage email bio')
       .populate('lessons', 'title description duration');
 
     if (!course) {
@@ -843,14 +827,14 @@ const getCourseDetails = async (req, res) => {
       title: course.title,
       description: course.description,
       price: course.price,
-      offer_percentage: course.offer_percentage,
+      offer_percentage: course.offer_percentage || 0,
       category: course.category,
       tutor: course.tutor,
       course_thumbnail: course.course_thumbnail,
-      enrolled_count: course.enrolled_count,
-      average_rating: course.average_rating,
-      total_reviews: course.total_reviews,
-      lessons: course.lessons,
+      enrolled_count: course.enrolled_count || 0,
+      average_rating: course.average_rating || 0,
+      total_reviews: course.total_reviews || 0,
+      lessons: course.lessons || [],
       createdAt: course.createdAt,
     };
 
@@ -859,11 +843,33 @@ const getCourseDetails = async (req, res) => {
       course: formattedCourse
     });
   } catch (error) {
-    console.error("Error fetching course details:", error);
     res.status(500).json({ 
       success: false,
       message: "Failed to fetch course details", 
       error: error.message 
     });
   }
+};
+
+export {
+  registerUser,
+  verifyOtp,
+  loginUser,
+  resendOtp,
+  googleAuth,
+  refreshToken,
+  getUserProfile,
+  updateUserProfile,
+  uploadProfilePhoto,
+  forgotPassword,
+  resetPassword,
+  checkUserStatus,
+  sendPasswordChangeOtp,
+  changePasswordWithOtp,
+  sendEmailChangeOtp,
+  verifyEmailChangeOtp,
+  getPublicCategories,
+  getPublicCourses,
+  getCoursesByCategory,
+  getCourseDetails
 };

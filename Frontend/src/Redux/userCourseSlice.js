@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { userAPI } from "../api/axiosConfig";
 
-// Async thunks for API calls
+
 export const fetchPublicCategories = createAsyncThunk(
   'userCourses/fetchPublicCategories',
   async (_, { rejectWithValue }) => {
@@ -59,10 +59,20 @@ export const fetchCourseDetails = createAsyncThunk(
   'userCourses/fetchCourseDetails',
   async (courseId, { rejectWithValue }) => {
     try {
+      if (!courseId) {
+        throw new Error('Course ID is required');
+      }
+      
       const response = await userAPI.get(`/api/users/courses/${courseId}`);
+      
+      if (!response.data || !response.data.course) {
+        throw new Error('Invalid response format');
+      }
+      
       return response.data.course;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch course details');
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch course details';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -125,7 +135,7 @@ const userCourseSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Public Categories
+
       .addCase(fetchPublicCategories.pending, (state) => {
         state.categoriesLoading = true;
         state.error = null;
@@ -139,7 +149,7 @@ const userCourseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch Public Courses
+
       .addCase(fetchPublicCourses.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -154,7 +164,7 @@ const userCourseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch Courses by Category
+
       .addCase(fetchCoursesByCategory.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -170,7 +180,7 @@ const userCourseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch Course Details
+
       .addCase(fetchCourseDetails.pending, (state) => {
         state.courseDetailsLoading = true;
         state.error = null;

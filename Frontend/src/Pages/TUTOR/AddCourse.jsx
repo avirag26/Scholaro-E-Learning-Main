@@ -357,7 +357,7 @@ const AddCourse = () => {
                                 disabled={loading}
                                 className="px-8 py-4 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {loading ? "Creating Course..." : "🚀 CREATE COURSE"}
+                                {loading ? "Creating Course..." : "CREATE COURSE"}
                             </button>
                         </div>
 

@@ -74,20 +74,15 @@ export default function AdminDashboard() {
             const response = await adminAPI.get('/api/admin/dashboard-stats');
             setStats(response.data);
         } catch (error) {
-            console.error('Error fetching dashboard stats:', error);
         } finally {
             setLoading(false);
         }
     };
 
     const handleDownloadPDF = () => {
-        console.log('Downloading PDF...');
-        // Implement PDF download logic
     };
 
     const handleDownloadExcel = () => {
-        console.log('Downloading Excel...');
-        // Implement Excel download logic
     };
 
     return (

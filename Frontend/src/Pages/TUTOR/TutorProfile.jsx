@@ -286,7 +286,7 @@ const TutorProfile = () => {
     return (
         <TutorLayout>
             <div className="rounded-2xl shadow-md px-8 py-6 bg-white border-4 border-[#b8eec4]/30">
-                {/* Header */}
+
                 <div className="flex justify-between items-center mb-8">
                     <h2 className="text-2xl font-bold text-sky-600">Profile Settings</h2>
                     {!isEditing ? (
@@ -316,7 +316,7 @@ const TutorProfile = () => {
                     )}
                 </div>
 
-                {/* Profile Image Section */}
+
                 <div className="flex justify-center mb-8">
                     <div className="relative">
                         <img
@@ -346,9 +346,9 @@ const TutorProfile = () => {
                     </div>
                 </div>
 
-                {/* Form Fields */}
+
                 <div className="space-y-6">
-                    {/* Name Field */}
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Name
@@ -373,7 +373,7 @@ const TutorProfile = () => {
                         </div>
                     </div>
 
-                    {/* Email Field */}
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Email
@@ -399,7 +399,7 @@ const TutorProfile = () => {
                         </p>
                     </div>
 
-                    {/* Phone Field */}
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Phone
@@ -424,7 +424,7 @@ const TutorProfile = () => {
                         </div>
                     </div>
 
-                    {/* Subjects Field */}
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Subjects Teaching
@@ -450,7 +450,7 @@ const TutorProfile = () => {
                         <p className="text-sm text-gray-500 mt-1">Separate multiple subjects with commas</p>
                     </div>
 
-                    {/* Bio Field */}
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Bio
@@ -480,7 +480,7 @@ const TutorProfile = () => {
                         </div>
                     </div>
 
-                    {/* Change Password Button */}
+
                     <div className="flex justify-center pt-6">
                         <button
                             onClick={() => setShowPasswordModal(true)}
@@ -493,7 +493,7 @@ const TutorProfile = () => {
                 </div>
             </div>
 
-            {/* Change Password Modal */}
+
             <ChangePasswordModal
                 isOpen={showPasswordModal}
                 onClose={() => setShowPasswordModal(false)}
@@ -501,7 +501,7 @@ const TutorProfile = () => {
                 isLoading={isChangingPassword}
             />
 
-            {/* Change Email Modal */}
+
             <EmailChangeModal
                 isOpen={showEmailChangeModal}
                 onClose={() => setShowEmailChangeModal(false)}

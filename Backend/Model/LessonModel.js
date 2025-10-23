@@ -55,11 +55,11 @@ const LessonSchema = new mongoose.Schema(
   }
 );
 
-// Index for better query performance
+
 LessonSchema.index({ course: 1, order: 1 });
 LessonSchema.index({ tutor: 1 });
 LessonSchema.index({ isPublished: 1 });
 
-const Lesson = mongoose.model('Lesson', LessonSchema);
+const Lesson = mongoose.model('lessons', LessonSchema);
 
 export default Lesson;

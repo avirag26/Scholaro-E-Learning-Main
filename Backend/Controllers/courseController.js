@@ -20,7 +20,6 @@ const addCourse = async (req,res)=>{
       level,
         } = req.body;
 
-        // Get tutor from authenticated user
         const tutor = req.tutor._id;
 
         if (
@@ -68,6 +67,7 @@ const addCourse = async (req,res)=>{
       quiz,
       course_thumbnail,
       level,
+      listed: true,
     });
      await newCourse.save();
 
@@ -85,16 +85,10 @@ const addCourse = async (req,res)=>{
       course: newCourse,
     });
     } catch (error) {
-    console.error("Error in addCourse:", {
-      message: error.message,
-      stack: error.stack,
-      data: req.body,
-    });
     res.status(500).json({ message: "Server error", error: error.message });
   }
 }
 
-// Get all courses for a specific tutor
 const getTutorCourses = async (req, res) => {
   try {
    
@@ -163,12 +157,10 @@ const getTutorCourses = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Error fetching tutor courses:", error);
     res.status(500).json({ message: "Failed to fetch courses", error: error.message });
   }
 };
 
-// Update course
 const updateCourse = async (req, res) => {
   try {
     const { id } = req.params;
@@ -179,13 +171,11 @@ const updateCourse = async (req, res) => {
       return res.status(400).json({ message: "Invalid course ID" });
     }
 
-    // Check if course belongs to the tutor
     const course = await Course.findOne({ _id: id, tutor: tutorId });
     if (!course) {
       return res.status(404).json({ message: "Course not found or unauthorized" });
     }
 
-    // If category is being updated, validate it
     if (updateData.category) {
       const categoryExists = await Category.findById(updateData.category);
       if (!categoryExists) {
@@ -204,12 +194,10 @@ const updateCourse = async (req, res) => {
       course: updatedCourse
     });
   } catch (error) {
-    console.error("Error updating course:", error);
     res.status(500).json({ message: "Failed to update course" });
   }
 };
 
-// Toggle course listing (list/unlist)
 const toggleCourseListing = async (req, res) => {
   try {
     const { id } = req.params;
@@ -219,13 +207,11 @@ const toggleCourseListing = async (req, res) => {
       return res.status(400).json({ message: "Invalid course ID" });
     }
 
-    // Check if course belongs to the tutor
     const course = await Course.findOne({ _id: id, tutor: tutorId });
     if (!course) {
       return res.status(404).json({ message: "Course not found or unauthorized" });
     }
 
-    // Toggle listing status
     course.listed = !course.listed;
     await course.save();
 
@@ -235,12 +221,10 @@ const toggleCourseListing = async (req, res) => {
       course
     });
   } catch (error) {
-    console.error("Error toggling course listing:", error);
     res.status(500).json({ message: "Failed to update course listing" });
   }
 };
 
-// Get single course details
 const getCourseDetails = async (req, res) => {
   try {
     const { id } = req.params;
@@ -260,12 +244,10 @@ const getCourseDetails = async (req, res) => {
 
     res.status(200).json({ course });
   } catch (error) {
-    console.error("Error fetching course details:", error);
     res.status(500).json({ message: "Failed to fetch course details" });
   }
 };
 
-// Get all categories for course creation/editing
 const getCategories = async (req, res) => {
   try {
     const categories = await Category.find({ isVisible: true })
@@ -280,13 +262,11 @@ const getCategories = async (req, res) => {
 
     res.status(200).json({ categories: formattedCategories });
   } catch (error) {
-    console.error("Error fetching categories:", error);
     res.status(500).json({ message: "Failed to fetch categories" });
   }
 };
 
     
-//Delete Courses
 const deleteCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -311,7 +291,6 @@ const deleteCourse = async (req, res) => {
       message: "Course deleted successfully",
     });
   } catch (error) {
-    console.error("Error in deleteCourse:", error);
     res.status(500).json({
       success: false,
       message: "Error deleting course",
@@ -323,7 +302,6 @@ const deleteCourse = async (req, res) => {
 
 
 
-//Submit Courses
 const submitCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -354,8 +332,6 @@ const submitCourse = async (req, res) => {
       data: course,
     });
   } catch (error) {
-    console.error("Error in submitCourse:", error);
-
     res.status(500).json({
       success: false,
       message: "Failed to submit course",
@@ -364,7 +340,6 @@ const submitCourse = async (req, res) => {
   }
 };
 
-//Get Course By Category
 const getCourseByCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
@@ -433,7 +408,6 @@ const getCourseByCategory = async (req, res) => {
       currentPage: pageNumber,
     });
   } catch (error) {
-    console.error("Error in getCourseByCategory:", error);
     res.status(500).json({
       success: false,
       message: "Error fetching courses by category",

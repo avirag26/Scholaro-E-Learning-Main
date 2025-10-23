@@ -127,7 +127,7 @@ const TutorCourses = () => {
 
     return (
         <TutorLayout title="My Courses" subtitle="Manage your courses">
-            {/* Header Section */}
+
             <div className="bg-white rounded-lg shadow p-6 mb-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -147,7 +147,7 @@ const TutorCourses = () => {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3">
-                        {/* Search */}
+
                         <div className="relative">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                             <input
@@ -159,7 +159,7 @@ const TutorCourses = () => {
                             />
                         </div>
 
-                        {/* Status Filter */}
+
                         <select
                             value={statusFilter}
                             onChange={(e) => handleStatusChange(e.target.value)}
@@ -172,7 +172,7 @@ const TutorCourses = () => {
                             <option value="inactive">Inactive</option>
                         </select>
 
-                        {/* Add Course Button */}
+
                         <button
                             onClick={() => navigate("/tutor/add-course")}
                             className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
@@ -186,12 +186,12 @@ const TutorCourses = () => {
 
 
 
-            {/* Courses Grid */}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 {courses.length > 0 ? (
                     courses.map((course) => (
                         <div key={course.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                            {/* Course Thumbnail */}
+
                             <div className="relative h-48 bg-gray-200">
                                 <img
                                     src={course.course_thumbnail}
@@ -211,7 +211,7 @@ const TutorCourses = () => {
                                 </div>
                             </div>
 
-                            {/* Course Content */}
+
                             <div className="p-4">
                                 <div className="flex items-start justify-between mb-2">
                                     <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
@@ -246,7 +246,7 @@ const TutorCourses = () => {
                                     </span>
                                 </div>
 
-                                {/* Action Buttons */}
+
                                 <div className="flex gap-2 mb-2">
                                     <button
                                         onClick={() => navigate(`/tutor/edit-course/${course.id}`)}
@@ -268,13 +268,13 @@ const TutorCourses = () => {
                                     </button>
                                 </div>
 
-                                {/* Lesson Management Button */}
+
                                 <button
                                     onClick={() => navigate(`/tutor/add-lesson/${course.id}`)}
                                     className="w-full px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-bold border-2 border-teal-600"
                                 >
                                     <Plus className="w-4 h-4 inline mr-2" />
-                                    📚 MANAGE LESSONS
+                                    MANAGE LESSONS
                                 </button>
                             </div>
                         </div>
@@ -282,7 +282,7 @@ const TutorCourses = () => {
                 ) : (
                     <div className="col-span-full bg-white rounded-lg shadow p-12 text-center">
                         <div className="text-gray-400 mb-4">
-                            <div className="text-6xl mb-4">📚</div>
+                            <BookOpen className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                             <h3 className="text-lg font-medium text-gray-900 mb-2">No courses found</h3>
                             <p className="text-sm">
                                 {search
@@ -303,7 +303,7 @@ const TutorCourses = () => {
                 )}
             </div>
 
-            {/* Pagination */}
+
             {pagination && pagination.totalPages > 1 && (
                 <div className="bg-white rounded-lg shadow p-4">
                     <div className="flex items-center justify-between">

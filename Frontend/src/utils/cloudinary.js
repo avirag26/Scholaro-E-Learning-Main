@@ -1,6 +1,6 @@
 import { CLOUDINARY_CONFIG, IMAGE_UPLOAD_CONFIG } from '../config/cloudinary';
 
-// Cloudinary upload utility for images
+
 export const uploadToCloudinary = async (file) => {
     try {
         // Validate Cloudinary configuration
@@ -45,7 +45,6 @@ export const uploadToCloudinary = async (file) => {
             publicId: data.public_id
         };
     } catch (error) {
-        console.error('Cloudinary upload error:', error);
         return {
             success: false,
             error: error.message || 'Failed to upload image. Please try again.'
@@ -92,7 +91,6 @@ export const uploadVideoToCloudinary = async (file) => {
             duration: data.duration
         };
     } catch (error) {
-        console.error('Cloudinary video upload error:', error);
         return {
             success: false,
             error: error.message || 'Failed to upload video. Please try again.'
@@ -138,7 +136,6 @@ export const uploadDocumentToCloudinary = async (file) => {
             publicId: data.public_id
         };
     } catch (error) {
-        console.error('Cloudinary document upload error:', error);
         return {
             success: false,
             error: error.message || 'Failed to upload document. Please try again.'

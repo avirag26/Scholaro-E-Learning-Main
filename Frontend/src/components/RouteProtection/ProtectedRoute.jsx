@@ -1,13 +1,13 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
-import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import { useEffect, useState, useRef } from 'react';
 import { userAPI, tutorAPI, adminAPI } from '../../api/axiosConfig';
 
 const ProtectedRoute = ({ children, userType }) => {
   const { auth } = useAuth();
   const [isBlocked, setIsBlocked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const hasCheckedStatus = useRef(false);
 
 
   const userToken = auth?.accessToken || localStorage.getItem('authToken');
@@ -17,6 +17,11 @@ const ProtectedRoute = ({ children, userType }) => {
 
   useEffect(() => {
     const checkBlockedStatus = async () => {
+      if (hasCheckedStatus.current) {
+        setIsLoading(false);
+        return;
+      }
+      hasCheckedStatus.current = true;
       let endpoint = '';
       let apiInstance;
 
@@ -38,7 +43,6 @@ const ProtectedRoute = ({ children, userType }) => {
         } catch (error) {
           if (error.response?.status === 403) {
             setIsBlocked(true);
-            toast.error('Your account has been blocked by the administrator.');
 
             localStorage.removeItem('authToken');
             localStorage.removeItem('tutorAuthToken');
@@ -47,7 +51,6 @@ const ProtectedRoute = ({ children, userType }) => {
             localStorage.removeItem('tutorInfo');
             localStorage.removeItem('adminInfo');
           } else {
-            // Handle other errors silently
           }
         }
       }

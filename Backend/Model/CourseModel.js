@@ -1,4 +1,4 @@
-// CourseModel.js
+
 import mongoose from "mongoose";
 
 const ReportSchema = new mongoose.Schema({
@@ -7,7 +7,7 @@ const ReportSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
-    // Add the course field
+
     course: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "courses",
@@ -115,7 +115,7 @@ const CourseSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-        // Updated rating field to be calculated average
+
         average_rating: {
             type: Number,
             default: 0,
@@ -131,7 +131,7 @@ const CourseSchema = new mongoose.Schema(
             type: Number,
             default: 0
         },
-        // Array to store individual reviews
+
         reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
         lessons: [
             {
@@ -176,7 +176,7 @@ const CourseSchema = new mongoose.Schema(
     }
 );
 
-// Enhanced methods for CourseSchema
+
 CourseSchema.methods = {
     async canUserReview(userId) {
         // First check if user has received a certificate for this course
@@ -265,7 +265,7 @@ CourseSchema.methods = {
     }
 };
 
-// Static method for getting filtered reviews
+
 CourseSchema.statics.getReviews = async function (courseId, options = {}) {
     const {
         sort = 'newest',
@@ -312,8 +312,6 @@ CourseSchema.statics.getReviews = async function (courseId, options = {}) {
         .lean();
 };
 
-// Note: User schema updates should be handled in the User model file
-
 const updateCoursesByCategory = async (categoryId, isVisible) => {
     try {
         await Course.updateMany(
@@ -321,7 +319,6 @@ const updateCoursesByCategory = async (categoryId, isVisible) => {
             { isActive: isVisible }
         );
     } catch (error) {
-        console.error('Error updating courses for category:', error);
         throw error;
     }
 };

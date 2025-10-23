@@ -16,7 +16,6 @@ export const fetchTutors = createAsyncThunk(
 
     }
     catch (error) {
-      console.error("Fetch tutors error:", error);
       return rejectWithValue(
         error.response?.data?.message || "Error fetching tutors"
       );
