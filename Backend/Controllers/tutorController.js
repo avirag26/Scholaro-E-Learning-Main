@@ -19,7 +19,7 @@ const registerTutor = async (req, res) => {
     if (tutor && !tutor.is_verified) {
       tutor.full_name = full_name;
       tutor.phone = phone;
-      
+
       if (password) {
         const salt = await bcrypt.genSalt(10);
         tutor.password = await bcrypt.hash(password, salt);
@@ -41,7 +41,7 @@ const registerTutor = async (req, res) => {
     }
 
     await sendOtpToEmail(email, 'tutor');
-    
+
     res.status(200).json({ message: "OTP sent to your email" });
   } catch (error) {
     res.status(500).json({ message: "Server error during registration" });
@@ -59,7 +59,7 @@ const verifyTutorOtp = async (req, res) => {
     }
 
     const otpResult = await verifyEmailOtp(email, otp, 'tutor');
-    
+
     if (!otpResult.success) {
       return res.status(400).json({ message: otpResult.message });
     }
@@ -160,7 +160,7 @@ const resendTutorOtp = async (req, res) => {
     }
 
     await sendOtpToEmail(email, 'tutor');
-    
+
     res.status(200).json({ message: "A new OTP has been sent to your email." });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
@@ -423,7 +423,7 @@ const verifyTutorEmailChangeOtp = async (req, res) => {
     }
 
     const verifyResult = await verifyOtpWithData(newEmail, otp, 'email-change');
-    
+
     if (!verifyResult.success) {
       return res.status(400).json({
         message: verifyResult.message
@@ -536,7 +536,7 @@ const forgotPassword = async (req, res) => {
     tutor.passwordResetExpires = Date.now() + 10 * 60 * 1000;
     await tutor.save();
 
-    await sendPasswordResetEmail(email, resetToken);
+    await sendPasswordResetEmail(email, resetToken, 'tutor');
 
     res.status(200).json({ message: "Password reset email sent" });
   } catch (error) {
@@ -547,7 +547,15 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
-    const { newPassword } = req.body;
+    const { password } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: "Reset token is required" });
+    }
+
+    if (!password) {
+      return res.status(400).json({ message: "New password is required" });
+    }
 
     const tutor = await Tutor.findOne({
       passwordResetToken: token,
@@ -559,13 +567,14 @@ const resetPassword = async (req, res) => {
     }
 
     const salt = await bcrypt.genSalt(10);
-    tutor.password = await bcrypt.hash(newPassword, salt);
+    tutor.password = await bcrypt.hash(password, salt);
     tutor.passwordResetToken = undefined;
     tutor.passwordResetExpires = undefined;
     await tutor.save();
 
     res.status(200).json({ message: "Password reset successful" });
   } catch (error) {
+    console.error("Tutor reset password error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -622,16 +631,16 @@ const changeTutorPasswordWithOtp = async (req, res) => {
   }
 };
 
-export { 
-  registerTutor, 
-  verifyTutorOtp, 
-  loginTutor, 
-  resendTutorOtp, 
-  googleAuthTutor, 
-  refreshTutorToken, 
-  forgotTutorPassword, 
-  resetTutorPassword, 
-  getTutorProfile, 
+export {
+  registerTutor,
+  verifyTutorOtp,
+  loginTutor,
+  resendTutorOtp,
+  googleAuthTutor,
+  refreshTutorToken,
+  forgotTutorPassword,
+  resetTutorPassword,
+  getTutorProfile,
   updateTutorProfile,
   sendTutorEmailChangeOtp,
   verifyTutorEmailChangeOtp,

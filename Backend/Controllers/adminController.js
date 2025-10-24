@@ -442,7 +442,7 @@ const forgotPassword = async (req, res) => {
     admin.passwordResetExpires = Date.now() + 10 * 60 * 1000;
     await admin.save();
 
-    await sendPasswordResetEmail(email, resetToken);
+    await sendPasswordResetEmail(email, resetToken, 'admin');
 
     res.status(200).json({ message: "Password reset email sent" });
   } catch (error) {
@@ -453,7 +453,15 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
-    const { newPassword } = req.body;
+    const { password } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: "Reset token is required" });
+    }
+
+    if (!password) {
+      return res.status(400).json({ message: "New password is required" });
+    }
 
     const admin = await Admin.findOne({
       passwordResetToken: token,
@@ -464,13 +472,14 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ message: "Invalid or expired reset token" });
     }
 
-    admin.password = newPassword;
+    admin.password = password;
     admin.passwordResetToken = undefined;
     admin.passwordResetExpires = undefined;
     await admin.save();
 
     res.status(200).json({ message: "Password reset successful" });
   } catch (error) {
+    console.error("Admin reset password error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

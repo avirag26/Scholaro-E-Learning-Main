@@ -1,4 +1,5 @@
-﻿import express from "express";
+import express from "express";
+import User from "../Model/usermodel.js";
 const router = express.Router();
 import {
   registerUser,
@@ -31,6 +32,7 @@ router.post("/resend-otp", resendOtp);
 router.post("/google-auth", googleAuth);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPassword);
+
 router.get("/check-status", protectUser, checkUserStatus);
 router.get("/profile", protectUser, getUserProfile);
 router.put("/profile", protectUser, updateUserProfile);
