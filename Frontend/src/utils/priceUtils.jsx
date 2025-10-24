@@ -1,4 +1,4 @@
-
+﻿
 export const calculatePrice = (price, offerPercentage = 0) => {
   const originalPrice = parseFloat(price) || 0;
   const discount = parseFloat(offerPercentage) || 0;

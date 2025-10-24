@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { X, Mail, Shield } from 'lucide-react';
 import { toast } from 'react-toastify';
 import OtpModal from './OTP.jsx';
@@ -28,7 +28,7 @@ const EmailChangeModal = ({ isOpen, onClose, onSubmit, isLoading, currentEmail }
 
     try {
       await onSubmit({ action: 'sendOtp', newEmail });
-      // Store the new email for OTP resend functionality
+
       localStorage.setItem('pendingEmailChange', newEmail);
       toast.success('OTP sent to your new email address');
       setShowOtpModal(true);
@@ -40,7 +40,7 @@ const EmailChangeModal = ({ isOpen, onClose, onSubmit, isLoading, currentEmail }
   const handleVerifyOtp = async (otp) => {
     try {
       await onSubmit({ action: 'verifyOtp', otp, newEmail });
-      // Clear the pending email change after successful verification
+
       localStorage.removeItem('pendingEmailChange');
       setShowOtpModal(false);
       handleClose();

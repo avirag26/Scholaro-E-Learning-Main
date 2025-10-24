@@ -1,4 +1,4 @@
-import User from "../Model/usermodel.js";
+﻿import User from "../Model/usermodel.js";
 import Admin from "../Model/AdminModel.js";
 import Tutor from "../Model/TutorModel.js";
 import Category from "../Model/CategoryModel.js";
@@ -367,7 +367,7 @@ const uploadAdminProfilePhoto = async (req, res) => {
       return res.status(400).json({ message: "Image URL is required" });
     }
 
-    // Basic URL validation
+
     try {
       new URL(imageUrl);
     } catch (error) {
@@ -605,7 +605,7 @@ const deleteCategory = async (req,res) =>{
 
     if(!category) return res.status(404).json({message:"Category not found"});
 
-    // Toggle visibility instead of hard delete
+
     category.isVisible = !category.isVisible;
     await category.save();
 
@@ -640,7 +640,7 @@ const toggleCategoryVisibility = async (req, res) => {
     category.isVisible = !category.isVisible;
     await category.save();
 
-    // Update all courses in this category to match visibility
+
     await updateCoursesByCategory(id, category.isVisible);
 
     res.json({

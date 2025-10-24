@@ -1,4 +1,4 @@
-import { tutorAPI, publicAPI } from './axiosConfig';
+﻿import { tutorAPI, publicAPI } from './axiosConfig';
 
 export const tutorAuthAPI = {
   register: (tutorData) => publicAPI.post('/api/tutors/register', tutorData),

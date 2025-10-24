@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { Upload, X, Play, FileText, Plus } from "lucide-react";
 import TutorLayout from "./COMMON/TutorLayout";
 import Swal from "sweetalert2";
+import ImageUpload from "../../components/ImageUpload";
 import { 
   uploadToCloudinary, 
   uploadVideoToCloudinary, 
@@ -52,16 +53,16 @@ const AddLesson = () => {
     thumbnail: false
   });
 
-  // Remove mock data - using real data from Redux
 
-  // Fetch course lessons
+
+
   useEffect(() => {
     if (courseId) {
       dispatch(fetchCourseLessons(courseId));
     }
   }, [dispatch, courseId]);
 
-  // Handle Redux errors
+
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -69,7 +70,7 @@ const AddLesson = () => {
     }
   }, [error, dispatch]);
 
-  // Handle input changes
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -78,9 +79,9 @@ const AddLesson = () => {
     }));
   };
 
-  // Handle video upload
+
   const handleVideoUpload = async (file) => {
-    // Validate file
+
     const validation = validateVideoFile(file);
     if (!validation.valid) {
       toast.error(validation.error);
@@ -90,11 +91,11 @@ const AddLesson = () => {
     setUploading(prev => ({ ...prev, video: true }));
 
     try {
-      // Show preview immediately
+
       const videoUrl = URL.createObjectURL(file);
       setVideoPreview(videoUrl);
 
-      // Upload to Cloudinary
+
       const uploadResult = await uploadVideoToCloudinary(file);
 
       if (uploadResult.success) {
@@ -116,9 +117,9 @@ const AddLesson = () => {
     }
   };
 
-  // Handle PDF upload
+
   const handlePdfUpload = async (file) => {
-    // Validate file
+
     const validation = validatePdfFile(file);
     if (!validation.valid) {
       toast.error(validation.error);
@@ -128,10 +129,10 @@ const AddLesson = () => {
     setUploading(prev => ({ ...prev, pdf: true }));
 
     try {
-      // Show preview
+
       setPdfPreview(file.name);
 
-      // Upload to Cloudinary
+
       const uploadResult = await uploadDocumentToCloudinary(file);
 
       if (uploadResult.success) {
@@ -152,47 +153,17 @@ const AddLesson = () => {
     }
   };
 
-  // Handle thumbnail upload
-  const handleThumbnailUpload = async (file) => {
-    // Validate file
-    const validation = validateImageFile(file);
-    if (!validation.valid) {
-      toast.error(validation.error);
-      return;
-    }
 
-    setUploading(prev => ({ ...prev, thumbnail: true }));
-
-    try {
-      // Show preview immediately
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setThumbnailPreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
-
-      // Upload to Cloudinary
-      const uploadResult = await uploadToCloudinary(file);
-
-      if (uploadResult.success) {
-        setFormData(prev => ({
-          ...prev,
-          thumbnailFile: uploadResult.url
-        }));
-        toast.success("Thumbnail uploaded successfully!");
-      } else {
-        toast.error(uploadResult.error);
-        setThumbnailPreview(null);
-      }
-    } catch (error) {
-      toast.error("Failed to upload thumbnail");
-      setThumbnailPreview(null);
-    } finally {
-      setUploading(prev => ({ ...prev, thumbnail: false }));
-    }
+  const handleThumbnailUpload = (croppedImageUrl) => {
+    setFormData(prev => ({
+      ...prev,
+      thumbnailFile: croppedImageUrl
+    }));
+    setThumbnailPreview(croppedImageUrl);
+    toast.success("Thumbnail uploaded successfully!");
   };
 
-  // Handle drag events
+
   const handleDrag = (e, type) => {
     e.preventDefault();
     e.stopPropagation();
@@ -203,7 +174,7 @@ const AddLesson = () => {
     }
   };
 
-  // Handle drop
+
   const handleDrop = (e, type) => {
     e.preventDefault();
     e.stopPropagation();
@@ -215,13 +186,12 @@ const AddLesson = () => {
         handleVideoUpload(file);
       } else if (type === 'pdf') {
         handlePdfUpload(file);
-      } else if (type === 'thumbnail') {
-        handleThumbnailUpload(file);
       }
+
     }
   };
 
-  // Handle file input change
+
   const handleFileChange = (e, type) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -229,13 +199,12 @@ const AddLesson = () => {
         handleVideoUpload(file);
       } else if (type === 'pdf') {
         handlePdfUpload(file);
-      } else if (type === 'thumbnail') {
-        handleThumbnailUpload(file);
       }
+
     }
   };
 
-  // Remove file
+
   const removeFile = (type) => {
     if (type === 'video') {
       setVideoPreview(null);
@@ -249,7 +218,7 @@ const AddLesson = () => {
     }
   };
 
-  // Handle form submission
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -281,7 +250,7 @@ const AddLesson = () => {
       const result = await dispatch(createLesson({ courseId, lessonData }));
       
       if (createLesson.fulfilled.match(result)) {
-        // Reset form
+
         setFormData({
           title: "",
           description: "",
@@ -297,11 +266,11 @@ const AddLesson = () => {
         toast.success("Lesson added successfully!");
       }
     } catch (error) {
-      // Error is handled by Redux and useEffect
+
     }
   };
 
-  // Handle delete lesson
+
   const handleDeleteLesson = async (lessonId) => {
     const result = await Swal.fire({
       title: "Delete Lesson?",
@@ -322,7 +291,7 @@ const AddLesson = () => {
         toast.success("Lesson deleted successfully!");
       }
     } catch (error) {
-      // Error is handled by Redux and useEffect
+
     }
   };
 
@@ -535,64 +504,19 @@ const AddLesson = () => {
                   </div>
                 </div>
 
-                {/* Upload Thumbnail */}
+                {/* Upload Thumbnail with Cropping */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Upload Thumbnail
                   </label>
-                  <div
-                    className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-colors ${uploading.thumbnail
-                        ? 'border-gray-200 cursor-not-allowed bg-gray-50'
-                        : dragActive.thumbnail
-                          ? 'border-teal-500 bg-teal-50'
-                          : 'border-gray-300 hover:border-teal-400 bg-white'
-                      }`}
-                    onDragEnter={!uploading.thumbnail ? (e) => handleDrag(e, 'thumbnail') : undefined}
-                    onDragLeave={!uploading.thumbnail ? (e) => handleDrag(e, 'thumbnail') : undefined}
-                    onDragOver={!uploading.thumbnail ? (e) => handleDrag(e, 'thumbnail') : undefined}
-                    onDrop={!uploading.thumbnail ? (e) => handleDrop(e, 'thumbnail') : undefined}
-                  >
-                    {thumbnailPreview ? (
-                      <div className="relative">
-                        <img
-                          src={thumbnailPreview}
-                          alt="Thumbnail preview"
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeFile('thumbnail')}
-                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {uploading.thumbnail ? (
-                          <>
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500 mx-auto"></div>
-                            <p className="text-teal-600 font-medium text-sm">Uploading...</p>
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-8 h-8 text-teal-500 mx-auto" />
-                            <div>
-                              <p className="text-teal-600 font-medium text-sm">Upload Thumbnail</p>
-                              <p className="text-gray-500 text-xs mt-1">Drag image here</p>
-                            </div>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => handleFileChange(e, 'thumbnail')}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                              disabled={uploading.thumbnail}
-                            />
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  <ImageUpload
+                    currentImage={thumbnailPreview}
+                    onImageUpload={handleThumbnailUpload}
+                    title="Upload Thumbnail"
+                    uploadFolder="lesson-thumbnails"
+                    placeholder="Upload thumbnail image"
+                    className="w-full"
+                  />
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import TutorRegister from "../src/Pages/TUTOR/TutorRegister";
+﻿import TutorRegister from "../src/Pages/TUTOR/TutorRegister";
 import { Routes, Route } from "react-router-dom";
 import TutorLogin from "../src/Pages/TUTOR/TutorLogin";
 import TutorForgotPassword from "../src/Pages/TUTOR/TutorForgotPassword";

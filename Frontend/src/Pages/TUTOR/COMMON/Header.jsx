@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Bell, User } from "lucide-react";
 
@@ -13,22 +13,22 @@ export default function Header() {
         try {
           setTutorInfo(JSON.parse(storedTutorInfo));
         } catch (error) {
-          // Handle parsing error silently
+
         }
       }
     };
 
-    // Load initial data
+
     loadTutorInfo();
 
-    // Listen for localStorage changes
+
     const handleStorageChange = (e) => {
       if (e.key === 'tutorInfo') {
         loadTutorInfo();
       }
     };
 
-    // Listen for custom events (for same-tab updates)
+
     const handleTutorInfoUpdate = () => {
       loadTutorInfo();
     };

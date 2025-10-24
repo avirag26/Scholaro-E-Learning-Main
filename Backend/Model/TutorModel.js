@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 
 const notificationSchema = new mongoose.Schema({
   title: {
@@ -105,7 +105,7 @@ const tutorSchema = new mongoose.Schema(
     },
     lastActive: { type: Date },
     lastLogin: { type: Date },
-    notifications: [notificationSchema]  // Added notifications array
+    notifications: [notificationSchema]
   },
   { timestamps: true }
 );

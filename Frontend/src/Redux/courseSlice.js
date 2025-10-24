@@ -1,7 +1,7 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { publicAPI, tutorAPI } from "../api/axiosConfig";
 
-// PUBLIC COURSE OPERATIONS (for students/users)
+
 export const fetchCoursesByCategory = createAsyncThunk(
   'courses/fetchCoursesByCategory',
   async ({ categoryId, ...params }, { rejectWithValue }) => {
@@ -16,7 +16,7 @@ export const fetchCoursesByCategory = createAsyncThunk(
   }
 );
 
-// TUTOR COURSE OPERATIONS (for tutors)
+
 export const fetchTutorCourses = createAsyncThunk(
   'courses/fetchTutorCourses',
   async (params = {}, { rejectWithValue }) => {
@@ -95,7 +95,7 @@ export const fetchCategories = createAsyncThunk(
 const courseSlice = createSlice({
   name: "courses",
   initialState: {
-    // PUBLIC DATA (for students/users)
+
     publicCourses: (() => {
       try {
         const storedData = localStorage.getItem("publicCourses");
@@ -106,16 +106,16 @@ const courseSlice = createSlice({
       }
     })(),
     
-    // TUTOR DATA (for tutors)
+
     tutorCourses: [],
     categories: [],
     
-    // SHARED DATA
+
     selectedCourse: null,
     pagination: null,
     stats: null,
     
-    // USER PROGRESS (for students)
+
     userProgress: (() => {
       try {
         const storedProgress = localStorage.getItem("userProgress");
@@ -126,17 +126,17 @@ const courseSlice = createSlice({
       }
     })(),
     
-    // PRICING
+
     offerPrices: {},
     
-    // UI STATE
+
     loading: false,
     error: null,
     currentUserId: null,
   },
   
   reducers: {
-    // SHARED ACTIONS
+
     setSelectedCourse: (state, action) => {
       state.selectedCourse = action.payload;
     },
@@ -153,7 +153,7 @@ const courseSlice = createSlice({
       state.loading = action.payload;
     },
     
-    // PUBLIC COURSE ACTIONS
+
     setPublicCourses: (state, action) => {
       const courses = Array.isArray(action.payload) ? action.payload : [action.payload];
       state.publicCourses = courses.filter(course => course.listed);
@@ -165,7 +165,7 @@ const courseSlice = createSlice({
       localStorage.removeItem("publicCourses");
     },
     
-    // USER PROGRESS ACTIONS
+
     updateUserProgress: (state, action) => {
       const { courseId, lessonId, progress, userId } = action.payload;
       
@@ -194,7 +194,7 @@ const courseSlice = createSlice({
       state.currentUserId = null;
     },
     
-    // PRICING ACTIONS
+
     setOfferPrice: (state, action) => {
       const { courseId, offerPrice } = action.payload;
       state.offerPrices[courseId] = offerPrice;
@@ -203,7 +203,7 @@ const courseSlice = createSlice({
   
   extraReducers: (builder) => {
     builder
-      // PUBLIC: Fetch Courses by Category
+
       .addCase(fetchCoursesByCategory.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -223,7 +223,7 @@ const courseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // TUTOR: Fetch Tutor Courses
+
       .addCase(fetchTutorCourses.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -239,7 +239,7 @@ const courseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // TUTOR: Create Course
+
       .addCase(createCourse.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -253,7 +253,7 @@ const courseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // TUTOR: Update Course
+
       .addCase(updateCourse.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -273,7 +273,7 @@ const courseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // TUTOR: Toggle Course Listing
+
       .addCase(toggleCourseListing.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -290,7 +290,7 @@ const courseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // SHARED: Fetch Course Details
+
       .addCase(fetchCourseDetails.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -304,7 +304,7 @@ const courseSlice = createSlice({
         state.error = action.payload;
       })
 
-      // SHARED: Fetch Categories
+
       .addCase(fetchCategories.pending, (state) => {
         state.error = null;
       })

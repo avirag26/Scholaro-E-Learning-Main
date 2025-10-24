@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+﻿import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { useEffect, useState, useRef } from 'react';
 import { userAPI, tutorAPI, adminAPI } from '../../api/axiosConfig';
@@ -32,7 +32,7 @@ const ProtectedRoute = ({ children, userType }) => {
         endpoint = '/api/tutors/check-status';
         apiInstance = tutorAPI;
       } else if (userType === 'admin' && adminToken) {
-        endpoint = '/api/admin/check-status'; // Assuming this endpoint exists
+        endpoint = '/api/admin/check-status';
         apiInstance = adminAPI;
       }
 

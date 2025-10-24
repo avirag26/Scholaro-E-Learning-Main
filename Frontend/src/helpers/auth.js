@@ -1,4 +1,4 @@
-export const checkUserAuth = () => {
+﻿export const checkUserAuth = () => {
   return localStorage.getItem('authToken');
 };
 
@@ -44,9 +44,9 @@ export const redirectAfterLogin = (navigate, userType, destination) => {
 };
 
 export const clearBrowserHistory = () => {
-  // Replace current history entry to prevent going back
+
   window.history.replaceState(null, '', window.location.pathname);
 
-  // Push a new state to create a barrier
+
   window.history.pushState(null, '', window.location.pathname);
 };

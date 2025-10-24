@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { FaPlus, FaUser, FaBook, FaChartBar, FaComments, FaSignOutAlt } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -36,7 +36,7 @@ const TutorSidebar = () => {
 
     window.addEventListener('storage', handleStorageChange);
     
-    // Also listen for custom events (for same-tab updates)
+
     const handleTutorInfoUpdate = () => {
       loadTutorInfo();
     };

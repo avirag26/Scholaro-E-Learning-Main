@@ -1,4 +1,4 @@
-
+﻿
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ToastContainer } from 'react-toastify';
@@ -44,25 +44,25 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if this is the first visit or if we should show loading
+
     const hasVisited = sessionStorage.getItem('hasVisited');
     
     if (hasVisited) {
-      // If user has already visited in this session, skip loading
+
       setIsLoading(false);
       return;
     }
 
-    // Show loading for first visit
+
     const timer = setTimeout(() => {
       setIsLoading(false);
       sessionStorage.setItem('hasVisited', 'true');
-    }, 2500); // Show loading for 2.5 seconds
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, []);
 
-  // Show loading page while app is initializing
+
   if (isLoading) {
     return <LoadingPage />;
   }

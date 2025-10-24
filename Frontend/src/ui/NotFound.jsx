@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Home, ArrowLeft, BookOpen, GraduationCap } from 'lucide-react'
@@ -19,7 +19,7 @@ export default function NotFoundPage() {
 
 
 
-  // Sky Blue Gradient Background
+
   const GradientBackground = () => (
     <div
       className="fixed inset-0 z-0 pointer-events-none"
@@ -29,7 +29,7 @@ export default function NotFoundPage() {
     />
   )
 
-  // Floating particles animation
+
   const FloatingParticles = () => (
     <div className="fixed inset-0 z-0 pointer-events-none">
       {[...Array(20)].map((_, i) => (

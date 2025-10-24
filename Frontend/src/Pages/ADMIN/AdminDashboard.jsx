@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { ChevronDown, Download, FileText, Users, BookOpen, GraduationCap, DollarSign, TrendingUp } from 'lucide-react';
 import Button from '../../ui/Button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import AdminLayout from './common/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI } from '../../api/axiosConfig';
-// Mock data for the chart
+
 const chartData = [
     { month: 'Jan', income: 45000, profit: 35000 },
     { month: 'Feb', income: 52000, profit: 38000 },
@@ -21,7 +21,7 @@ const chartData = [
     { month: 'Dec', income: 69000, profit: 43000 }
 ];
 
-// Mock course data
+
 const courseData = [
     {
         name: 'Web Development',

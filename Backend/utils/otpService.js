@@ -1,4 +1,4 @@
-import OTP from '../Model/OtpModel.js';
+﻿import OTP from '../Model/OtpModel.js';
 import { generateOtp as generateOtpCode } from '../Helper/OtpHelper.js';
 import { sendOtpEmail } from './emailService.js';
 

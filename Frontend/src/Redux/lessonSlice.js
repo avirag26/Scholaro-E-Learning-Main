@@ -1,7 +1,7 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { tutorAPI } from "../api/axiosConfig";
 
-// Async thunks for API calls
+
 export const createLesson = createAsyncThunk(
     'lessons/createLesson',
     async ({ courseId, lessonData }, { rejectWithValue }) => {
@@ -88,7 +88,7 @@ const lessonSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // Create Lesson
+
             .addCase(createLesson.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -106,7 +106,7 @@ const lessonSlice = createSlice({
                 state.error = action.payload;
             })
 
-            // Fetch Course Lessons
+
             .addCase(fetchCourseLessons.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -121,7 +121,7 @@ const lessonSlice = createSlice({
                 state.error = action.payload;
             })
 
-            // Update Lesson
+
             .addCase(updateLesson.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -144,7 +144,7 @@ const lessonSlice = createSlice({
                 state.error = action.payload;
             })
 
-            // Delete Lesson
+
             .addCase(deleteLesson.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -158,7 +158,7 @@ const lessonSlice = createSlice({
                 state.error = action.payload;
             })
 
-            // Fetch Lesson Details
+
             .addCase(fetchLessonDetails.pending, (state) => {
                 state.loading = true;
                 state.error = null;

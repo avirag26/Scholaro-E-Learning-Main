@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -68,7 +68,7 @@ export default function AdminLogin() {
       redirectAfterLogin(navigate, 'admin');
     } catch (err) {
       if (err.response?.status === 403 && err.response.data.blocked) {
-        // Handle blocked admin specifically
+
         toast.error(err.response.data.message || "Your account has been blocked");
         return;
       }

@@ -1,4 +1,4 @@
-
+﻿
 import mongoose from "mongoose";
 
 const ReportSchema = new mongoose.Schema({
@@ -179,7 +179,7 @@ const CourseSchema = new mongoose.Schema(
 
 CourseSchema.methods = {
     async canUserReview(userId) {
-        // First check if user has received a certificate for this course
+
         const certificate = await mongoose.model('Certificate').findOne({
             userId: userId,
             courseId: this._id,
@@ -188,7 +188,7 @@ CourseSchema.methods = {
 
         if (!certificate) return false;
 
-        // Check if user has already reviewed
+
         const existingReview = await mongoose.model('Review').findOne({
             user: userId,
             course: this._id,

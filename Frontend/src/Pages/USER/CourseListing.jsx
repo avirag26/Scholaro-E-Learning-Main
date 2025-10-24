@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Filter, Star, Users, ChevronDown, X } from 'lucide-react';
@@ -43,7 +43,7 @@ const CourseListing = () => {
     sort: 'newest'
   });
 
-  // Load user info
+
   useEffect(() => {
     const storedUserInfo = localStorage.getItem('userInfo');
     if (storedUserInfo) {
@@ -54,19 +54,19 @@ const CourseListing = () => {
     }
   }, []);
 
-  // Load categories on component mount
+
   useEffect(() => {
     dispatch(fetchPublicCategories());
   }, [dispatch]);
 
-  // Handle URL params and load courses
+
   useEffect(() => {
     const categoryId = searchParams.get('category');
     const search = searchParams.get('search') || '';
     const sort = searchParams.get('sort') || 'newest';
     const page = parseInt(searchParams.get('page')) || 1;
 
-    // Update local filters from URL
+
     setLocalFilters(prev => ({
       ...prev,
       search,
@@ -74,14 +74,14 @@ const CourseListing = () => {
       sort
     }));
 
-    // Update Redux filters
+
     dispatch(setFilters({
       search,
       category: categoryId || '',
       sort
     }));
 
-    // Fetch courses
+
     if (categoryId) {
       dispatch(fetchCoursesByCategory({
         categoryId,
@@ -97,7 +97,7 @@ const CourseListing = () => {
     }
   }, [searchParams, dispatch]);
 
-  // Handle error display
+
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -173,13 +173,13 @@ const CourseListing = () => {
   };
 
   const handleCategorySelect = (categoryId) => {
-    // Always set the category (empty string for "All Categories")
+
     setLocalFilters(prev => ({ ...prev, category: categoryId }));
 
     if (categoryId) {
       updateURLParams({ category: categoryId, page: 1 });
     } else {
-      // Remove category from URL when selecting "All Categories"
+
       const newParams = new URLSearchParams(searchParams);
       newParams.delete('category');
       newParams.set('page', '1');
@@ -493,7 +493,7 @@ const CourseListing = () => {
   );
 };
 
-// Course Card Component
+
 const CourseCard = ({ course, onClick }) => {
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (

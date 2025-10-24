@@ -1,9 +1,9 @@
-import React from "react";
+﻿import React from "react";
 import { Star } from 'lucide-react';
 import Card from "./Card";
 
 export default function Testimonials({ testimonials = [] }) {
-  // Default testimonials if none provided
+
   const defaultTestimonials = [
     {
       name: 'Sarah Johnson',

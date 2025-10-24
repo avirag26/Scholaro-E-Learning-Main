@@ -1,4 +1,4 @@
-import express from 'express';
+﻿import express from 'express';
 import {
   adminLogin,
   createAdmin,
@@ -39,7 +39,7 @@ router.post('/forgot-password', forgotPassword);
 router.patch('/reset-password/:token', resetPassword);
 router.get('/check-status', protectAdmin, checkAdminStatus);
 
-// Profile management routes
+
 router.get('/profile', protectAdmin, getAdminProfile);
 router.put('/profile', protectAdmin, updateAdminProfile);
 router.post('/upload-profile-photo', protectAdmin, uploadAdminProfilePhoto);

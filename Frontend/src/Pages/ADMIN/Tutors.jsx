@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTutors } from "../../Redux/tutorSlice";
 import AdminLayout from "./common/AdminLayout";
@@ -19,23 +19,23 @@ const Tutors = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetch tutors when component mounts or page/filter changes
+
   useEffect(() => {
     dispatch(fetchTutors({
       page: currentPage,
-      search: "", // Remove search from API call
+      search: "",
       status: statusFilter
     }));
   }, [dispatch, currentPage, statusFilter]);
 
-  // Reset to first page when filter changes
+
   useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
   }, [statusFilter]);
 
-  // Client-side filtering
+
   const filteredTutors = tutors.filter(tutor => {
     const matchesSearch = searchTerm === "" || 
       tutor.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -50,7 +50,7 @@ const Tutors = () => {
 
   const handleBlockUnblock = async (tutorId, currentStatus) => {
 
-    // SweetAlert confirmation dialog
+
     const action = currentStatus ? 'unblock' : 'block';
     const result = await Swal.fire({
       title: `${action.charAt(0).toUpperCase() + action.slice(1)} Tutor?`,
@@ -81,7 +81,7 @@ const Tutors = () => {
         } else {
           toast.success(`✅ Tutor has been unblocked successfully. They can now access their account.`);
         }
-        // Refresh current page
+
         dispatch(fetchTutors({
           page: currentPage,
           search: searchTerm,

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { X, Mail, Shield, CheckCircle, Clock } from "lucide-react";
 import { toast } from "react-toastify";
 import { publicAPI } from "../api/axiosConfig.js";
@@ -80,7 +80,7 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
         const { userAPI } = await import('../api/axiosConfig.js');
         response = await userAPI.post('/api/users/change-password/send-otp');
       } else if (userType === 'email-change') {
-        // For email change, we need to get the stored new email and resend OTP
+
         const storedNewEmail = localStorage.getItem('pendingEmailChange');
         if (storedNewEmail) {
           const { userAPI } = await import('../api/axiosConfig.js');

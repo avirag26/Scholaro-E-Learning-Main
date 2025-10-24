@@ -1,4 +1,4 @@
-import Tutor from "../Model/TutorModel.js";
+﻿import Tutor from "../Model/TutorModel.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateToken.js";
 import { sendPasswordResetEmail } from "../utils/emailService.js";
 import { v4 as uuidv4 } from "uuid";
@@ -496,7 +496,7 @@ const uploadTutorProfilePhoto = async (req, res) => {
       return res.status(400).json({ message: "Image URL is required" });
     }
 
-    // Basic URL validation
+
     try {
       new URL(imageUrl);
     } catch (error) {

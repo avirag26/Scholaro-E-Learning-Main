@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, BookOpen, GraduationCap, ShoppingBag, Heart, Award, LogOut, Edit2, Camera, Key } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -30,24 +30,24 @@ const UserProfile = () => {
   });
   const fileInputRef = useRef(null);
 
-  // Load user data on component mount
+
   useEffect(() => {
     const loadUserData = async () => {
       try {
-        // First try to fetch from backend
+
         const response = await userAPI.get('/api/users/profile');
         const userData = response.data.user;
         setUserInfo(userData);
         localStorage.setItem('userInfo', JSON.stringify(userData));
       } catch (error) {
-        // If API fails, try localStorage as fallback
+
         try {
           const storedUserInfo = localStorage.getItem('userInfo');
           if (storedUserInfo) {
             const userData = JSON.parse(storedUserInfo);
             setUserInfo(userData);
           } else {
-            // Set empty data if no user info found
+
             setUserInfo({
               name: '',
               email: '',
@@ -55,7 +55,7 @@ const UserProfile = () => {
             });
           }
         } catch (localError) {
-          // Set empty data on error
+
           setUserInfo({
             name: '',
             email: '',
@@ -70,7 +70,7 @@ const UserProfile = () => {
     loadUserData();
   }, []);
 
-  // Update form data when user info loads
+
   useEffect(() => {
     if (userInfo) {
       setFormData({
@@ -92,7 +92,7 @@ const UserProfile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file
+
     const validation = validateImageFile(file);
     if (!validation.valid) {
       toast.error(validation.error);
@@ -102,14 +102,14 @@ const UserProfile = () => {
     try {
       setUploadingImage(true);
       
-      // Show preview immediately
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setSelectedImage(reader.result);
       };
       reader.readAsDataURL(file);
 
-      // Upload to Cloudinary
+
       const uploadResult = await uploadToCloudinary(file);
       
       if (!uploadResult.success) {
@@ -118,20 +118,23 @@ const UserProfile = () => {
         return;
       }
 
-      // Update profile photo in backend
+
       await userAPI.post('/api/users/upload-profile-photo', {
         imageUrl: uploadResult.url
       });
 
-      // Update userInfo state and localStorage
+
       const updatedUserInfo = { ...userInfo, profileImage: uploadResult.url };
       setUserInfo(updatedUserInfo);
       localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
       
-      // Dispatch custom event to notify header of update
+
+      window.dispatchEvent(new Event('userInfoUpdated'));
+      
+
       window.dispatchEvent(new CustomEvent('userInfoUpdated'));
 
-      // Clear the preview image so it shows the uploaded image from userInfo
+
       setSelectedImage(null);
 
       toast.success('Profile photo updated successfully!');
@@ -150,7 +153,7 @@ const UserProfile = () => {
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    // Reset form data to original values
+
     if (userInfo) {
       setFormData({
         name: userInfo.name || userInfo.full_name || '',
@@ -158,8 +161,9 @@ const UserProfile = () => {
         phone: userInfo.phone || ''
       });
     }
-    // Clear any preview image
+
     setSelectedImage(null);
+
   };
 
 
@@ -175,7 +179,7 @@ const UserProfile = () => {
 
       const response = await userAPI.put('/api/users/profile', profileData);
 
-      // Preserve the existing profile image when updating other fields
+
       const updatedUserInfo = {
         ...response.data.user,
         profileImage: userInfo?.profileImage || response.data.user.profileImage
@@ -184,7 +188,7 @@ const UserProfile = () => {
       setUserInfo(updatedUserInfo);
       localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
       
-      // Dispatch custom event to notify header of update
+
       window.dispatchEvent(new CustomEvent('userInfoUpdated'));
 
       setIsEditing(false);
@@ -240,7 +244,7 @@ const UserProfile = () => {
           newEmail: emailData.newEmail
         });
         
-        // Update user info with new email
+
         const updatedUserInfo = {
           ...userInfo,
           email: emailData.newEmail
@@ -248,7 +252,7 @@ const UserProfile = () => {
         setUserInfo(updatedUserInfo);
         localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
         
-        // Dispatch custom event to notify header of update
+
         window.dispatchEvent(new CustomEvent('userInfoUpdated'));
         
         setShowEmailChangeModal(false);
@@ -256,7 +260,7 @@ const UserProfile = () => {
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Failed to change email';
       toast.error(errorMessage);
-      throw error; // Re-throw to let modal handle it
+      throw error;
     } finally {
       setIsChangingEmail(false);
     }
@@ -270,7 +274,7 @@ const UserProfile = () => {
       navigate(item.path);
     } else {
       setActiveSection(item.id);
-      // Add functionality for other sections here
+
       toast.info(`${item.label} section - Coming soon!`);
     }
   };
@@ -315,7 +319,7 @@ const UserProfile = () => {
     });
   };
 
-  // Show loading state
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">

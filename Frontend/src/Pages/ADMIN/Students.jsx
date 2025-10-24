@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUsers } from "../../Redux/userSlice";
 import AdminLayout from "./common/AdminLayout";
@@ -19,16 +19,16 @@ const Students = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetch users when component mounts or page/filter changes
+
   useEffect(() => {
     dispatch(fetchUsers({
       page: currentPage,
-      search: "", // Remove search from API call
+      search: "",
       status: statusFilter
     }));
   }, [dispatch, currentPage, statusFilter]);
 
-  // Client-side filtering
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = searchTerm === "" || 
       user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -43,7 +43,7 @@ const Students = () => {
 
   const handleBlockUnblock = async (userId, currentStatus) => {
 
-    // SweetAlert confirmation dialog
+
     const action = currentStatus ? 'unblock' : 'block';
     const result = await Swal.fire({
       title: `${action.charAt(0).toUpperCase() + action.slice(1)} Student?`,
@@ -74,7 +74,7 @@ const Students = () => {
         } else {
           toast.success(`✅ Student has been unblocked successfully. They can now access their account.`);
         }
-        // Refresh current page
+
         dispatch(fetchUsers({
           page: currentPage,
           search: searchTerm,

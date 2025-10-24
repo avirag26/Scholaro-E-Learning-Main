@@ -1,6 +1,6 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { adminAPI } from "../api/axiosConfig";
-// Async thunks for API calls
+
 export const fetchCategories = createAsyncThunk(
   'categories/fetchCategories',
   async (params = {}, { rejectWithValue }) => {
@@ -105,7 +105,7 @@ const categorySlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Categories
+
       .addCase(fetchCategories.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -125,7 +125,7 @@ const categorySlice = createSlice({
         state.error = action.payload;
       })
 
-      // Create Category
+
       .addCase(createCategory.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -144,7 +144,7 @@ const categorySlice = createSlice({
         state.error = action.payload;
       })
 
-      // Update Category
+
       .addCase(updateCategoryAPI.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -165,7 +165,7 @@ const categorySlice = createSlice({
         state.error = action.payload;
       })
 
-      // Toggle Category Listing
+
       .addCase(toggleCategoryListingAPI.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -186,7 +186,7 @@ const categorySlice = createSlice({
         state.error = action.payload;
       })
 
-      // Toggle Visibility
+
       .addCase(toggleCategoryVisibilityAPI.pending, (state) => {
         state.error = null;
       })

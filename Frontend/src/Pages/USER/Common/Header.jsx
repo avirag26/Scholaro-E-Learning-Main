@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, Search, ShoppingCart, Bell, MoreVertical } from "lucide-react";
 import Button from "../../../ui/Button";
@@ -22,19 +22,19 @@ export default function Header({ user: initialUser, onMenuClick }) {
         try {
           setUser(JSON.parse(storedUserInfo));
         } catch (error) {
-          // Handle parsing error silently
+
         }
       }
     };
 
-    // Listen for localStorage changes
+
     const handleStorageChange = (e) => {
       if (e.key === 'userInfo') {
         loadUserInfo();
       }
     };
 
-    // Listen for custom events (for same-tab updates)
+
     const handleUserInfoUpdate = () => {
       loadUserInfo();
     };
@@ -112,7 +112,7 @@ export default function Header({ user: initialUser, onMenuClick }) {
             Courses
           </Link>
           <Link
-            to="/user/alltutor"
+            to="/user/teachers"
             className="text-sm font-medium pr-4 hover:text-sky-500 text-gray-900"
           >
             Tutors

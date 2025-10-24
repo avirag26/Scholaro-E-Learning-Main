@@ -1,7 +1,8 @@
-import User from "../Model/usermodel.js";
+﻿import User from "../Model/usermodel.js";
 import { Course } from "../Model/CourseModel.js";
 import Category from "../Model/CategoryModel.js";
 import Lesson from "../Model/LessonModel.js";
+import Tutor from "../Model/TutorModel.js";
 import mongoose from "mongoose";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateToken.js";
 import crypto from 'crypto';
@@ -851,6 +852,58 @@ const getCourseDetails = async (req, res) => {
   }
 };
 
+const getPublicTutors = async (req, res) => {
+  try {
+    const { page = 1, limit = 12, search = '', subject = '' } = req.query;
+    
+
+    
+
+    let query = { is_verified: true, is_blocked: false };
+    
+    if (search) {
+      query.$or = [
+        { full_name: { $regex: search, $options: 'i' } },
+        { subjects: { $regex: search, $options: 'i' } },
+        { bio: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    if (subject) {
+      query.subjects = { $regex: subject, $options: 'i' };
+    }
+
+    const tutors = await Tutor.find(query)
+      .select('full_name email subjects bio profileImage createdAt')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Tutor.countDocuments(query);
+
+
+    const transformedTutors = tutors.map(tutor => ({
+      _id: tutor._id,
+      name: tutor.full_name,
+      email: tutor.email,
+      subjects: tutor.subjects || 'Tutor',
+      bio: tutor.bio || 'Experienced tutor ready to help you learn',
+      profileImage: tutor.profileImage || tutor.profile_image,
+      createdAt: tutor.createdAt
+    }));
+
+    res.status(200).json({
+      tutors: transformedTutors,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+      total
+    });
+  } catch (error) {
+    console.error('Error fetching tutors:', error);
+    res.status(500).json({ message: "Failed to fetch tutors" });
+  }
+};
+
 export {
   registerUser,
   verifyOtp,
@@ -871,5 +924,6 @@ export {
   getPublicCategories,
   getPublicCourses,
   getCoursesByCategory,
-  getCourseDetails
+  getCourseDetails,
+  getPublicTutors
 };

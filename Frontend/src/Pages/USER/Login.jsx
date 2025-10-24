@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import LoginBanner from "../../assets/Login.svg";
 import { useNavigate, useLocation, Link } from "react-router-dom";
@@ -96,15 +96,15 @@ export default function Login() {
       if (!err?.response) {
         toast.error("No Server Response");
       } else if (err.response?.status === 403 && err.response?.data?.blocked) {
-        // Handle blocked user specifically
+
         toast.error(err.response.data.message || "Your account has been blocked");
-        // Clear any existing tokens to prevent conflicts
+
         localStorage.removeItem('authToken');
         localStorage.removeItem('userInfo');
-        // Reset form state
+
         setEmail("");
         setPassword("");
-        // Don't proceed with login, stay on login page
+
         return;
       } else {
         toast.error(err.response?.data?.message || "Login Failed");
@@ -137,7 +137,7 @@ export default function Login() {
       redirectAfterLogin(navigate, 'user', from);
     } catch (err) {
       if (err.response?.status === 403 && err.response.data.blocked) {
-        // Handle blocked user specifically
+
         toast.error(err.response.data.message || "Your account has been blocked");
         return;
       }

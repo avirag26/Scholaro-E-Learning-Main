@@ -1,5 +1,5 @@
-import React from "react";
-import "./DotSpinner.css"; // Create a separate CSS file for the spinner
+﻿import React from "react";
+import "./DotSpinner.css";
 
 const DotDotDotSpinner = () => {
   return (

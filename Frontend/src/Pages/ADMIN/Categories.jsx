@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { Search, Plus, ChevronLeft, ChevronRight } from "lucide-react";
@@ -18,7 +18,7 @@ const Categories = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Fixed to 5 items per page
+  const itemsPerPage = 5;
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -54,14 +54,14 @@ const Categories = () => {
         setFormData({ name: "", description: "" });
         setShowAddModal(false);
         toast.success("Category added successfully!");
-        // Refresh current page
+
         dispatch(fetchCategories({
           page: currentPage,
           limit: itemsPerPage
         }));
       }
     } catch (error) {
-      // Error is handled by Redux and useEffect
+
     }
   };
 
@@ -82,14 +82,14 @@ const Categories = () => {
         setShowEditModal(false);
         setSelectedCategory(null);
         toast.success("Category updated successfully!");
-        // Refresh current page
+
         dispatch(fetchCategories({
           page: currentPage,
           limit: itemsPerPage
         }));
       }
     } catch (error) {
-      // Error is handled by Redux and useEffect
+
     }
   };
 
@@ -114,14 +114,14 @@ const Categories = () => {
       const result = await dispatch(toggleCategoryListingAPI(category.id));
       if (toggleCategoryListingAPI.fulfilled.match(result)) {
         toast.success(`Category ${actionPast} successfully!`);
-        // Refresh current page
+
         dispatch(fetchCategories({
           page: currentPage,
           limit: itemsPerPage
         }));
       }
     } catch (error) {
-      // Error is handled by Redux and useEffect
+
     }
   };
 
@@ -141,12 +141,12 @@ const Categories = () => {
     setFormData({ name: "", description: "" });
   };
 
-  // Handle page change
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
-  // Filter categories locally for search
+
   const filteredCategories = categories.filter(category =>
     category.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     category.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -293,14 +293,14 @@ const Categories = () => {
                   const page = index + 1;
                   const isCurrentPage = page === currentPage;
                   
-                  // Show first page, last page, current page, and pages around current
+
                   const showPage = 
                     page === 1 || 
                     page === pagination.totalPages || 
                     (page >= currentPage - 1 && page <= currentPage + 1);
 
                   if (!showPage) {
-                    // Show ellipsis for gaps
+
                     if (page === currentPage - 2 || page === currentPage + 2) {
                       return <span key={page} className="px-2 text-gray-500">...</span>;
                     }

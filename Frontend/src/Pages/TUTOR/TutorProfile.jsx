@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
-import { Edit2, Camera, Key, FileText, GraduationCap } from 'lucide-react';
+﻿import { useState, useRef, useEffect } from 'react';
+import { Edit2, Key, FileText, GraduationCap, Camera } from 'lucide-react';
 import { toast } from 'react-toastify';
 import ChangePasswordModal from '../../ui/ChangePasswordModal';
 import EmailChangeModal from '../../ui/EmailChangeModal';
 import TutorLayout from './COMMON/TutorLayout';
-import { tutorAPI } from '../../api/axiosConfig';
 import { uploadToCloudinary, validateImageFile } from '../../utils/cloudinary';
+import { tutorAPI } from '../../api/axiosConfig';
 
 
 const TutorProfile = () => {
@@ -27,24 +27,25 @@ const TutorProfile = () => {
     });
     const fileInputRef = useRef(null);
 
-    // Load tutor data on component mount
+
+
     useEffect(() => {
         const loadTutorData = async () => {
             try {
-                // First try to fetch from backend
+
                 const response = await tutorAPI.get('/api/tutors/profile');
                 const tutorData = response.data.tutor;
                 setTutorInfo(tutorData);
                 localStorage.setItem('tutorInfo', JSON.stringify(tutorData));
             } catch (error) {
-                // If API fails, try localStorage as fallback
+
                 try {
                     const storedTutorInfo = localStorage.getItem('tutorInfo');
                     if (storedTutorInfo) {
                         const tutorData = JSON.parse(storedTutorInfo);
                         setTutorInfo(tutorData);
                     } else {
-                        // Set empty data if no local data found
+
                         setTutorInfo({
                             name: '',
                             email: '',
@@ -54,7 +55,7 @@ const TutorProfile = () => {
                         });
                     }
                 } catch (localError) {
-                    // Set empty data on error
+
                     setTutorInfo({
                         name: '',
                         email: '',
@@ -71,7 +72,7 @@ const TutorProfile = () => {
         loadTutorData();
     }, []);
 
-    // Update form data when tutor info loads
+
     useEffect(() => {
         if (tutorInfo) {
             setFormData({
@@ -95,7 +96,7 @@ const TutorProfile = () => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validate file
+
         const validation = validateImageFile(file);
         if (!validation.valid) {
             toast.error(validation.error);
@@ -105,14 +106,14 @@ const TutorProfile = () => {
         try {
             setUploadingImage(true);
             
-            // Show preview immediately
+
             const reader = new FileReader();
             reader.onloadend = () => {
                 setSelectedImage(reader.result);
             };
             reader.readAsDataURL(file);
 
-            // Upload to Cloudinary
+
             const uploadResult = await uploadToCloudinary(file);
             
             if (!uploadResult.success) {
@@ -121,20 +122,20 @@ const TutorProfile = () => {
                 return;
             }
 
-            // Update profile photo in backend
+
             await tutorAPI.post('/api/tutors/upload-profile-photo', {
                 imageUrl: uploadResult.url
             });
 
-            // Update tutorInfo state and localStorage
+
             const updatedTutorInfo = { ...tutorInfo, profileImage: uploadResult.url };
             setTutorInfo(updatedTutorInfo);
             localStorage.setItem('tutorInfo', JSON.stringify(updatedTutorInfo));
             
-            // Dispatch custom event to notify header of update
+
             window.dispatchEvent(new CustomEvent('tutorInfoUpdated'));
 
-            // Clear the preview image so it shows the uploaded image from tutorInfo
+
             setSelectedImage(null);
 
             toast.success('Profile photo updated successfully!');
@@ -153,7 +154,7 @@ const TutorProfile = () => {
 
     const handleCancelEdit = () => {
         setIsEditing(false);
-        // Reset form data to original values
+
         if (tutorInfo) {
             setFormData({
                 name: tutorInfo.name || tutorInfo.full_name || '',
@@ -163,6 +164,8 @@ const TutorProfile = () => {
                 bio: tutorInfo.bio || ''
             });
         }
+
+        setSelectedImage(null);
     };
 
     const handleSaveProfile = async () => {
@@ -179,7 +182,7 @@ const TutorProfile = () => {
 
             const response = await tutorAPI.put('/api/tutors/profile', profileData);
             
-            // Preserve the existing profile image when updating other fields
+
             const updatedTutorInfo = {
                 ...response.data.tutor,
                 profileImage: tutorInfo?.profileImage || response.data.tutor.profileImage
@@ -188,7 +191,7 @@ const TutorProfile = () => {
             setTutorInfo(updatedTutorInfo);
             localStorage.setItem('tutorInfo', JSON.stringify(updatedTutorInfo));
             
-            // Dispatch custom event to notify header of update
+
             window.dispatchEvent(new CustomEvent('tutorInfoUpdated'));
 
             setIsEditing(false);
@@ -236,12 +239,12 @@ const TutorProfile = () => {
                     newEmail: emailData.newEmail
                 });
             } else if (emailData.action === 'verifyOtp') {
-                const response = await tutorAPI.post('/api/tutors/change-email/verify', {
+                await tutorAPI.post('/api/tutors/change-email/verify', {
                     otp: emailData.otp,
                     newEmail: emailData.newEmail
                 });
                 
-                // Update tutor info with new email
+
                 const updatedTutorInfo = {
                     ...tutorInfo,
                     email: emailData.newEmail
@@ -249,13 +252,13 @@ const TutorProfile = () => {
                 setTutorInfo(updatedTutorInfo);
                 localStorage.setItem('tutorInfo', JSON.stringify(updatedTutorInfo));
                 
-                // Update form data as well
+
                 setFormData(prev => ({
                     ...prev,
                     email: emailData.newEmail
                 }));
                 
-                // Dispatch custom event to notify header of update
+
                 window.dispatchEvent(new CustomEvent('tutorInfoUpdated'));
                 
                 setShowEmailChangeModal(false);
@@ -263,13 +266,13 @@ const TutorProfile = () => {
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Failed to change email';
             toast.error(errorMessage);
-            throw error; // Re-throw to let modal handle it
+            throw error;
         } finally {
             setIsChangingEmail(false);
         }
     };
 
-    // Show loading state
+
     if (loading) {
         return (
             <TutorLayout>
@@ -318,21 +321,21 @@ const TutorProfile = () => {
 
 
                 <div className="flex justify-center mb-8">
-                    <div className="relative">
+                    <div className="relative inline-block">
                         <img
-                            src={selectedImage || tutorInfo?.profileImage || "https://randomuser.me/api/portraits/men/75.jpg"}
-                            alt="Profile"
-                            className="w-24 h-24 rounded-full object-cover shadow-lg"
+                            src={selectedImage || tutorInfo?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"}
+                            alt="Tutor Profile"
+                            className="w-32 h-32 rounded-full object-cover mx-auto shadow-lg border-4 border-sky-100"
                         />
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploadingImage}
-                            className="absolute -bottom-1 -right-1 bg-sky-500 text-white p-2 rounded-full hover:bg-sky-600 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="absolute -bottom-2 -right-2 bg-sky-500 text-white p-2 rounded-full hover:bg-sky-600 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {uploadingImage ? (
-                                <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                                <div className="w-4 h-4 border border-white border-t-transparent rounded-full animate-spin"></div>
                             ) : (
-                                <Camera className="w-3 h-3" />
+                                <Camera className="w-4 h-4" />
                             )}
                         </button>
                         <input

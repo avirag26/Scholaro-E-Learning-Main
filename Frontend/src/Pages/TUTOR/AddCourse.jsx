@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Upload, X } from "lucide-react";
 import TutorLayout from "./COMMON/TutorLayout";
-import { uploadToCloudinary, validateImageFile } from "../../utils/cloudinary";
-import { calculatePrice } from "../../utils/priceUtils";
+import ImageUpload from "../../components/ImageUpload";
+
 import {
     createCourse,
     fetchCategories,
@@ -26,16 +25,14 @@ const AddCourse = () => {
         course_thumbnail: ""
     });
 
-    const [imagePreview, setImagePreview] = useState(null);
-    const [dragActive, setDragActive] = useState(false);
-    const [uploading, setUploading] = useState(false);
 
-    // Fetch categories on component mount
+
+
     useEffect(() => {
         dispatch(fetchCategories());
     }, [dispatch]);
 
-    // Handle Redux errors
+
     useEffect(() => {
         if (error) {
             toast.error(error);
@@ -43,7 +40,7 @@ const AddCourse = () => {
         }
     }, [error, dispatch]);
 
-    // Handle input changes
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -52,90 +49,18 @@ const AddCourse = () => {
         }));
     };
 
-    // Handle image upload
-    const handleImageUpload = async (file) => {
-        // Validate file
-        const validation = validateImageFile(file);
-        if (!validation.valid) {
-            toast.error(validation.error);
-            return;
-        }
-
-        setUploading(true);
-
-        try {
-            // Show preview immediately
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setImagePreview(e.target.result);
-            };
-            reader.readAsDataURL(file);
-
-            // Upload to Cloudinary
-            const uploadResult = await uploadToCloudinary(file);
-
-            if (uploadResult.success) {
-                setFormData(prev => ({
-                    ...prev,
-                    course_thumbnail: uploadResult.url
-                }));
-                toast.success("Image uploaded successfully!");
-            } else {
-                toast.error(uploadResult.error);
-                // Clear preview on upload failure
-                setImagePreview(null);
-            }
-        } catch (error) {
-            toast.error("Failed to upload image. Please try again.");
-            setImagePreview(null);
-        } finally {
-            setUploading(false);
-        }
-    };
-
-    // Handle drag events
-    const handleDrag = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.type === "dragenter" || e.type === "dragover") {
-            setDragActive(true);
-        } else if (e.type === "dragleave") {
-            setDragActive(false);
-        }
-    };
-
-    // Handle drop
-    const handleDrop = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setDragActive(false);
-
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleImageUpload(e.dataTransfer.files[0]);
-        }
-    };
-
-    // Handle file input change
-    const handleFileChange = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            handleImageUpload(e.target.files[0]);
-        }
-    };
-
-    // Remove image
-    const removeImage = () => {
-        setImagePreview(null);
+    const handleImageUpload = (imageUrl) => {
         setFormData(prev => ({
             ...prev,
-            course_thumbnail: ""
+            course_thumbnail: imageUrl
         }));
     };
 
-    // Handle form submission
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validation
+
         if (!formData.title || !formData.title.trim()) {
             toast.error("Course title is required");
             return;
@@ -162,8 +87,8 @@ const AddCourse = () => {
                 ...formData,
                 price: parseFloat(formData.price),
                 offer_percentage: parseFloat(formData.offer_percentage) || 0,
-                duration: 1, // Default duration
-                level: "Beginner" // Default level
+                duration: 1,
+                level: "Beginner"
             };
 
             const result = await dispatch(createCourse(courseData));
@@ -177,6 +102,7 @@ const AddCourse = () => {
                 toast.error(result.payload || "Failed to create course");
             }
         } catch (error) {
+            console.log(error)
             toast.error("Failed to create course");
         }
     };
@@ -266,67 +192,16 @@ const AddCourse = () => {
 
                             {/* Right Column */}
                             <div className="space-y-4">
-                                {/* Course Thumbnail Upload */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Upload Cover Image *
                                     </label>
-                                    <div
-                                        className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors bg-green-50 ${uploading
-                                            ? 'border-gray-200 cursor-not-allowed'
-                                            : dragActive
-                                                ? 'border-teal-500 bg-teal-50'
-                                                : 'border-gray-300 hover:border-teal-400'
-                                            }`}
-                                        onDragEnter={!uploading ? handleDrag : undefined}
-                                        onDragLeave={!uploading ? handleDrag : undefined}
-                                        onDragOver={!uploading ? handleDrag : undefined}
-                                        onDrop={!uploading ? handleDrop : undefined}
-                                    >
-                                        {imagePreview ? (
-                                            <div className="relative">
-                                                <img
-                                                    src={imagePreview}
-                                                    alt="Course thumbnail preview"
-                                                    className="w-full h-48 object-cover rounded-lg"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={removeImage}
-                                                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-4">
-                                                {uploading ? (
-                                                    <>
-                                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto"></div>
-                                                        <div>
-                                                            <p className="text-teal-600 font-medium">Uploading image...</p>
-                                                            <p className="text-gray-500 text-sm mt-1">Please wait</p>
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Upload className="w-12 h-12 text-teal-500 mx-auto" />
-                                                        <div>
-                                                            <p className="text-teal-600 font-medium">Upload cover image</p>
-                                                            <p className="text-gray-500 text-sm mt-1">Drag your file here</p>
-                                                        </div>
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            onChange={handleFileChange}
-                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                            disabled={uploading}
-                                                        />
-                                                    </>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
+                                    <ImageUpload
+                                        onImageUpload={handleImageUpload}
+                                        currentImage={formData.course_thumbnail}
+                                        title="Course Thumbnail"
+                                        uploadFolder="course-thumbnails"
+                                    />
                                 </div>
 
                                 {/* Description */}

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+﻿import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 
@@ -99,9 +99,9 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// This middleware will run before a user document is saved.
+
 userSchema.pre('save', async function (next) {
-  // Only hash the password if it has been modified (or is new)
+
   if (!this.isModified('password')) {
     return next();
   }
@@ -110,7 +110,7 @@ userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Method to compare entered password with the hashed password
+
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };

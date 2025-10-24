@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Search, Users, BookOpen, GraduationCap, DollarSign, TrendingUp, LogOut, User } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,12 +10,12 @@ export default function AdminLayout({ children, title, subtitle }) {
     const location = useLocation();
     const [adminInfo, setAdminInfo] = useState(null);
 
-    // Function to check if a route is active
+
     const isActiveRoute = (path) => {
         return location.pathname === path;
     };
 
-    // Function to get button classes based on active state
+
     const getButtonClasses = (path) => {
         const baseClasses = "w-full text-left px-4 py-2 rounded-lg flex items-center font-medium transition-colors";
         if (isActiveRoute(path)) {
@@ -31,22 +31,22 @@ export default function AdminLayout({ children, title, subtitle }) {
                 try {
                     setAdminInfo(JSON.parse(storedAdminInfo));
                 } catch (error) {
-                    // Handle parsing error silently
+
                 }
             }
         };
 
-        // Load initial data
+
         loadAdminInfo();
 
-        // Listen for localStorage changes
+
         const handleStorageChange = (e) => {
             if (e.key === 'adminInfo') {
                 loadAdminInfo();
             }
         };
 
-        // Listen for custom events (for same-tab updates)
+
         const handleAdminInfoUpdate = () => {
             loadAdminInfo();
         };

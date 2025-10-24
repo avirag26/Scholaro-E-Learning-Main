@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 const router = express.Router();
 import {
   registerUser,
@@ -19,7 +19,8 @@ import {
   getPublicCategories,
   getPublicCourses,
   getCoursesByCategory,
-  getCourseDetails
+  getCourseDetails,
+  getPublicTutors
 } from "../Controllers/userController.js";
 import { protectUser } from "../Middleware/userMiddleware.js";
 
@@ -44,5 +45,6 @@ router.get("/categories", getPublicCategories);
 router.get("/courses", getPublicCourses);
 router.get("/courses/category/:categoryId", getCoursesByCategory);
 router.get("/courses/:courseId", getCourseDetails);
+router.get("/tutors", getPublicTutors);
 
 export default router;

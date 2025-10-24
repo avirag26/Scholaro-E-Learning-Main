@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 import Banner from "../../assets/Register.jpg";
@@ -159,7 +159,7 @@ export default function Register() {
 
       toast.success(response.data.message);
 
-      // Store both token and user info
+
       localStorage.setItem("authToken", response.data.accessToken);
       localStorage.setItem("userInfo", JSON.stringify({
         _id: response.data._id,

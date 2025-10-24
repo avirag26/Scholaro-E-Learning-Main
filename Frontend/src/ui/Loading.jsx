@@ -1,11 +1,11 @@
-import { motion } from 'framer-motion';
+﻿import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 export default function LoadingPage() {
   const name = 'Scholaro';
   const [progress, setProgress] = useState(0);
 
-  // Simulate loading progress
+
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress(prev => {

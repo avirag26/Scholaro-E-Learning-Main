@@ -1,8 +1,8 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Eye, EyeOff, AlertTriangle } from "lucide-react";
 import LoginBanner from "../../assets/Login.svg";
 import { Link, useNavigate } from "react-router-dom";
-import { tutorAPI } from "../../api/axiosConfig"; // Corrected from axios.js in previous steps, but was using axiosPublic before.
+import { tutorAPI } from "../../api/axiosConfig";
 import { toast } from "react-toastify";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner";
 import { GoogleLogin } from "@react-oauth/google";
@@ -68,12 +68,12 @@ export default function TutorLogin() {
       redirectAfterLogin(navigate, 'tutor');
     } catch (err) {
       if (err.response?.status === 403 && err.response?.data?.blocked) {
-        // Handle blocked tutor specifically
+
         toast.error(err.response.data.message || "Your account has been blocked");
-        // Clear any existing tokens to prevent conflicts
+
         localStorage.removeItem('tutorAuthToken');
         localStorage.removeItem('tutorInfo');
-        // Reset form state
+
         setEmail("");
         setPassword("");
         return;
@@ -101,7 +101,7 @@ export default function TutorLogin() {
       redirectAfterLogin(navigate, 'tutor');
     } catch (err) {
       if (err.response?.status === 403 && err.response.data.blocked) {
-        // Handle blocked tutor specifically
+
         toast.error(err.response.data.message || "Your account has been blocked");
         return;
       }

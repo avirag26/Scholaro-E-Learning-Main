@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Upload, X } from "lucide-react";
 import TutorLayout from "./COMMON/TutorLayout";
-import { uploadToCloudinary, validateImageFile } from "../../utils/cloudinary";
-import { calculatePrice } from "../../utils/priceUtils";
+import ImageUpload from "../../components/ImageUpload";
+
 import {
     updateCourse,
     fetchCourseDetails,
@@ -27,11 +26,10 @@ const EditCourse = () => {
         offer_percentage: "",
         course_thumbnail: ""
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const [imagePreview, setImagePreview] = useState(null);
-    const [uploading, setUploading] = useState(false);
 
-    // Fetch course details and categories on mount
+
     useEffect(() => {
         if (courseId) {
             dispatch(fetchCourseDetails(courseId));
@@ -39,9 +37,9 @@ const EditCourse = () => {
         dispatch(fetchCategories());
     }, [dispatch, courseId]);
 
-    // Populate form when course data is loaded
     useEffect(() => {
         if (selectedCourse) {
+            console.log("Selected course data:", selectedCourse);
             setFormData({
                 title: selectedCourse.title || "",
                 category: selectedCourse.category?._id || selectedCourse.category || "",
@@ -50,11 +48,9 @@ const EditCourse = () => {
                 offer_percentage: selectedCourse.offer_percentage?.toString() || "",
                 course_thumbnail: selectedCourse.course_thumbnail || ""
             });
-            setImagePreview(selectedCourse.course_thumbnail || null);
         }
     }, [selectedCourse]);
 
-    // Handle Redux errors
     useEffect(() => {
         if (error) {
             toast.error(error);
@@ -70,49 +66,19 @@ const EditCourse = () => {
         }));
     };
 
-    const handleImageUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const validation = validateImageFile(file);
-        if (!validation.isValid) {
-            toast.error(validation.error);
-            return;
-        }
-
-        setUploading(true);
-        try {
-            const uploadResult = await uploadToCloudinary(file, 'course-thumbnails');
-            
-            if (uploadResult.success) {
-                setFormData(prev => ({
-                    ...prev,
-                    course_thumbnail: uploadResult.url
-                }));
-                setImagePreview(uploadResult.url);
-                toast.success("Image uploaded successfully!");
-            } else {
-                toast.error(uploadResult.error || "Failed to upload image");
-            }
-        } catch (error) {
-            toast.error("Failed to upload image");
-        } finally {
-            setUploading(false);
-        }
-    };
-
-    const removeImage = () => {
-        setImagePreview(null);
+    const handleImageUpload = (imageUrl) => {
         setFormData(prev => ({
             ...prev,
-            course_thumbnail: ""
+            course_thumbnail: imageUrl
         }));
     };
+
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validation
+        if (isSubmitting) return;
         if (!formData.title || !formData.title.trim()) {
             toast.error("Course title is required");
             return;
@@ -134,25 +100,39 @@ const EditCourse = () => {
             return;
         }
 
+        setIsSubmitting(true);
+
         try {
             const courseData = {
-                ...formData,
+                title: formData.title.trim(),
+                category: formData.category,
+                description: formData.description.trim(),
                 price: parseFloat(formData.price),
                 offer_percentage: parseFloat(formData.offer_percentage) || 0,
+                course_thumbnail: formData.course_thumbnail
             };
 
+            console.log("Updating course with data:", courseData);
+            console.log("Course ID:", courseId);
+
             const result = await dispatch(updateCourse({ id: courseId, courseData }));
-            
+
+            console.log("Update result:", result);
+
             if (updateCourse.fulfilled.match(result)) {
                 toast.success("Course updated successfully!");
                 setTimeout(() => {
                     navigate("/tutor/courses");
                 }, 1000);
             } else {
+                console.error("Update failed:", result);
                 toast.error(result.payload || "Failed to update course");
             }
         } catch (error) {
+            console.error("Course update error:", error);
             toast.error("Failed to update course");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -172,7 +152,7 @@ const EditCourse = () => {
                 <div className="space-y-6">
                     <div className="bg-white rounded-lg shadow-md p-6">
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Course Title */}
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Course Title *
@@ -188,7 +168,7 @@ const EditCourse = () => {
                                 />
                             </div>
 
-                            {/* Category */}
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Category *
@@ -209,7 +189,7 @@ const EditCourse = () => {
                                 </select>
                             </div>
 
-                            {/* Price and Offer */}
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -245,53 +225,19 @@ const EditCourse = () => {
                                 </div>
                             </div>
 
-                            {/* Course Thumbnail */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Course Thumbnail *
                                 </label>
-                                <div className="space-y-4">
-                                    {imagePreview ? (
-                                        <div className="relative inline-block">
-                                            <img
-                                                src={imagePreview}
-                                                alt="Course thumbnail"
-                                                className="w-full h-48 object-cover rounded-lg"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={removeImage}
-                                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-teal-500 transition-colors">
-                                            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                                            <p className="text-gray-600 mb-2">Click to upload course thumbnail</p>
-                                            <p className="text-sm text-gray-500">PNG, JPG up to 5MB</p>
-                                        </div>
-                                    )}
-                                    
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageUpload}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors"
-                                        disabled={uploading}
-                                    />
-                                    
-                                    {uploading && (
-                                        <div className="flex items-center justify-center py-2">
-                                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-600 mr-2"></div>
-                                            <span className="text-teal-600">Uploading...</span>
-                                        </div>
-                                    )}
-                                </div>
+                                <ImageUpload
+                                    onImageUpload={handleImageUpload}
+                                    currentImage={formData.course_thumbnail}
+                                    title="Course Thumbnail"
+                                    uploadFolder="course-thumbnails"
+                                />
                             </div>
 
-                            {/* Description */}
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Description *
@@ -307,7 +253,7 @@ const EditCourse = () => {
                                 />
                             </div>
 
-                            {/* Submit Buttons */}
+
                             <div className="flex gap-4 justify-end">
                                 <button
                                     type="button"
@@ -318,10 +264,10 @@ const EditCourse = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={loading || uploading}
+                                    disabled={loading || isSubmitting}
                                     className="px-8 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {loading ? "Updating..." : "🔄 UPDATE COURSE"}
+                                    {isSubmitting ? "Updating..." : "🔄 UPDATE COURSE"}
                                 </button>
                             </div>
                         </form>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { Edit2, Camera, User, Mail, Phone } from 'lucide-react';
 import { toast } from 'react-toastify';
 import AdminLayout from './common/AdminLayout';
@@ -18,24 +18,24 @@ const AdminProfile = () => {
     });
     const fileInputRef = useRef(null);
 
-    // Load admin data on component mount
+
     useEffect(() => {
         const loadAdminData = async () => {
             try {
-                // First try to fetch from backend
+
                 const response = await adminAPI.get('/api/admin/profile');
                 const adminData = response.data.admin;
                 setAdminInfo(adminData);
                 localStorage.setItem('adminInfo', JSON.stringify(adminData));
             } catch (error) {
-                // If API fails, try localStorage as fallback
+
                 try {
                     const storedAdminInfo = localStorage.getItem('adminInfo');
                     if (storedAdminInfo) {
                         const adminData = JSON.parse(storedAdminInfo);
                         setAdminInfo(adminData);
                     } else {
-                        // Set empty data if no local data found
+
                         setAdminInfo({
                             name: '',
                             email: '',
@@ -43,7 +43,7 @@ const AdminProfile = () => {
                         });
                     }
                 } catch (localError) {
-                    // Set empty data on error
+
                     setAdminInfo({
                         name: '',
                         email: '',
@@ -58,7 +58,7 @@ const AdminProfile = () => {
         loadAdminData();
     }, []);
 
-    // Update form data when admin info loads
+
     useEffect(() => {
         if (adminInfo) {
             setFormData({
@@ -80,7 +80,7 @@ const AdminProfile = () => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validate file
+
         const validation = validateImageFile(file);
         if (!validation.valid) {
             toast.error(validation.error);
@@ -90,14 +90,14 @@ const AdminProfile = () => {
         try {
             setUploadingImage(true);
 
-            // Show preview immediately
+
             const reader = new FileReader();
             reader.onloadend = () => {
                 setSelectedImage(reader.result);
             };
             reader.readAsDataURL(file);
 
-            // Upload to Cloudinary
+
             const uploadResult = await uploadToCloudinary(file);
 
             if (!uploadResult.success) {
@@ -106,20 +106,20 @@ const AdminProfile = () => {
                 return;
             }
 
-            // Update profile photo in backend
+
             await adminAPI.post('/api/admin/upload-profile-photo', {
                 imageUrl: uploadResult.url
             });
 
-            // Update adminInfo state and localStorage
+
             const updatedAdminInfo = { ...adminInfo, profileImage: uploadResult.url };
             setAdminInfo(updatedAdminInfo);
             localStorage.setItem('adminInfo', JSON.stringify(updatedAdminInfo));
 
-            // Dispatch custom event to notify header of update
+
             window.dispatchEvent(new CustomEvent('adminInfoUpdated'));
 
-            // Clear the preview image so it shows the uploaded image from adminInfo
+
             setSelectedImage(null);
 
             toast.success('Profile photo updated successfully!');
@@ -138,7 +138,7 @@ const AdminProfile = () => {
 
     const handleCancelEdit = () => {
         setIsEditing(false);
-        // Reset form data to original values
+
         if (adminInfo) {
             setFormData({
                 name: adminInfo.name || adminInfo.full_name || '',
@@ -146,7 +146,7 @@ const AdminProfile = () => {
                 phone: adminInfo.phone || ''
             });
         }
-        // Clear any preview image
+
         setSelectedImage(null);
     };
 
@@ -162,7 +162,7 @@ const AdminProfile = () => {
 
             const response = await adminAPI.put('/api/admin/profile', profileData);
 
-            // Preserve the existing profile image when updating other fields
+
             const updatedAdminInfo = {
                 ...response.data.admin,
                 profileImage: adminInfo?.profileImage || response.data.admin.profileImage
@@ -171,7 +171,7 @@ const AdminProfile = () => {
             setAdminInfo(updatedAdminInfo);
             localStorage.setItem('adminInfo', JSON.stringify(updatedAdminInfo));
 
-            // Dispatch custom event to notify header of update
+
             window.dispatchEvent(new CustomEvent('adminInfoUpdated'));
 
             setIsEditing(false);
@@ -189,7 +189,7 @@ const AdminProfile = () => {
 
 
 
-    // Show loading state
+
     if (loading) {
         return (
             <AdminLayout title="Profile Settings" subtitle="Manage your admin profile">

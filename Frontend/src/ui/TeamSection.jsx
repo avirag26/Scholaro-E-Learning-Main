@@ -1,9 +1,9 @@
-import React from "react";
+﻿import React from "react";
 import { Star, Users, BookOpen } from 'lucide-react';
 import Card from "./Card";
 
 export default function TeamSection({ instructors = [] }) {
-  // Default instructors if none provided
+
   const defaultInstructors = [
     {
       name: "Dr. Sarah Wilson",

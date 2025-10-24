@@ -1,21 +1,21 @@
-import { CLOUDINARY_CONFIG, IMAGE_UPLOAD_CONFIG } from '../config/cloudinary';
+﻿import { CLOUDINARY_CONFIG, IMAGE_UPLOAD_CONFIG } from '../config/cloudinary';
 
 
 export const uploadToCloudinary = async (file) => {
     try {
-        // Validate Cloudinary configuration
+
         if (!CLOUDINARY_CONFIG.cloudName || !CLOUDINARY_CONFIG.uploadPreset) {
             throw new Error('Cloudinary configuration is missing. Please check your environment variables.');
         }
 
-        // Create FormData for file upload
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
 
         const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`;
 
-        // Upload to Cloudinary
+
         const response = await fetch(uploadUrl, {
             method: 'POST',
             body: formData,
@@ -24,7 +24,7 @@ export const uploadToCloudinary = async (file) => {
         const data = await response.json();
 
         if (!response.ok) {
-            // More specific error messages
+
             if (response.status === 400) {
                 throw new Error(data.error?.message || 'Invalid upload request. Please check your file and try again.');
             } else if (response.status === 401) {
@@ -34,7 +34,7 @@ export const uploadToCloudinary = async (file) => {
             }
         }
 
-        // Validate response data
+
         if (!data.secure_url) {
             throw new Error('Upload completed but no URL was returned from Cloudinary.');
         }
@@ -52,15 +52,15 @@ export const uploadToCloudinary = async (file) => {
     }
 };
 
-// Cloudinary upload utility for videos
+
 export const uploadVideoToCloudinary = async (file) => {
     try {
-        // Validate Cloudinary configuration
+
         if (!CLOUDINARY_CONFIG.cloudName || !CLOUDINARY_CONFIG.uploadPreset) {
             throw new Error('Cloudinary configuration is missing. Please check your environment variables.');
         }
 
-        // Create FormData for file upload
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
@@ -68,7 +68,7 @@ export const uploadVideoToCloudinary = async (file) => {
 
         const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/video/upload`;
 
-        // Upload to Cloudinary
+
         const response = await fetch(uploadUrl, {
             method: 'POST',
             body: formData,
@@ -98,15 +98,15 @@ export const uploadVideoToCloudinary = async (file) => {
     }
 };
 
-// Cloudinary upload utility for PDFs and documents
+
 export const uploadDocumentToCloudinary = async (file) => {
     try {
-        // Validate Cloudinary configuration
+
         if (!CLOUDINARY_CONFIG.cloudName || !CLOUDINARY_CONFIG.uploadPreset) {
             throw new Error('Cloudinary configuration is missing. Please check your environment variables.');
         }
 
-        // Create FormData for file upload
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
@@ -114,7 +114,7 @@ export const uploadDocumentToCloudinary = async (file) => {
 
         const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/raw/upload`;
 
-        // Upload to Cloudinary
+
         const response = await fetch(uploadUrl, {
             method: 'POST',
             body: formData,
@@ -143,7 +143,7 @@ export const uploadDocumentToCloudinary = async (file) => {
     }
 };
 
-// Helper function to validate image file
+
 export const validateImageFile = (file) => {
     if (!IMAGE_UPLOAD_CONFIG.allowedTypes.includes(file.type)) {
         return {
@@ -162,10 +162,10 @@ export const validateImageFile = (file) => {
     return { valid: true };
 };
 
-// Helper function to validate video file
+
 export const validateVideoFile = (file) => {
     const allowedVideoTypes = ['video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm'];
-    const maxVideoSize = 100 * 1024 * 1024; // 100MB
+    const maxVideoSize = 100 * 1024 * 1024;
 
     if (!allowedVideoTypes.includes(file.type)) {
         return {
@@ -184,9 +184,9 @@ export const validateVideoFile = (file) => {
     return { valid: true };
 };
 
-// Helper function to validate PDF file
+
 export const validatePdfFile = (file) => {
-    const maxPdfSize = 10 * 1024 * 1024; // 10MB
+    const maxPdfSize = 10 * 1024 * 1024;
 
     if (file.type !== 'application/pdf') {
         return {

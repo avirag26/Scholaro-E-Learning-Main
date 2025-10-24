@@ -1,4 +1,4 @@
-export const getUserType = () => {
+﻿export const getUserType = () => {
   if (localStorage.getItem('authToken')) return 'user';
   if (localStorage.getItem('tutorAuthToken')) return 'tutor';
   if (localStorage.getItem('adminAuthToken')) return 'admin';

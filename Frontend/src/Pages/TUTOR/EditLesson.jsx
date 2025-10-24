@@ -1,16 +1,15 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { Upload, X, Play, FileText } from "lucide-react";
+import { X, Play, FileText } from "lucide-react";
 import TutorLayout from "./COMMON/TutorLayout";
-import { 
-  uploadToCloudinary, 
-  uploadVideoToCloudinary, 
+import ImageUpload from "../../components/ImageUpload";
+import {
+  uploadVideoToCloudinary,
   uploadDocumentToCloudinary,
-  validateImageFile, 
-  validateVideoFile, 
-  validatePdfFile 
+  validateVideoFile,
+  validatePdfFile
 } from "../../utils/cloudinary";
 import {
   updateLesson,
@@ -42,14 +41,15 @@ const EditLesson = () => {
     thumbnail: false
   });
 
-  // Fetch lesson details on mount
+  const videoInputRef = useRef(null);
+  const pdfInputRef = useRef(null);
+
   useEffect(() => {
     if (lessonId) {
       dispatch(fetchLessonDetails(lessonId));
     }
   }, [dispatch, lessonId]);
 
-  // Populate form when lesson data is loaded
   useEffect(() => {
     if (selectedLesson) {
       setFormData({
@@ -60,8 +60,7 @@ const EditLesson = () => {
         pdfUrl: selectedLesson.pdfUrl || "",
         thumbnailUrl: selectedLesson.thumbnailUrl || ""
       });
-      
-      // Set previews
+
       if (selectedLesson.videoUrl) {
         setVideoPreview(selectedLesson.videoUrl);
       }
@@ -74,7 +73,6 @@ const EditLesson = () => {
     }
   }, [selectedLesson]);
 
-  // Handle Redux errors
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -90,21 +88,23 @@ const EditLesson = () => {
     }));
   };
 
-  // Video upload handler
   const handleVideoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const validation = validateVideoFile(file);
-    if (!validation.isValid) {
+    if (!validation.valid) {
       toast.error(validation.error);
+      if (videoInputRef.current) {
+        videoInputRef.current.value = '';
+      }
       return;
     }
 
     setUploading(prev => ({ ...prev, video: true }));
     try {
       const uploadResult = await uploadVideoToCloudinary(file, 'lesson-videos');
-      
+
       if (uploadResult.success) {
         setFormData(prev => ({
           ...prev,
@@ -114,29 +114,37 @@ const EditLesson = () => {
         toast.success("Video uploaded successfully!");
       } else {
         toast.error(uploadResult.error || "Failed to upload video");
+        if (videoInputRef.current) {
+          videoInputRef.current.value = '';
+        }
       }
     } catch (error) {
       toast.error("Failed to upload video");
+      if (videoInputRef.current) {
+        videoInputRef.current.value = '';
+      }
     } finally {
       setUploading(prev => ({ ...prev, video: false }));
     }
   };
 
-  // PDF upload handler
   const handlePdfUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const validation = validatePdfFile(file);
-    if (!validation.isValid) {
+    if (!validation.valid) {
       toast.error(validation.error);
+      if (pdfInputRef.current) {
+        pdfInputRef.current.value = '';
+      }
       return;
     }
 
     setUploading(prev => ({ ...prev, pdf: true }));
     try {
       const uploadResult = await uploadDocumentToCloudinary(file, 'lesson-pdfs');
-      
+
       if (uploadResult.success) {
         setFormData(prev => ({
           ...prev,
@@ -146,54 +154,43 @@ const EditLesson = () => {
         toast.success("PDF uploaded successfully!");
       } else {
         toast.error(uploadResult.error || "Failed to upload PDF");
+        if (pdfInputRef.current) {
+          pdfInputRef.current.value = '';
+        }
       }
     } catch (error) {
       toast.error("Failed to upload PDF");
+      if (pdfInputRef.current) {
+        pdfInputRef.current.value = '';
+      }
     } finally {
       setUploading(prev => ({ ...prev, pdf: false }));
     }
   };
 
-  // Thumbnail upload handler
-  const handleThumbnailUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const validation = validateImageFile(file);
-    if (!validation.isValid) {
-      toast.error(validation.error);
-      return;
-    }
-
-    setUploading(prev => ({ ...prev, thumbnail: true }));
-    try {
-      const uploadResult = await uploadToCloudinary(file, 'lesson-thumbnails');
-      
-      if (uploadResult.success) {
-        setFormData(prev => ({
-          ...prev,
-          thumbnailUrl: uploadResult.url
-        }));
-        setThumbnailPreview(uploadResult.url);
-        toast.success("Thumbnail uploaded successfully!");
-      } else {
-        toast.error(uploadResult.error || "Failed to upload thumbnail");
-      }
-    } catch (error) {
-      toast.error("Failed to upload thumbnail");
-    } finally {
-      setUploading(prev => ({ ...prev, thumbnail: false }));
-    }
+  const handleThumbnailUpload = (croppedImageUrl) => {
+    setFormData(prev => ({
+      ...prev,
+      thumbnailUrl: croppedImageUrl
+    }));
+    setThumbnailPreview(croppedImageUrl);
+    toast.success("Thumbnail uploaded successfully!");
   };
 
   const removeVideo = () => {
     setVideoPreview(null);
     setFormData(prev => ({ ...prev, videoUrl: "" }));
+    if (videoInputRef.current) {
+      videoInputRef.current.value = '';
+    }
   };
 
   const removePdf = () => {
     setPdfPreview(null);
     setFormData(prev => ({ ...prev, pdfUrl: "" }));
+    if (pdfInputRef.current) {
+      pdfInputRef.current.value = '';
+    }
   };
 
   const removeThumbnail = () => {
@@ -204,7 +201,6 @@ const EditLesson = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!formData.title.trim()) {
       toast.error("Lesson title is required");
       return;
@@ -226,11 +222,11 @@ const EditLesson = () => {
       };
 
       const result = await dispatch(updateLesson({ lessonId, lessonData }));
-      
+
       if (updateLesson.fulfilled.match(result)) {
         toast.success("Lesson updated successfully!");
         setTimeout(() => {
-          navigate(-1); // Go back to previous page
+          navigate(-1);
         }, 1000);
       } else {
         toast.error(result.payload || "Failed to update lesson");
@@ -259,7 +255,7 @@ const EditLesson = () => {
               Edit Lesson
             </h2>
 
-            {/* Basic Information */}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -292,7 +288,7 @@ const EditLesson = () => {
               </div>
             </div>
 
-            {/* Description */}
+
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Description *
@@ -308,7 +304,7 @@ const EditLesson = () => {
               />
             </div>
 
-            {/* Video Upload */}
+
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Lesson Video
@@ -335,15 +331,17 @@ const EditLesson = () => {
                   <p className="text-sm text-gray-500">MP4, WebM up to 100MB</p>
                 </div>
               )}
-              
+
               <input
+                ref={videoInputRef}
                 type="file"
                 accept="video/*"
                 onChange={handleVideoUpload}
                 className="mt-2 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors"
                 disabled={uploading.video}
+                key={videoPreview ? 'video-uploaded' : 'video-empty'}
               />
-              
+
               {uploading.video && (
                 <div className="flex items-center justify-center py-2">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-600 mr-2"></div>
@@ -352,51 +350,22 @@ const EditLesson = () => {
               )}
             </div>
 
-            {/* Thumbnail Upload */}
+
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Video Thumbnail
               </label>
-              {thumbnailPreview ? (
-                <div className="relative inline-block">
-                  <img
-                    src={thumbnailPreview}
-                    alt="Thumbnail"
-                    className="w-full h-32 object-cover rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={removeThumbnail}
-                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-teal-500 transition-colors">
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2">Upload thumbnail image</p>
-                  <p className="text-sm text-gray-500">PNG, JPG up to 5MB</p>
-                </div>
-              )}
-              
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleThumbnailUpload}
-                className="mt-2 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors"
-                disabled={uploading.thumbnail}
+              <ImageUpload
+                currentImage={thumbnailPreview}
+                onImageUpload={handleThumbnailUpload}
+                title="Video Thumbnail"
+                uploadFolder="lesson-thumbnails"
+                placeholder="Upload thumbnail image"
+                className="w-full"
               />
-              
-              {uploading.thumbnail && (
-                <div className="flex items-center justify-center py-2">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-600 mr-2"></div>
-                  <span className="text-teal-600">Uploading thumbnail...</span>
-                </div>
-              )}
             </div>
 
-            {/* PDF Upload */}
+
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 PDF Notes (Optional)
@@ -422,15 +391,17 @@ const EditLesson = () => {
                   <p className="text-sm text-gray-500">PDF up to 10MB</p>
                 </div>
               )}
-              
+
               <input
+                ref={pdfInputRef}
                 type="file"
                 accept=".pdf"
                 onChange={handlePdfUpload}
                 className="mt-2 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-colors"
                 disabled={uploading.pdf}
+                key={pdfPreview ? 'pdf-uploaded' : 'pdf-empty'}
               />
-              
+
               {uploading.pdf && (
                 <div className="flex items-center justify-center py-2">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-600 mr-2"></div>
@@ -439,7 +410,7 @@ const EditLesson = () => {
               )}
             </div>
 
-            {/* Submit Buttons */}
+
             <div className="flex gap-4 justify-end">
               <button
                 type="button"

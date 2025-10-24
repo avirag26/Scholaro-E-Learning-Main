@@ -1,4 +1,4 @@
-import LandingPage from '../../Landing/LandingPage';
+﻿import LandingPage from '../../Landing/LandingPage';
 import GuestRoute from './GuestRoute';
 
 const LandingProtection = () => {

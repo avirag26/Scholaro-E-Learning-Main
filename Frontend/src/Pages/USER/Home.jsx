@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from 'react-router-dom';
 import { BookOpen, Clock, Award, TrendingUp, Star } from 'lucide-react';
 import Button from "../../ui/Button";
@@ -11,8 +11,8 @@ import { MdFavoriteBorder } from "react-icons/md";
 import Header from "./Common/Header"; 
 import Footer from "../../components/Common/Footer";
 import { userAPI } from "../../api/axiosConfig";
-// import { toast } from "sonner";
-import { toast } from "react-toastify";
+
+
 
 export default function UserHomePage() {
   const navigate = useNavigate();
@@ -147,10 +147,10 @@ useEffect(() => {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => navigate('/user/courses')}
+                  onClick={() => navigate('/user/teachers')}
                   className="border-teal-600 text-teal-600 hover:bg-teal-50 px-6 py-3"
                 >
-                  Continue Learning
+                  Find Tutors
                 </Button>
               </div>
             </div>
@@ -325,6 +325,101 @@ useEffect(() => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Tutors Section */}
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Meet Our Expert Tutors</h2>
+            <Link to="/user/teachers" className="text-teal-600 hover:underline font-medium">
+              View All Tutors
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Sample Tutor Cards */}
+            <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 text-center">
+              <img
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
+                alt="Expert Tutor"
+                className="w-16 h-16 rounded-full object-cover mx-auto mb-4 border-4 border-gray-100"
+              />
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">John Smith</h3>
+              <p className="text-sm text-gray-600 mb-2">Web Development</p>
+              <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
+                <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                <span>4.9 • 150+ students</span>
+              </div>
+              <Button
+                onClick={() => navigate('/user/teachers')}
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg text-sm"
+              >
+                View Profile
+              </Button>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 text-center">
+              <img
+                src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
+                alt="Expert Tutor"
+                className="w-16 h-16 rounded-full object-cover mx-auto mb-4 border-4 border-gray-100"
+              />
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Sarah Johnson</h3>
+              <p className="text-sm text-gray-600 mb-2">Data Science</p>
+              <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
+                <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                <span>4.8 • 200+ students</span>
+              </div>
+              <Button
+                onClick={() => navigate('/user/teachers')}
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg text-sm"
+              >
+                View Profile
+              </Button>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 text-center">
+              <img
+                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
+                alt="Expert Tutor"
+                className="w-16 h-16 rounded-full object-cover mx-auto mb-4 border-4 border-gray-100"
+              />
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Michael Chen</h3>
+              <p className="text-sm text-gray-600 mb-2">UI/UX Design</p>
+              <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
+                <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                <span>4.7 • 180+ students</span>
+              </div>
+              <Button
+                onClick={() => navigate('/user/teachers')}
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg text-sm"
+              >
+                View Profile
+              </Button>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 text-center">
+              <img
+                src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face"
+                alt="Expert Tutor"
+                className="w-16 h-16 rounded-full object-cover mx-auto mb-4 border-4 border-gray-100"
+              />
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Emily Davis</h3>
+              <p className="text-sm text-gray-600 mb-2">Digital Marketing</p>
+              <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
+                <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                <span>4.9 • 220+ students</span>
+              </div>
+              <Button
+                onClick={() => navigate('/user/teachers')}
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg text-sm"
+              >
+                View Profile
+              </Button>
+            </div>
           </div>
         </div>
       </section>

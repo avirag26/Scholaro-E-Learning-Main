@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { X, Eye, EyeOff, Key } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import OtpModal from "./OTP";
@@ -21,7 +21,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
             ...prev,
             [field]: value
         }));
-        // Clear error when user starts typing
+
         if (errors[field]) {
             setErrors(prev => ({
                 ...prev,
@@ -40,7 +40,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
     const validatePasswordForm = () => {
         const newErrors = {};
 
-        // Password validation with same rules as registration
+
         if (!formData.newPassword) {
             newErrors.newPassword = 'New password is required';
         } else if (formData.newPassword.length < 8) {
@@ -64,18 +64,18 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
         if (validatePasswordForm()) {
-            // Get user email from localStorage
+
             const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
             setUserEmail(userInfo.email);
             
-            // Send OTP and show OTP modal
+
             await onSubmit({ action: 'sendOtp', password: formData.newPassword });
             setShowOtpModal(true);
         }
     };
 
     const handleOtpVerify = async (otp) => {
-        // Verify OTP and change password
+
         await onSubmit({ 
             action: 'changePassword', 
             password: formData.newPassword, 

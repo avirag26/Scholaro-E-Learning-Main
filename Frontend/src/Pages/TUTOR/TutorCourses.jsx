@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -25,13 +25,13 @@ const TutorCourses = () => {
     const [currentPage, setCurrentPage] = useState(1);
 
 
-    // Fetch courses and categories on component mount
+
     useEffect(() => {
         dispatch(fetchTutorCourses({ page: currentPage, search, status: statusFilter }));
         dispatch(fetchCategories());
     }, [dispatch, currentPage, search, statusFilter]);
 
-    // Handle Redux errors
+
     useEffect(() => {
         if (error) {
             toast.error(error);
@@ -39,7 +39,7 @@ const TutorCourses = () => {
         }
     }, [error, dispatch]);
 
-    // Handle search with debounce
+
     useEffect(() => {
         const delayedSearch = setTimeout(() => {
             setCurrentPage(1);
@@ -49,18 +49,18 @@ const TutorCourses = () => {
         return () => clearTimeout(delayedSearch);
     }, [search, dispatch, statusFilter]);
 
-    // Handle status filter change
+
     const handleStatusChange = (newStatus) => {
         setStatusFilter(newStatus);
         setCurrentPage(1);
     };
 
-    // Handle page change
+
     const handlePageChange = (page) => {
         setCurrentPage(page);
     };
 
-    // Toggle course listing
+
     const handleToggleListing = async (course) => {
         const action = course.listed ? "unlist" : "list";
         const actionPast = course.listed ? "unlisted" : "listed";
@@ -82,11 +82,11 @@ const TutorCourses = () => {
             const result = await dispatch(toggleCourseListing(course.id));
             if (toggleCourseListing.fulfilled.match(result)) {
                 toast.success(`Course ${actionPast} successfully!`);
-                // Refresh the courses list
+
                 dispatch(fetchTutorCourses({ page: currentPage, search, status: statusFilter }));
             }
         } catch (error) {
-            // Error is handled by Redux and useEffect
+
         }
     };
 
@@ -94,7 +94,7 @@ const TutorCourses = () => {
 
 
 
-    // Generate pagination numbers
+
     const generatePaginationNumbers = () => {
         if (!pagination) return [];
         const { currentPage, totalPages } = pagination;
