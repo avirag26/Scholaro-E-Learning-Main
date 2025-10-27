@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Search, Filter, ChevronLeft, ChevronRight, Users, Star, BookOpen } from "lucide-react";
@@ -13,22 +13,37 @@ const Courses = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [currentPages, setCurrentPages] = useState({});
+  const filterDropdownRef = useRef(null);
 
   const coursesPerPage = 3;
 
-  // Debounce search term
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
     }, 500);
-
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
   useEffect(() => {
     fetchAllCourses();
-  }, [debouncedSearchTerm, statusFilter]);
+  }, [debouncedSearchTerm, statusFilter, categoryFilter, minPrice, maxPrice]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
+        setShowFilterDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const fetchAllCourses = async () => {
     try {
@@ -36,13 +51,15 @@ const Courses = () => {
       const response = await adminAPI.get('/api/admin/courses', {
         params: {
           search: debouncedSearchTerm,
-          status: statusFilter
+          status: statusFilter,
+          category: categoryFilter,
+          minPrice: minPrice || undefined,
+          maxPrice: maxPrice || undefined
         }
       });
 
       if (response.data.success) {
         setCoursesByCategory(response.data.coursesByCategory);
-        // Initialize current pages for each category
         const initialPages = {};
         response.data.coursesByCategory.forEach(category => {
           initialPages[category.id] = 0;
@@ -129,10 +146,123 @@ const Courses = () => {
               <option value="active">Active Only</option>
             </select>
             
-            <button className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <Filter className="w-4 h-4" />
-              <span>Filter</span>
-            </button>
+            <div className="relative" ref={filterDropdownRef}>
+              <button 
+                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <Filter className="w-4 h-4" />
+                <span>Filter</span>
+                <svg className={`w-4 h-4 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {showFilterDropdown && (
+                <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                  <div className="p-4 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                      <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                      >
+                        <option value="all">All Categories</option>
+                        {coursesByCategory.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <input
+                            type="number"
+                            placeholder="Min Price"
+                            value={minPrice}
+                            onChange={(e) => setMinPrice(e.target.value)}
+                            min="0"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <input
+                            type="number"
+                            placeholder="Max Price"
+                            value={maxPrice}
+                            onChange={(e) => setMaxPrice(e.target.value)}
+                            min="0"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-1 mt-2">
+                        <button
+                          onClick={() => { setMinPrice("0"); setMaxPrice("0"); }}
+                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          Free
+                        </button>
+                        <button
+                          onClick={() => { setMinPrice("0"); setMaxPrice("50"); }}
+                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          $0-50
+                        </button>
+                        <button
+                          onClick={() => { setMinPrice("50"); setMaxPrice("100"); }}
+                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          $50-100
+                        </button>
+                        <button
+                          onClick={() => { setMinPrice("100"); setMaxPrice(""); }}
+                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          $100+
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                        <option value="all">All Ratings</option>
+                        <option value="4+">4+ Stars</option>
+                        <option value="3+">3+ Stars</option>
+                        <option value="2+">2+ Stars</option>
+                      </select>
+                    </div>
+                    
+                    <div className="flex gap-2 pt-2">
+                      <button 
+                        onClick={() => {
+                          setCategoryFilter("all");
+                          setStatusFilter("all");
+                          setMinPrice("");
+                          setMaxPrice("");
+                          setShowFilterDropdown(false);
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                      >
+                        Clear All
+                      </button>
+                      <button 
+                        onClick={() => setShowFilterDropdown(false)}
+                        className="flex-1 px-3 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

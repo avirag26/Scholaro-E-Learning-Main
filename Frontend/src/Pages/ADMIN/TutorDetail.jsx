@@ -268,6 +268,7 @@ const TutorDetail = () => {
                   key={course.id}
                   course={course}
                   tutorName={tutor.full_name}
+                  navigate={navigate}
                 />
               ))}
           </div>
@@ -285,7 +286,7 @@ const TutorDetail = () => {
   );
 };
 
-const CourseCard = ({ course, tutorName }) => {
+const CourseCard = ({ course, tutorName, navigate }) => {
   return (
     <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border overflow-hidden">
       <div className="relative">
@@ -336,7 +337,7 @@ const CourseCard = ({ course, tutorName }) => {
           </span>
         </div>
         
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           <span className="text-xs text-gray-500">
             {course.category?.title || 'General'}
           </span>
@@ -346,6 +347,13 @@ const CourseCard = ({ course, tutorName }) => {
             size="sm"
           />
         </div>
+
+        <button
+          onClick={() => navigate(`/admin/courses/${course.id}/details`)}
+          className="w-full bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-600 transition-colors"
+        >
+          VIEW COURSE
+        </button>
       </div>
     </div>
   );

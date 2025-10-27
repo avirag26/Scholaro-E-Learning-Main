@@ -942,11 +942,21 @@ const getPublicTutors = async (req, res) => {
       profileImage: tutor.profileImage || tutor.profile_image,
       createdAt: tutor.createdAt
     }));
+    const courseCounts = await Course.aggregate([
+  {
+    $group: {
+      _id: "$tutor",
+      courseCount: { $sum: 1 }
+    }
+  }
+]);
+
     res.status(200).json({
       tutors: transformedTutors,
       totalPages: Math.ceil(total / limit),
       currentPage: page,
-      total
+      total,
+      courseCounts
     });
   } catch (error) {
     res.status(500).json({ 

@@ -137,6 +137,7 @@ const Students = () => {
             </div>
           </div>
         </div>
+        
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
             <div className="text-2xl text-red-500 mr-3"></div>

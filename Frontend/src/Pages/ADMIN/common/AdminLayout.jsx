@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Search, Users, BookOpen, GraduationCap, DollarSign, TrendingUp, LogOut, User } from 'lucide-react';
 import { toast } from 'sonner';
@@ -60,18 +60,9 @@ export default function AdminLayout({ children, title, subtitle }) {
                             <a href="#" className="text-gray-600 hover:text-sky-500">Categories</a>
                         </nav>
                     </div>
-                    {}
-                    <div className="flex-1 max-w-md mx-8">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input
-                                type="text"
-                                placeholder="Search course"
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                            />
-                        </div>
-                    </div>
-                    {}
+                    
+                    
+                    
                     <div className="flex items-center space-x-4">
                         <button className="p-2 text-gray-600 hover:text-sky-500">
                             <Bell className="w-5 h-5" />
@@ -175,13 +166,7 @@ export default function AdminLayout({ children, title, subtitle }) {
                                 <BookOpen className="w-5 h-5 mr-3" />
                                 Courses
                             </button>
-                            <button
-                                onClick={() => navigate('/admin/legal')}
-                                className={getButtonClasses('/admin/legal')}
-                            >
-                                <BookOpen className="w-5 h-5 mr-3" />
-                                Legal
-                            </button>
+                            
                             <button
                                 onClick={handleLogout}
                                 className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg flex items-center font-medium transition-colors"

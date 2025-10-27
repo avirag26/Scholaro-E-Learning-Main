@@ -1,4 +1,4 @@
-import User from "../Model/usermodel.js";
+﻿import User from "../Model/usermodel.js";
 import Admin from "../Model/AdminModel.js";
 import Tutor from "../Model/TutorModel.js";
 import Category from "../Model/CategoryModel.js";
@@ -120,7 +120,8 @@ const getAllUsers = async (req, res) => {
       stats: {
         total: totalUsers,
         listed: await User.countDocuments({ is_verified: true, is_blocked: false }),
-        unlisted: await User.countDocuments({ is_blocked: true })
+        unlisted: await User.countDocuments({ is_blocked: true }),
+        unverified: await User.countDocuments({ is_verified: false })
       }
     });
   } catch (error) {
@@ -615,6 +616,10 @@ const getCoursesByCategory = async (req, res) => {
     const limit = parseInt(req.query.limit) || 12;
     const skip = (page - 1) * limit;
     const search = req.query.search || '';
+    const status = req.query.status || 'all';
+    const rating = req.query.rating || 'all';
+    const minPrice = req.query.minPrice ? parseFloat(req.query.minPrice) : null;
+    const maxPrice = req.query.maxPrice ? parseFloat(req.query.maxPrice) : null;
 
     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
       return res.status(400).json({
@@ -632,11 +637,35 @@ const getCoursesByCategory = async (req, res) => {
     }
 
     let matchStage = {
-      category: new mongoose.Types.ObjectId(categoryId),
-      listed: true,
-      isActive: true,
-      isBanned: false
+      category: new mongoose.Types.ObjectId(categoryId)
     };
+
+    // Apply status filter
+    if (status === 'listed') {
+      matchStage.listed = true;
+    } else if (status === 'unlisted') {
+      matchStage.listed = false;
+    } else if (status === 'active') {
+      matchStage.isActive = true;
+      matchStage.isBanned = false;
+    } else {
+      // For 'all', show all courses but exclude banned ones
+      matchStage.isBanned = false;
+    }
+
+    // Apply rating filter
+    if (rating !== 'all') {
+      const minRating = parseInt(rating.replace('+', ''));
+      matchStage.average_rating = { $gte: minRating };
+    }
+
+    // Apply price filter
+    if (minPrice !== null || maxPrice !== null) {
+      const priceFilter = {};
+      if (minPrice !== null) priceFilter.$gte = minPrice;
+      if (maxPrice !== null) priceFilter.$lte = maxPrice;
+      matchStage.price = priceFilter;
+    }
 
     if (search) {
       matchStage.$or = [
@@ -850,9 +879,20 @@ const getAllCourses = async (req, res) => {
   try {
     const search = req.query.search || '';
     const status = req.query.status || 'all';
+    const categoryFilter = req.query.category || 'all';
+    const minPrice = req.query.minPrice ? parseFloat(req.query.minPrice) : null;
+    const maxPrice = req.query.maxPrice ? parseFloat(req.query.maxPrice) : null;
 
-    // Get all categories
-    const categories = await Category.find({ isVisible: true }).sort({ title: 1 });
+    // Get all categories or specific category
+    let categories;
+    if (categoryFilter !== 'all') {
+      categories = await Category.find({ 
+        _id: categoryFilter, 
+        isVisible: true 
+      }).sort({ title: 1 });
+    } else {
+      categories = await Category.find({ isVisible: true }).sort({ title: 1 });
+    }
 
     const coursesByCategory = [];
 
@@ -898,6 +938,18 @@ const getAllCourses = async (req, res) => {
               { title: { $regex: search, $options: 'i' } },
               { description: { $regex: search, $options: 'i' } }
             ]
+          }
+        });
+      }
+
+      // Add price filter if provided
+      if (minPrice !== null || maxPrice !== null) {
+        const priceMatch = {};
+        if (minPrice !== null) priceMatch.$gte = minPrice;
+        if (maxPrice !== null) priceMatch.$lte = maxPrice;
+        pipeline.push({
+          $match: {
+            price: priceMatch
           }
         });
       }
