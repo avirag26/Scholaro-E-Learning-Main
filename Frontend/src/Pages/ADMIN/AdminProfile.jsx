@@ -1,10 +1,9 @@
-﻿import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Edit2, Camera, User, Mail, Phone } from 'lucide-react';
 import { toast } from 'react-toastify';
 import AdminLayout from './common/AdminLayout';
 import { adminAPI } from '../../api/axiosConfig';
 import { uploadToCloudinary, validateImageFile } from '../../utils/cloudinary';
-
 const AdminProfile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -17,25 +16,20 @@ const AdminProfile = () => {
         phone: ''
     });
     const fileInputRef = useRef(null);
-
-
     useEffect(() => {
         const loadAdminData = async () => {
             try {
-
                 const response = await adminAPI.get('/api/admin/profile');
                 const adminData = response.data.admin;
                 setAdminInfo(adminData);
                 localStorage.setItem('adminInfo', JSON.stringify(adminData));
             } catch (error) {
-
                 try {
                     const storedAdminInfo = localStorage.getItem('adminInfo');
                     if (storedAdminInfo) {
                         const adminData = JSON.parse(storedAdminInfo);
                         setAdminInfo(adminData);
                     } else {
-
                         setAdminInfo({
                             name: '',
                             email: '',
@@ -43,7 +37,6 @@ const AdminProfile = () => {
                         });
                     }
                 } catch (localError) {
-
                     setAdminInfo({
                         name: '',
                         email: '',
@@ -54,11 +47,8 @@ const AdminProfile = () => {
                 setLoading(false);
             }
         };
-
         loadAdminData();
     }, []);
-
-
     useEffect(() => {
         if (adminInfo) {
             setFormData({
@@ -68,62 +58,42 @@ const AdminProfile = () => {
             });
         }
     }, [adminInfo]);
-
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
     };
-
     const handleImageChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
-
         const validation = validateImageFile(file);
         if (!validation.valid) {
             toast.error(validation.error);
             return;
         }
-
         try {
             setUploadingImage(true);
-
-
             const reader = new FileReader();
             reader.onloadend = () => {
                 setSelectedImage(reader.result);
             };
             reader.readAsDataURL(file);
-
-
             const uploadResult = await uploadToCloudinary(file);
-
             if (!uploadResult.success) {
                 toast.error(uploadResult.error || 'Failed to upload image');
                 setSelectedImage(null);
                 return;
             }
-
-
             await adminAPI.post('/api/admin/upload-profile-photo', {
                 imageUrl: uploadResult.url
             });
-
-
             const updatedAdminInfo = { ...adminInfo, profileImage: uploadResult.url };
             setAdminInfo(updatedAdminInfo);
             localStorage.setItem('adminInfo', JSON.stringify(updatedAdminInfo));
-
-
             window.dispatchEvent(new CustomEvent('adminInfoUpdated'));
-
-
             setSelectedImage(null);
-
             toast.success('Profile photo updated successfully!');
-
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to upload profile photo');
             setSelectedImage(null);
@@ -131,14 +101,11 @@ const AdminProfile = () => {
             setUploadingImage(false);
         }
     };
-
     const handleEditClick = () => {
         setIsEditing(true);
     };
-
     const handleCancelEdit = () => {
         setIsEditing(false);
-
         if (adminInfo) {
             setFormData({
                 name: adminInfo.name || adminInfo.full_name || '',
@@ -146,37 +113,26 @@ const AdminProfile = () => {
                 phone: adminInfo.phone || ''
             });
         }
-
         setSelectedImage(null);
     };
-
     const handleSaveProfile = async () => {
         try {
             setLoading(true);
-
             const profileData = {
                 name: formData.name,
                 email: formData.email,
                 phone: formData.phone
             };
-
             const response = await adminAPI.put('/api/admin/profile', profileData);
-
-
             const updatedAdminInfo = {
                 ...response.data.admin,
                 profileImage: adminInfo?.profileImage || response.data.admin.profileImage
             };
-
             setAdminInfo(updatedAdminInfo);
             localStorage.setItem('adminInfo', JSON.stringify(updatedAdminInfo));
-
-
             window.dispatchEvent(new CustomEvent('adminInfoUpdated'));
-
             setIsEditing(false);
             toast.success('Profile updated successfully!');
-
         } catch (error) {
             const errorMessage = error.response?.data?.message ||
                 error.response?.data?.errors?.join(', ') ||
@@ -186,10 +142,6 @@ const AdminProfile = () => {
             setLoading(false);
         }
     };
-
-
-
-
     if (loading) {
         return (
             <AdminLayout title="Profile Settings" subtitle="Manage your admin profile">
@@ -202,12 +154,11 @@ const AdminProfile = () => {
             </AdminLayout>
         );
     }
-
     return (
         <AdminLayout title="Profile Settings" subtitle="Manage your admin profile">
             <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-2xl shadow-sm p-8">
-                    {/* Header */}
+                    {}
                     <div className="flex justify-between items-center mb-8">
                         <h2 className="text-2xl font-bold text-gray-900">Admin Profile</h2>
                         {!isEditing ? (
@@ -236,9 +187,8 @@ const AdminProfile = () => {
                             </div>
                         )}
                     </div>
-
                     <div className="grid md:grid-cols-3 gap-8">
-                        {/* Profile Image Section */}
+                        {}
                         <div className="md:col-span-1">
                             <div className="text-center">
                                 <div className="relative inline-block">
@@ -273,10 +223,9 @@ const AdminProfile = () => {
                                 <p className="text-gray-600">System Administrator</p>
                             </div>
                         </div>
-
-                        {/* Form Fields */}
+                        {}
                         <div className="md:col-span-2 space-y-6">
-                            {/* Name Field */}
+                            {}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     <User className="w-4 h-4 inline mr-2" />
@@ -301,8 +250,7 @@ const AdminProfile = () => {
                                     )}
                                 </div>
                             </div>
-
-                            {/* Email Field */}
+                            {}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     <Mail className="w-4 h-4 inline mr-2" />
@@ -327,8 +275,7 @@ const AdminProfile = () => {
                                     )}
                                 </div>
                             </div>
-
-                            {/* Phone Field */}
+                            {}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     <Phone className="w-4 h-4 inline mr-2" />
@@ -353,16 +300,11 @@ const AdminProfile = () => {
                                     )}
                                 </div>
                             </div>
-
-
                         </div>
                     </div>
                 </div>
             </div>
-
-
         </AdminLayout>
     );
 };
-
 export default AdminProfile;

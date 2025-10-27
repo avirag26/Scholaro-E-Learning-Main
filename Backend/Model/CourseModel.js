@@ -1,13 +1,10 @@
-﻿
 import mongoose from "mongoose";
-
 const ReportSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
-
     course: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "courses",
@@ -27,7 +24,6 @@ const ReportSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
-
 const TutorResponseSchema = new mongoose.Schema({
     content: {
         type: String,
@@ -36,7 +32,6 @@ const TutorResponseSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
-
 const ReviewSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
@@ -77,7 +72,6 @@ const ReviewSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
-
 const CourseSchema = new mongoose.Schema(
     {
         title: {
@@ -106,7 +100,6 @@ const CourseSchema = new mongoose.Schema(
             ref: "Tutor",
             required: true,
         },
-       
         isActive: {
             type: Boolean,
             default: true
@@ -115,7 +108,6 @@ const CourseSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-
         average_rating: {
             type: Number,
             default: 0,
@@ -131,7 +123,6 @@ const CourseSchema = new mongoose.Schema(
             type: Number,
             default: 0
         },
-
         reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
         lessons: [
             {
@@ -147,12 +138,15 @@ const CourseSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-      
         notificationSent: {
             type: Boolean,
             default: false
         },
         listed: {
+            type: Boolean,
+            default: false
+        },
+        unlistedByAdmin: {
             type: Boolean,
             default: false
         },
@@ -175,29 +169,21 @@ const CourseSchema = new mongoose.Schema(
         timestamps: true,
     }
 );
-
-
 CourseSchema.methods = {
     async canUserReview(userId) {
-
         const certificate = await mongoose.model('Certificate').findOne({
             userId: userId,
             courseId: this._id,
             status: 'active'
         });
-
         if (!certificate) return false;
-
-
         const existingReview = await mongoose.model('Review').findOne({
             user: userId,
             course: this._id,
             status: 'active'
         });
-
         return !existingReview;
     },
-
     calculateRatingBreakdown() {
         return mongoose.model('Review').aggregate([
             {
@@ -220,7 +206,6 @@ CourseSchema.methods = {
                 two_star: 0,
                 one_star: 0
             };
-
             results.forEach(result => {
                 switch (result._id) {
                     case 5: breakdown.five_star = result.count; break;
@@ -230,12 +215,10 @@ CourseSchema.methods = {
                     case 1: breakdown.one_star = result.count; break;
                 }
             });
-
             this.rating_breakdown = breakdown;
             return this.save();
         });
     },
-
     async updateAverageRating() {
         const result = await mongoose.model('Review').aggregate([
             {
@@ -252,7 +235,6 @@ CourseSchema.methods = {
                 }
             }
         ]);
-
         if (result.length > 0) {
             this.average_rating = Math.round(result[0].averageRating * 10) / 10;
             this.total_reviews = result[0].totalReviews;
@@ -260,12 +242,9 @@ CourseSchema.methods = {
             this.average_rating = 0;
             this.total_reviews = 0;
         }
-
         return this.save();
     }
 };
-
-
 CourseSchema.statics.getReviews = async function (courseId, options = {}) {
     const {
         sort = 'newest',
@@ -274,20 +253,16 @@ CourseSchema.statics.getReviews = async function (courseId, options = {}) {
         page = 1,
         limit = 10
     } = options;
-
     const query = {
         course: courseId,
         status: 'active'
     };
-
     if (rating !== 'all') {
         query.rating = parseInt(rating);
     }
-
     if (verified) {
         query.verifiedPurchase = true;
     }
-
     let sortOption = {};
     switch (sort) {
         case 'newest':
@@ -303,7 +278,6 @@ CourseSchema.statics.getReviews = async function (courseId, options = {}) {
             sortOption = { 'helpful_votes.length': -1 };
             break;
     }
-
     return mongoose.model('Review').find(query)
         .populate('user', 'full_name profileImage')
         .sort(sortOption)
@@ -311,7 +285,6 @@ CourseSchema.statics.getReviews = async function (courseId, options = {}) {
         .limit(limit)
         .lean();
 };
-
 const updateCoursesByCategory = async (categoryId, isVisible) => {
     try {
         await Course.updateMany(
@@ -322,11 +295,8 @@ const updateCoursesByCategory = async (categoryId, isVisible) => {
         throw error;
     }
 };
-
-
 export const Review = mongoose.model('Review', ReviewSchema);
 export const Course = mongoose.model('courses', CourseSchema);
 export const Report = mongoose.model('Report', ReportSchema);
 export { updateCoursesByCategory };
-
 export default Course;

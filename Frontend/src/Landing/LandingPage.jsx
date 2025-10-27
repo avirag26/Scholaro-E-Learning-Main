@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom"
 import { Play, Award, Menu, X } from 'lucide-react';
 import Button from "../ui/Button";
@@ -9,7 +9,6 @@ import StatsSection from "../ui/StatsSection";
 import TeamSection from "../ui/TeamSection";
 import Testimonials from "../ui/Testmonials";
 import BannerImg from '../assets/banner.png'
-
 export default function LandingPage(){
     const navigate=useNavigate()
    const [isMenuOpen,setIsMenuOpen]=useState(false)
@@ -18,20 +17,18 @@ export default function LandingPage(){
         <header className="bg-white shadow-sm sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        {/* Logo */}
+                        {}
                         <div className="flex items-center">
                             <h1 className="text-2xl font-bold text-teal-600">Scholaro</h1>
                         </div>
-
-                        {/* Desktop Navigation */}
+                        {}
                         <nav className="hidden md:flex space-x-8">
                             <Link to="/" className="text-gray-700 hover:text-teal-600 transition-colors">Home</Link>
                             <Link to="/courses" className="text-gray-700 hover:text-teal-600 transition-colors">Courses</Link>
                             <Link to="/about" className="text-gray-700 hover:text-teal-600 transition-colors">About</Link>
                             <Link to="/contact" className="text-gray-700 hover:text-teal-600 transition-colors">Contact</Link>
                         </nav>
-
-                        {/* Desktop CTA */}
+                        {}
                         <div className="hidden md:flex items-center space-x-4">
                             <Button
                                 variant="outline"
@@ -47,8 +44,7 @@ export default function LandingPage(){
                                 Get Started
                             </Button>
                         </div>
-
-                        {/* Mobile menu button */}
+                        {}
                         <button
                             className="md:hidden"
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -56,8 +52,7 @@ export default function LandingPage(){
                             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
                     </div>
-
-                    {/* Mobile Navigation */}
+                    {}
                     {isMenuOpen && (
                         <div className="md:hidden py-4 border-t">
                             <div className="flex flex-col space-y-4">
@@ -72,15 +67,12 @@ export default function LandingPage(){
                             </div>
                         </div>
                     )}
-
-                    
                 </div>
             </header>
-
              <section className="relative bg-gradient-to-br from-teal-50 to-blue-50 py-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
-                        {/* Left Content */}
+                        {}
                         <div className="space-y-8">
                             <div className="space-y-4">
                                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
@@ -92,7 +84,6 @@ export default function LandingPage(){
                                     Energize and motivate your students with personalized content as they progress on their learning journey.
                                 </p>
                             </div>
-
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <Button
                                     onClick={() => navigate('/user/register')}
@@ -108,8 +99,7 @@ export default function LandingPage(){
                                     Watch Demo
                                 </Button>
                             </div>
-
-                            {/* Stats */}
+                            {}
                             <div className="flex flex-wrap gap-8 pt-8">
                                 <div className="text-center">
                                     <div className="text-2xl font-bold text-gray-900">10K+</div>
@@ -125,8 +115,7 @@ export default function LandingPage(){
                                 </div>
                             </div>
                         </div>
-
-                        {/* Right Content - Hero Image */}
+                        {}
                         <div className="relative">
                             <div className="relative bg-white p-4 rounded-3xl shadow-lg">
                                 <img
@@ -135,7 +124,7 @@ export default function LandingPage(){
                                     className="w-full max-w-lg mx-auto rounded-2xl"
                                 />
                             </div>
-                            {/* Floating elements */}
+                            {}
                             <div className="absolute top-10 left-10 bg-white p-4 rounded-lg shadow-lg">
                                 <div className="flex items-center space-x-2">
                                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -152,8 +141,7 @@ export default function LandingPage(){
                     </div>
                 </div>
             </section>
-          
-           {/* Become a Tutor Section */}
+           {}
             <section className="py-16 bg-gradient-to-r from-teal-600 to-blue-600">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 md:p-12">
@@ -198,25 +186,17 @@ export default function LandingPage(){
                     </div>
                 </div>
             </section>
-           
              <FeatureTabs />
-
-            {/* About Section */}
+            {}
             <AboutSection />
-
-            {/* Stats Section */}
+            {}
             <StatsSection />
-
-            {/* Course Categories */}
+            {}
             <CategoryCards />
-
-            {/* Testimonials */}
+            {}
             <Testimonials />
-
-            {/* Team Section */}
+            {}
             <TeamSection />
-
-
                <section className="py-20 bg-gray-900 text-white">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h2 className="text-3xl md:text-4xl font-bold mb-6">
@@ -241,8 +221,7 @@ export default function LandingPage(){
                     </div>
                 </div>
             </section>
-
-          {/* Footer */}
+          {}
             <footer className="bg-gray-900 text-white py-12">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid md:grid-cols-4 gap-8">
@@ -257,7 +236,6 @@ export default function LandingPage(){
                                 <a href="#" className="text-gray-400 hover:text-white">LinkedIn</a>
                             </div>
                         </div>
-
                         <div>
                             <h4 className="font-semibold mb-4">Company</h4>
                             <ul className="space-y-2 text-gray-400">
@@ -267,7 +245,6 @@ export default function LandingPage(){
                                 <li><a href="#" className="hover:text-white">Blog</a></li>
                             </ul>
                         </div>
-
                         <div>
                             <h4 className="font-semibold mb-4">Support</h4>
                             <ul className="space-y-2 text-gray-400">
@@ -277,7 +254,6 @@ export default function LandingPage(){
                                 <li><a href="#" className="hover:text-white">Terms of Service</a></li>
                             </ul>
                         </div>
-
                         <div>
                             <h4 className="font-semibold mb-4">Contact Info</h4>
                             <div className="text-gray-400 space-y-2">
@@ -288,14 +264,11 @@ export default function LandingPage(){
                             </div>
                         </div>
                     </div>
-
                     <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
                         <p>&copy; 2024 Scholaro. All rights reserved.</p>
                     </div>
                 </div>
             </footer>
-
-  
        </div>
     )
 }

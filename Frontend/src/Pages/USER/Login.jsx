@@ -1,35 +1,41 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import LoginBanner from "../../assets/Login.svg";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner.jsx"; 
-import { userAPI } from '../../api/axiosConfig.js';
-import { useAuth } from '../../Context/AuthContext.jsx';
+import axios from "axios";
+
+// Create clean API instance for login without interceptors
+const loginAPI = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  timeout: 10000,
+  headers: { "Content-Type": "application/json" },
+});
+
+import { useCurrentUser } from '../../hooks/useCurrentUser.js';
 import { GoogleLogin } from "@react-oauth/google";
 import {
   clearTutorData,
   clearAdminData,
   redirectAfterLogin,
-} from "../../helpers/auth";
+} from "../../utils/authUtils";
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setAuth } = useAuth();
+  const { login } = useCurrentUser(); 
   const from = location.state?.from?.pathname || "/user/home";
-
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const { isAuthenticated } = useCurrentUser();
+  
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (token) navigate("/user/home", { replace: true });
-  }, [navigate]);
+    if (isAuthenticated) navigate("/user/home", { replace: true });
+  }, [navigate, isAuthenticated]);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const validateEmail = (inputEmail) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!inputEmail) {
@@ -40,7 +46,6 @@ export default function Login() {
       setEmailError("");
     }
   };
-
   const validatePassword = (inputPassword) => {
     if (!inputPassword) {
       setPasswordError("Password is required");
@@ -50,61 +55,43 @@ export default function Login() {
       setPasswordError("");
     }
   };
-
   const handleEmailChange = (e) => {
     const inputEmail = e.target.value;
     setEmail(inputEmail);
     validateEmail(inputEmail);
   };
-
   const handlePasswordChange = (e) => {
     const inputPassword = e.target.value;
     setPassword(inputPassword);
     validatePassword(inputPassword);
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     validateEmail(email);
     validatePassword(password);
-
     if(emailError || passwordError || !email || !password){
       return;
     }
     setIsSubmitting(true);
-
     try{
-      const response = await userAPI.post('/api/users/login',{email,password});
-
+      const response = await loginAPI.post('/api/users/login',{email,password});
       const { accessToken, user } = response.data;
-
       clearTutorData();
       clearAdminData();
-
-      setAuth({user,accessToken});
-      
-      localStorage.setItem("authToken", accessToken);
-      localStorage.setItem("userInfo", JSON.stringify(user));
-
+      login(user, accessToken);
       setEmail("");
       setPassword("");
-
       toast.success("Login successful! Welcome back.");
-      
       redirectAfterLogin(navigate, 'user', from);
     } catch (err) {
       if (!err?.response) {
         toast.error("No Server Response");
       } else if (err.response?.status === 403 && err.response?.data?.blocked) {
-
         toast.error(err.response.data.message || "Your account has been blocked");
-
         localStorage.removeItem('authToken');
         localStorage.removeItem('userInfo');
-
         setEmail("");
         setPassword("");
-
         return;
       } else {
         toast.error(err.response?.data?.message || "Login Failed");
@@ -113,31 +100,20 @@ export default function Login() {
       setIsSubmitting(false);
     }
   };
-
-
     const handleGoogleSuccess = async (credentialResponse) => {
     try {
       setIsSubmitting(true);
-      const response = await userAPI.post("/api/users/google-auth", {
+      const response = await loginAPI.post("/api/users/google-auth", {
         credential: credentialResponse.credential
       });
-
       const { accessToken, user } = response.data;
-
       clearTutorData();
       clearAdminData();
-
-      setAuth({ user, accessToken });
-
-      localStorage.setItem("authToken", accessToken);
-      localStorage.setItem("userInfo", JSON.stringify(user));
-
+      login(user, accessToken);
       toast.success(response.data.message || "Google login successful!");
-      
       redirectAfterLogin(navigate, 'user', from);
     } catch (err) {
       if (err.response?.status === 403 && err.response.data.blocked) {
-
         toast.error(err.response.data.message || "Your account has been blocked");
         return;
       }
@@ -146,12 +122,9 @@ export default function Login() {
       setIsSubmitting(false);
     }
   };
-
   const handleGoogleError = () => {
     toast.error("Google login failed. Please try again.");
   };
-  
-
   return (
     <div className="min-h-screen flex">
       <div className="hidden lg:flex lg:w-1/2 bg-gray-100 relative">
@@ -161,7 +134,6 @@ export default function Login() {
           className="w-full h-full object-cover"
         />
       </div>
-
       <div className="w-full lg:w-1/2 flex flex-col p-8 lg:p-12 relative">
         <div className="absolute top-4 right-4 hidden lg:block">
           <h1 className="text-2xl font-bold text-sky-500">Scholaro</h1>
@@ -169,7 +141,6 @@ export default function Login() {
         <div className="flex justify-between items-center mb-8 lg:hidden">
           <h1 className="text-2xl font-bold text-sky-500">Scholaro</h1>
         </div>
-
         <div className="flex flex-col lg:flex-row lg:justify-center items-center gap-2 mb-8">
           <div className="flex gap-2 p-1 bg-sky-100 rounded-full">
             <button className="px-6 py-2 bg-sky-500 text-white rounded-full transition-colors duration-300">
@@ -183,13 +154,11 @@ export default function Login() {
             </button>
           </div>
         </div>
-
         <div className="max-w-md w-full mx-auto">
           <div className="mb-8">
             <h2 className="text-2xl font-semibold mb-2">Welcome to Scholaro...!</h2>
             <p className="text-gray-600">Scholaro makes you perfect</p>
           </div>
-
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
               <label
@@ -219,7 +188,6 @@ export default function Login() {
                 </div>
               )}
             </div>
-
             <div className="relative">
               <label
                 htmlFor="password"
@@ -256,7 +224,6 @@ export default function Login() {
                 </div>
               )}
             </div>
-
             <div className="flex items-center justify-between">
               <label className="flex items-center space-x-2">
                 <input
@@ -269,7 +236,6 @@ export default function Login() {
                 Forgot Password?
               </Link>
             </div>
-
             <button
               type="submit"
               className="w-full bg-sky-500 text-white py-3 rounded-lg hover:bg-sky-600 transition-colors duration-300 disabled:opacity-50"
@@ -277,7 +243,6 @@ export default function Login() {
             >
               {isSubmitting ? <DotDotDotSpinner /> : "Login"}
             </button>
-
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
@@ -286,7 +251,6 @@ export default function Login() {
                 <span className="px-2 bg-white text-gray-500">Sign up with</span>
               </div>
             </div>
-
             <div className="mt-6 flex justify-center">
               <div className="w-full">
                 <GoogleLogin
@@ -300,7 +264,6 @@ export default function Login() {
                 />
               </div>
             </div>
-
             <p className="text-center text-sm text-gray-600">
               Don&apos;t have an account?{" "}
               <Link
@@ -312,7 +275,6 @@ export default function Login() {
             </p>
           </form>
         </div>
-
       </div>
     </div>
   );

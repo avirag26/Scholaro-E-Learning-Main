@@ -1,11 +1,10 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronDown, Download, FileText, Users, BookOpen, GraduationCap, DollarSign, TrendingUp } from 'lucide-react';
 import Button from '../../ui/Button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import AdminLayout from './common/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI } from '../../api/axiosConfig';
-
 const chartData = [
     { month: 'Jan', income: 45000, profit: 35000 },
     { month: 'Feb', income: 52000, profit: 38000 },
@@ -20,8 +19,6 @@ const chartData = [
     { month: 'Nov', income: 75000, profit: 47000 },
     { month: 'Dec', income: 69000, profit: 43000 }
 ];
-
-
 const courseData = [
     {
         name: 'Web Development',
@@ -51,7 +48,6 @@ const courseData = [
         status: 'Inactive'
     }
 ];
-
 export default function AdminDashboard() {
     const navigate = useNavigate();
     const [dateFilter, setDateFilter] = useState('This Month');
@@ -64,11 +60,9 @@ export default function AdminDashboard() {
         blockedTutors: 0
     });
     const [loading, setLoading] = useState(true);
-
     useEffect(() => {
         fetchDashboardStats();
     }, []);
-
     const fetchDashboardStats = async () => {
         try {
             const response = await adminAPI.get('/api/admin/dashboard-stats');
@@ -78,18 +72,15 @@ export default function AdminDashboard() {
             setLoading(false);
         }
     };
-
     const handleDownloadPDF = () => {
     };
-
     const handleDownloadExcel = () => {
     };
-
     return (
         <AdminLayout title="Dashboard" subtitle="Welcome to your admin dashboard">
-            {/* Dashboard Content */}
+            {}
             <div className="space-y-6">
-                {/* Top Section with Download Buttons */}
+                {}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                         <h2 className="text-xl font-semibold text-gray-800">Analytics Overview</h2>
@@ -122,8 +113,7 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </div>
-                    
-                    {/* Download Buttons on Top */}
+                    {}
                     <div className="flex items-center space-x-3">
                         <Button 
                             onClick={handleDownloadPDF}
@@ -141,8 +131,7 @@ export default function AdminDashboard() {
                         </Button>
                     </div>
                 </div>
-
-                {/* Stats Cards */}
+                {}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div className="bg-white p-6 rounded-lg shadow">
                         <div className="flex items-center justify-between">
@@ -153,7 +142,6 @@ export default function AdminDashboard() {
                             <Users className="w-8 h-8 text-sky-500" />
                         </div>
                     </div>
-                    
                     <div className="bg-white p-6 rounded-lg shadow">
                         <div className="flex items-center justify-between">
                             <div>
@@ -163,7 +151,6 @@ export default function AdminDashboard() {
                             <GraduationCap className="w-8 h-8 text-green-500" />
                         </div>
                     </div>
-                    
                     <div className="bg-white p-6 rounded-lg shadow">
                         <div className="flex items-center justify-between">
                             <div>
@@ -173,7 +160,6 @@ export default function AdminDashboard() {
                             <BookOpen className="w-8 h-8 text-purple-500" />
                         </div>
                     </div>
-                    
                     <div className="bg-white p-6 rounded-lg shadow">
                         <div className="flex items-center justify-between">
                             <div>
@@ -184,8 +170,7 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 </div>
-
-                {/* Full Width Chart */}
+                {}
                 <div className="bg-white p-6 rounded-lg shadow">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-lg font-semibold">Revenue & Profit Overview</h3>
@@ -214,7 +199,7 @@ export default function AdminDashboard() {
                                     axisLine={false}
                                     tickLine={false}
                                     tick={{ fontSize: 12, fill: '#666' }}
-                                    tickFormatter={(value) => `₹${value/1000}k`}
+                                    tickFormatter={(value) => `?${value/1000}k`}
                                 />
                                 <Line 
                                     type="monotone" 
@@ -236,8 +221,7 @@ export default function AdminDashboard() {
                         </ResponsiveContainer>
                     </div>
                 </div>
-
-                {/* Course Management Table */}
+                {}
                 <div className="bg-white rounded-lg shadow">
                     <div className="p-6 border-b">
                         <div className="flex items-center justify-between">
@@ -255,7 +239,6 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </div>
-                    
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead className="bg-gray-50">
@@ -299,7 +282,7 @@ export default function AdminDashboard() {
                                             {course.drafts}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            ⭐ {course.rating}
+                                            ? {course.rating}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {course.notice}

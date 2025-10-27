@@ -61,7 +61,12 @@ const createAxiosInstance = (userType) => {
         if (
           originalRequest.url.includes("/login") ||
           originalRequest.url.includes("/google-auth") ||
-          originalRequest.url.includes("/refresh-token")
+          originalRequest.url.includes("/refresh-token") ||
+          originalRequest.url.includes("/resend-otp") ||
+          originalRequest.url.includes("/register") ||
+          originalRequest.url.includes("/verify-otp") ||
+          originalRequest.url.includes("/forgot-password") ||
+          originalRequest.url.includes("/reset-password")
         ) {
           return Promise.reject(error);
         }
@@ -80,6 +85,7 @@ const createAxiosInstance = (userType) => {
 
         try {
           const { data } = await publicAPI.post(`/api/${userType}s/refresh-token`);
+
           const tokenKey = userType === "user" ? "authToken" : `${userType}AuthToken`;
           localStorage.setItem(tokenKey, data.accessToken);
           instance.defaults.headers.Authorization = `Bearer ${data.accessToken}`;

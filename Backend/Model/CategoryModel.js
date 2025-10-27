@@ -1,10 +1,11 @@
-﻿import mongoose from 'mongoose';
-
+import mongoose from 'mongoose';
 const CategorySchema = new mongoose.Schema(
   {
     title: {
       type: String,
       required: true,
+      unique: true,
+      trim: true,
     },
     description: {
       type: String,
@@ -31,13 +32,8 @@ const CategorySchema = new mongoose.Schema(
     timestamps: true, 
   }
 );
-
-
-CategorySchema.index({ title: 1 }); 
+CategorySchema.index({ title: 1 }, { unique: true, collation: { locale: 'en', strength: 2 } }); 
 CategorySchema.index({ isVisible: 1 }); 
 CategorySchema.index({ createdAt: -1 }); 
-
-
 const Category = mongoose.model('categories', CategorySchema);
-
 export default Category;

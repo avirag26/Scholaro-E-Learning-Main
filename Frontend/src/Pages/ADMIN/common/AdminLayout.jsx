@@ -1,21 +1,17 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Search, Users, BookOpen, GraduationCap, DollarSign, TrendingUp, LogOut, User } from 'lucide-react';
 import { toast } from 'sonner';
-import Swal from "sweetalert2";
+import { useLogout } from '../../../hooks/useLogout';
 import Footer from '../../../components/Common/Footer';
-
 export default function AdminLayout({ children, title, subtitle }) {
     const navigate = useNavigate();
     const location = useLocation();
+    const { logout } = useLogout('admin');
     const [adminInfo, setAdminInfo] = useState(null);
-
-
     const isActiveRoute = (path) => {
         return location.pathname === path;
     };
-
-
     const getButtonClasses = (path) => {
         const baseClasses = "w-full text-left px-4 py-2 rounded-lg flex items-center font-medium transition-colors";
         if (isActiveRoute(path)) {
@@ -23,7 +19,6 @@ export default function AdminLayout({ children, title, subtitle }) {
         }
         return `${baseClasses} text-gray-600 hover:bg-gray-100`;
     };
-
     useEffect(() => {
         const loadAdminInfo = () => {
             const storedAdminInfo = localStorage.getItem('adminInfo');
@@ -31,56 +26,41 @@ export default function AdminLayout({ children, title, subtitle }) {
                 try {
                     setAdminInfo(JSON.parse(storedAdminInfo));
                 } catch (error) {
-
                 }
             }
         };
-
-
         loadAdminInfo();
-
-
         const handleStorageChange = (e) => {
             if (e.key === 'adminInfo') {
                 loadAdminInfo();
             }
         };
-
-
         const handleAdminInfoUpdate = () => {
             loadAdminInfo();
         };
-
         window.addEventListener('storage', handleStorageChange);
         window.addEventListener('adminInfoUpdated', handleAdminInfoUpdate);
-
         return () => {
             window.removeEventListener('storage', handleStorageChange);
             window.removeEventListener('adminInfoUpdated', handleAdminInfoUpdate);
         };
     }, []);
-
-    const handleLogout = () => {
-        localStorage.removeItem('adminAuthToken');
-        localStorage.removeItem('adminInfo');
-        toast.success('Logged out successfully');
-        navigate('/admin/login');
+    const handleLogout = async () => {
+        await logout();
     };
-
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
+            {}
             <header className="bg-white shadow-sm border-b">
                 <div className="flex items-center justify-between px-6 py-4">
-                    {/* Left side */}
+                    {}
                     <div className="flex items-center space-x-8">
                         <h1 className="text-2xl font-bold text-sky-500">Scholaro</h1>
                         <nav className="hidden md:flex space-x-6">
                             <a href="#" className="text-gray-600 hover:text-sky-500">Categories</a>
                         </nav>
                     </div>
-
-                    {/* Center - Search */}
+                    {}
                     <div className="flex-1 max-w-md mx-8">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -91,8 +71,7 @@ export default function AdminLayout({ children, title, subtitle }) {
                             />
                         </div>
                     </div>
-
-                    {/* Right side */}
+                    {}
                     <div className="flex items-center space-x-4">
                         <button className="p-2 text-gray-600 hover:text-sky-500">
                             <Bell className="w-5 h-5" />
@@ -105,11 +84,10 @@ export default function AdminLayout({ children, title, subtitle }) {
                     </div>
                 </div>
             </header>
-
             <div className="flex">
-                {/* Sidebar */}
+                {}
                 <aside className="w-64 bg-white shadow-sm min-h-screen">
-                    {/* Profile Section */}
+                    {}
                     <div className="p-6 border-b">
                         <div className="flex items-center space-x-3">
                             {adminInfo?.profileImage ? (
@@ -138,8 +116,7 @@ export default function AdminLayout({ children, title, subtitle }) {
                             </div>
                         </div>
                     </div>
-
-                    {/* Navigation */}
+                    {}
                     <nav className="p-4">
                         <div className="space-y-2">
                             <button
@@ -157,11 +134,11 @@ export default function AdminLayout({ children, title, subtitle }) {
                                 Profile
                             </button>
                             <button
-                                onClick={() => navigate('/admin/category')}
-                                className={getButtonClasses('/admin/category')}
+                                onClick={() => navigate('/admin/categories')}
+                                className={getButtonClasses('/admin/categories')}
                             >
                                 <BookOpen className="w-5 h-5 mr-3" />
-                                Category
+                                Categories
                             </button>
                             <button
                                 onClick={() => navigate('/admin/students')}
@@ -215,8 +192,7 @@ export default function AdminLayout({ children, title, subtitle }) {
                         </div>
                     </nav>
                 </aside>
-
-                {/* Main Content */}
+                {}
                 <main className="flex-1 p-8">
                     {title && (
                         <div className="mb-8">
@@ -227,7 +203,6 @@ export default function AdminLayout({ children, title, subtitle }) {
                     {children}
                 </main>
             </div>
-            
             <Footer />
         </div>
     );

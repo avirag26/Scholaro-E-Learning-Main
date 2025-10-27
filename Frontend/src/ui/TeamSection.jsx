@@ -1,9 +1,7 @@
-﻿import React from "react";
+import React from "react";
 import { Star, Users, BookOpen } from 'lucide-react';
 import Card from "./Card";
-
 export default function TeamSection({ instructors = [] }) {
-
   const defaultInstructors = [
     {
       name: "Dr. Sarah Wilson",
@@ -36,9 +34,7 @@ export default function TeamSection({ instructors = [] }) {
       specialties: ["Figma", "Design Systems", "User Research"]
     }
   ];
-
   const instructorsToShow = instructors.length > 0 ? instructors : defaultInstructors;
-
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,7 +46,6 @@ export default function TeamSection({ instructors = [] }) {
             Learn from industry professionals and thought leaders
           </p>
         </div>
-
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {instructorsToShow.map((instructor, index) => (
             <Card key={index} className="p-8 text-center hover:shadow-xl transition-shadow group">
@@ -64,10 +59,8 @@ export default function TeamSection({ instructors = [] }) {
                   {instructor.experience || "Expert"}
                 </div>
               </div>
-              
               <h3 className="text-xl font-semibold text-gray-900 mb-2">{instructor.name}</h3>
               <p className="text-teal-600 font-medium mb-4">{instructor.role}</p>
-              
               {instructor.specialties && (
                 <div className="flex flex-wrap justify-center gap-2 mb-4">
                   {instructor.specialties.map((specialty, i) => (
@@ -77,7 +70,6 @@ export default function TeamSection({ instructors = [] }) {
                   ))}
                 </div>
               )}
-              
               <div className="flex justify-center space-x-6 text-sm text-gray-600">
                 {instructor.students && (
                   <div className="flex items-center">

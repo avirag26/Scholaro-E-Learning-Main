@@ -1,12 +1,17 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { publicAPI } from '../../api/axiosConfig';
+import axios from "axios";
+
+// Create clean API instance without interceptors
+const authAPI = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  timeout: 10000,
+  headers: { "Content-Type": "application/json" },
+});
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import DotDotDotSpinner from '../../ui/Spinner/DotSpinner';
 import { Eye, EyeOff } from 'lucide-react';
-
-
 export default function TutorResetPassword() {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -17,35 +22,29 @@ export default function TutorResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!formData.password || !formData.confirmPassword) {
       toast.error('Please fill in all fields.');
       return;
     }
-
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match.');
       return;
     }
-
     if (formData.password.length < 6) {
       toast.error('Password must be at least 6 characters long.');
       return;
     }
-
     setIsSubmitting(true);
     try {
-      const response = await publicAPI.patch(`/api/tutors/reset-password/${token}`, {
+      const response = await authAPI.patch(`/api/tutors/reset-password/${token}`, {
         password: formData.password
       });
       toast.success(response.data.message);
@@ -58,10 +57,8 @@ export default function TutorResetPassword() {
       setIsSubmitting(false);
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-sky-50">
-
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center text-sky-800 mb-6">Reset Your Password</h2>
         <p className="text-center text-sky-700 mb-6">
@@ -90,7 +87,6 @@ export default function TutorResetPassword() {
               </button>
             </div>
           </div>
-          
           <div className="mb-6">
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-sky-700 mb-1">Confirm New Password</label>
             <div className="relative">
@@ -113,7 +109,6 @@ export default function TutorResetPassword() {
               </button>
             </div>
           </div>
-
           <button 
             type="submit" 
             className="w-full bg-sky-500 text-white py-3 rounded-lg hover:bg-sky-600 transition disabled:opacity-50" 
@@ -122,7 +117,6 @@ export default function TutorResetPassword() {
             {isSubmitting ? <DotDotDotSpinner /> : 'Reset Password'}
           </button>
         </form>
-        
         <p className="text-center text-sm text-sky-600 mt-4">
           Remember your password? <Link to="/tutor/login" className="text-sky-500 hover:underline">Login here</Link>
         </p>

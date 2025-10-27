@@ -1,59 +1,21 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, Search, ShoppingCart, Bell, MoreVertical } from "lucide-react";
 import Button from "../../../ui/Button";
 import avatar from "../../../assets/avt.webp";
 import { useNavigate } from "react-router-dom";
-
-export default function Header({ user: initialUser, onMenuClick }) {
-  const [user, setUser] = useState(initialUser);
+import { useCurrentUser } from "../../../hooks/useCurrentUser";
+export default function Header({ onMenuClick }) {
+  const { user } = useCurrentUser(); // Get user from Redux
   const navigate = useNavigate();
   const cartItemCount = 0;
   const notificationCount = 0;
-
-  useEffect(() => {
-    setUser(initialUser);
-  }, [initialUser]);
-
-  useEffect(() => {
-    const loadUserInfo = () => {
-      const storedUserInfo = localStorage.getItem('userInfo');
-      if (storedUserInfo) {
-        try {
-          setUser(JSON.parse(storedUserInfo));
-        } catch (error) {
-
-        }
-      }
-    };
-
-
-    const handleStorageChange = (e) => {
-      if (e.key === 'userInfo') {
-        loadUserInfo();
-      }
-    };
-
-
-    const handleUserInfoUpdate = () => {
-      loadUserInfo();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('userInfoUpdated', handleUserInfoUpdate);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('userInfoUpdated', handleUserInfoUpdate);
-    };
-  }, []);
-
   return (
     <header className="border-b bg-white border-gray-200">
-      {/* Mobile Search Overlay */}
-      {/* Main Header Content */}
+      {}
+      {}
       <div className="container mx-auto flex h-16 items-center px-4 justify-between">
-        {/* Left Section: Menu and Logo */}
+        {}
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -64,7 +26,6 @@ export default function Header({ user: initialUser, onMenuClick }) {
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle sidebar</span>
           </Button>
-
           <Link
             className="flex items-center gap-2 font-bold text-xl md:text-2xl text-sky-500"
             to="/user/home"
@@ -72,8 +33,7 @@ export default function Header({ user: initialUser, onMenuClick }) {
             Scholaro
           </Link>
         </div>
-
-        {/* Desktop Search Box */}
+        {}
         <div className="hidden md:flex relative flex-1 max-w-lg mx-4">
           <input
             type="text"
@@ -84,8 +44,7 @@ export default function Header({ user: initialUser, onMenuClick }) {
             <Search className="h-5 w-5" />
           </span>
         </div>
-
-        {/* Desktop Navigation */}
+        {}
         <nav className="hidden lg:flex gap-6 items-center">
           <Link
             to="/user/home"
@@ -118,10 +77,9 @@ export default function Header({ user: initialUser, onMenuClick }) {
             Tutors
           </Link>
         </nav>
-
-        {/* Right Section: Search Toggle, Notifications, Cart, Profile, and Theme */}
+        {}
         <div className="flex items-center gap-4">
-          {/* Mobile Search Toggle */}
+          {}
           <Button variant="ghost" size="icon" className="md:hidden">
             <Search className="h-5 w-5" />
           </Button>
@@ -139,7 +97,7 @@ export default function Header({ user: initialUser, onMenuClick }) {
               )}
             </Button>
           </div>
-          {/* Cart Button with Counter */}
+          {}
           <div className="relative">
             <Button
               variant="ghost"
@@ -154,14 +112,12 @@ export default function Header({ user: initialUser, onMenuClick }) {
               )}
             </Button>
           </div>
-
           <img
             src={user?.profileImage || avatar}
             alt="Profile"
             className="h-8 w-8 rounded-full object-cover"
             onClick={() => navigate("/user/profile")}
           />
-
           <div className="relative lg:hidden">
             <Button variant="ghost" size="icon" className="ml-2">
               <MoreVertical className="h-5 w-5" />

@@ -1,6 +1,5 @@
-﻿import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import TutorLayout from "./COMMON/TutorLayout"; 
-
 const chartData = [
   { name: 'Sun', uv: 400000, pv: 200000 },
   { name: 'Mon', uv: 600000, pv: 350000 },
@@ -10,7 +9,6 @@ const chartData = [
   { name: 'Fri', uv: 700000, pv: 480000 },
   { name: 'Sat', uv: 500000, pv: 380000 },
 ];
-
 const coursesData = [
   {
     name: "Web Development",
@@ -43,7 +41,6 @@ const coursesData = [
     status: "Inactive"
   },
 ];
-
 export default function TutorDashboard() {
   return (
     <TutorLayout>
@@ -53,7 +50,6 @@ export default function TutorDashboard() {
           <div>
             <button className="bg-sky-500 text-white px-4 py-2 rounded mr-3 hover:bg-sky-600 transition">Download PDF</button>
             <button className="bg-[#efefef] text-sky-600 px-4 py-2 rounded hover:bg-[#e4eaea] transition">Download Excel</button>
-
           </div>
         </div>
         <div className="flex items-center mt-6 mb-4 gap-8">

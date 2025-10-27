@@ -1,25 +1,17 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Home, ArrowLeft, BookOpen, GraduationCap } from 'lucide-react'
-
-const emojis = ['📚', '🎓', '✏️', '🖥️', '🧠', '💡', '🔍', '📖']
-
+const emojis = ['🎓', '📚', '🔍', '🎯', '💡', '🚀', '⭐', '🎨']
 export default function NotFoundPage() {
   const [isDay, setIsDay] = useState(true)
-
   const navigate = useNavigate()
-
   useEffect(() => {
     const hour = new Date().getHours()
     setIsDay(hour >= 6 && hour < 18)
     document.documentElement.className = isDay ? 'light' : 'dark'
     return () => document.documentElement.classList.remove('light', 'dark')
   }, [isDay])
-
-
-
-
   const GradientBackground = () => (
     <div
       className="fixed inset-0 z-0 pointer-events-none"
@@ -28,8 +20,6 @@ export default function NotFoundPage() {
       }}
     />
   )
-
-
   const FloatingParticles = () => (
     <div className="fixed inset-0 z-0 pointer-events-none">
       {[...Array(20)].map((_, i) => (
@@ -53,16 +43,12 @@ export default function NotFoundPage() {
       ))}
     </div>
   )
-
-
-
   return (
     <div className="relative min-h-screen overflow-hidden">
       <GradientBackground />
       <FloatingParticles />
-      
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6">
-        {/* Header with Logo */}
+        {}
         <motion.div
           className="absolute left-8 top-8 px-6 py-3 rounded-2xl backdrop-blur-lg shadow-2xl font-bold text-3xl bg-white/10 text-white border border-white/20"
           initial={{ x: -60, opacity: 0 }}
@@ -71,8 +57,7 @@ export default function NotFoundPage() {
         >
           Scholaro
         </motion.div>
-
-        {/* 404 Number with enhanced styling */}
+        {}
         <motion.div
           className="mb-8 text-9xl font-black text-white drop-shadow-2xl relative"
           initial={{ scale: 0.5, rotate: 12, opacity: 0 }}
@@ -88,8 +73,7 @@ export default function NotFoundPage() {
             404
           </motion.div>
         </motion.div>
-
-        {/* Main heading */}
+        {}
         <motion.h1
           className="mb-4 text-5xl md:text-6xl font-extrabold text-white text-center drop-shadow-lg"
           initial={{ y: 60, opacity: 0 }}
@@ -98,8 +82,7 @@ export default function NotFoundPage() {
         >
           Oops! Page Not Found
         </motion.h1>
-        
-        {/* Subtitle */}
+        {}
         <motion.p
           className="mb-8 text-xl md:text-2xl text-center px-4 text-white/90 max-w-2xl"
           initial={{ y: 40, opacity: 0 }}
@@ -108,10 +91,7 @@ export default function NotFoundPage() {
         >
           It seems you've wandered off the learning path. Let's get you back on track!
         </motion.p>
-
-
-
-        {/* Action Buttons */}
+        {}
         <motion.div
           className="flex flex-col sm:flex-row gap-4 mb-12"
           initial={{ y: 40, opacity: 0 }}
@@ -127,7 +107,6 @@ export default function NotFoundPage() {
             <ArrowLeft className="w-5 h-5" />
             Go Back
           </motion.button>
-          
           <motion.button
             onClick={() => navigate('/')}
             className="flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold shadow-lg bg-white text-gray-800 hover:bg-white/90 transition-all duration-300"
@@ -138,10 +117,7 @@ export default function NotFoundPage() {
             Home Page
           </motion.button>
         </motion.div>
-
-
-
-        {/* Animated Emojis */}
+        {}
         <div className="absolute bottom-14 left-0 right-0 flex justify-center gap-3 z-10 flex-wrap">
           {emojis.map((emoji, idx) => (
             <motion.div
@@ -170,8 +146,7 @@ export default function NotFoundPage() {
             </motion.div>
           ))}
         </div>
-
-        {/* Decorative Elements */}
+        {}
         <motion.div
           className="absolute right-8 top-1/2 transform -translate-y-1/2 z-0 pointer-events-none opacity-10"
           initial={{ rotate: -10, scale: 0.8 }}
@@ -187,7 +162,6 @@ export default function NotFoundPage() {
             <BookOpen className="w-16 h-16 text-white" />
           </div>
         </motion.div>
-
         <motion.div
           className="absolute left-8 bottom-1/4 z-0 pointer-events-none opacity-10"
           initial={{ rotate: 10, scale: 0.8 }}

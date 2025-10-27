@@ -1,16 +1,14 @@
-﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { adminAPI } from "../api/axiosConfig";
-
 export const fetchCategories = createAsyncThunk(
   'categories/fetchCategories',
   async (params = {}, { rejectWithValue }) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
+      if (params.search) queryParams.append('search', params.search);
       if (params.all) queryParams.append('all', 'true');
-
       const response = await adminAPI.get(`/api/admin/categories?${queryParams}`);
       return response.data;
     } catch (error) {
@@ -18,7 +16,6 @@ export const fetchCategories = createAsyncThunk(
     }
   }
 );
-
 export const createCategory = createAsyncThunk(
   'categories/createCategory',
   async (categoryData, { rejectWithValue }) => {
@@ -33,7 +30,6 @@ export const createCategory = createAsyncThunk(
     }
   }
 );
-
 export const updateCategoryAPI = createAsyncThunk(
   'categories/updateCategory',
   async ({ id, categoryData }, { rejectWithValue }) => {
@@ -48,7 +44,6 @@ export const updateCategoryAPI = createAsyncThunk(
     }
   }
 );
-
 export const toggleCategoryListingAPI = createAsyncThunk(
   'categories/toggleListing',
   async (categoryId, { rejectWithValue }) => {
@@ -60,7 +55,6 @@ export const toggleCategoryListingAPI = createAsyncThunk(
     }
   }
 );
-
 export const toggleCategoryVisibilityAPI = createAsyncThunk(
   'categories/toggleVisibility',
   async (categoryId, { rejectWithValue }) => {
@@ -72,7 +66,6 @@ export const toggleCategoryVisibilityAPI = createAsyncThunk(
     }
   }
 );
-
 const categorySlice = createSlice({
   name: "category",
   initialState: {
@@ -105,7 +98,6 @@ const categorySlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-
       .addCase(fetchCategories.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -124,8 +116,6 @@ const categorySlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-
       .addCase(createCategory.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -143,8 +133,6 @@ const categorySlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-
       .addCase(updateCategoryAPI.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -164,8 +152,6 @@ const categorySlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-
       .addCase(toggleCategoryListingAPI.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -185,8 +171,6 @@ const categorySlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-
       .addCase(toggleCategoryVisibilityAPI.pending, (state) => {
         state.error = null;
       })
@@ -205,11 +189,8 @@ const categorySlice = createSlice({
       });
   },
 });
-
 export const {
   clearCategories,
   clearError
 } = categorySlice.actions;
-
-
 export default categorySlice.reducer;

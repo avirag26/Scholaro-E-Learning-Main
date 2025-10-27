@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -12,59 +12,42 @@ import {
     fetchCategories,
     clearError
 } from "../../Redux/courseSlice";
-
 const TutorCourses = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { tutorCourses: courses, categories, pagination, stats, loading, error } = useSelector(
         (state) => state.courses
     );
-
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [currentPage, setCurrentPage] = useState(1);
-
-
-
     useEffect(() => {
         dispatch(fetchTutorCourses({ page: currentPage, search, status: statusFilter }));
         dispatch(fetchCategories());
     }, [dispatch, currentPage, search, statusFilter]);
-
-
     useEffect(() => {
         if (error) {
             toast.error(error);
             dispatch(clearError());
         }
     }, [error, dispatch]);
-
-
     useEffect(() => {
         const delayedSearch = setTimeout(() => {
             setCurrentPage(1);
             dispatch(fetchTutorCourses({ page: 1, search, status: statusFilter }));
         }, 500);
-
         return () => clearTimeout(delayedSearch);
     }, [search, dispatch, statusFilter]);
-
-
     const handleStatusChange = (newStatus) => {
         setStatusFilter(newStatus);
         setCurrentPage(1);
     };
-
-
     const handlePageChange = (page) => {
         setCurrentPage(page);
     };
-
-
     const handleToggleListing = async (course) => {
         const action = course.listed ? "unlist" : "list";
         const actionPast = course.listed ? "unlisted" : "listed";
-
         const result = await Swal.fire({
             title: `${action.charAt(0).toUpperCase() + action.slice(1)} Course?`,
             text: `Are you sure you want to ${action} "${course.title}"?`,
@@ -75,46 +58,40 @@ const TutorCourses = () => {
             confirmButtonText: `Yes, ${action} it!`,
             cancelButtonText: "Cancel"
         });
-
         if (!result.isConfirmed) return;
-
         try {
             const result = await dispatch(toggleCourseListing(course.id));
             if (toggleCourseListing.fulfilled.match(result)) {
                 toast.success(`Course ${actionPast} successfully!`);
-
                 dispatch(fetchTutorCourses({ page: currentPage, search, status: statusFilter }));
+            } else if (toggleCourseListing.rejected.match(result)) {
+                // Check if the error is due to admin unlisting
+                if (result.payload && result.payload.unlistedByAdmin) {
+                    toast.error("This course has been unlisted by admin and cannot be listed by tutor");
+                } else {
+                    const errorMessage = result.payload?.message || result.payload || `Failed to ${action} course`;
+                    toast.error(errorMessage);
+                }
             }
         } catch (error) {
-
+            toast.error(`Failed to ${action} course`);
         }
     };
-
-
-
-
-
-
     const generatePaginationNumbers = () => {
         if (!pagination) return [];
         const { currentPage, totalPages } = pagination;
         const pages = [];
         const maxVisible = 5;
-
         let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
         let end = Math.min(totalPages, start + maxVisible - 1);
-
         if (end - start + 1 < maxVisible) {
             start = Math.max(1, end - maxVisible + 1);
         }
-
         for (let i = start; i <= end; i++) {
             pages.push(i);
         }
-
         return pages;
     };
-
     if (loading && courses.length === 0) {
         return (
             <TutorLayout title="My Courses" subtitle="Manage your courses">
@@ -124,10 +101,8 @@ const TutorCourses = () => {
             </TutorLayout>
         );
     }
-
     return (
         <TutorLayout title="My Courses" subtitle="Manage your courses">
-
             <div className="bg-white rounded-lg shadow p-6 mb-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -145,9 +120,7 @@ const TutorCourses = () => {
                             </div>
                         )}
                     </div>
-
                     <div className="flex flex-col sm:flex-row gap-3">
-
                         <div className="relative">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                             <input
@@ -158,8 +131,6 @@ const TutorCourses = () => {
                                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 w-64"
                             />
                         </div>
-
-
                         <select
                             value={statusFilter}
                             onChange={(e) => handleStatusChange(e.target.value)}
@@ -171,8 +142,6 @@ const TutorCourses = () => {
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
-
-
                         <button
                             onClick={() => navigate("/tutor/add-course")}
                             className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
@@ -183,15 +152,10 @@ const TutorCourses = () => {
                     </div>
                 </div>
             </div>
-
-
-
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 {courses.length > 0 ? (
                     courses.map((course) => (
                         <div key={course.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-
                             <div className="relative h-48 bg-gray-200">
                                 <img
                                     src={course.course_thumbnail}
@@ -201,28 +165,29 @@ const TutorCourses = () => {
                                         e.target.src = '/api/placeholder/400/200';
                                     }}
                                 />
-                                <div className="absolute top-3 right-3">
+                                <div className="absolute top-3 right-3 flex flex-col gap-1">
                                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${course.listed
                                         ? 'bg-green-100 text-green-800'
                                         : 'bg-red-100 text-red-800'
                                         }`}>
                                         {course.listed ? 'Listed' : 'Unlisted'}
                                     </span>
+                                    {course.unlistedByAdmin && !course.listed && (
+                                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-800">
+                                            Admin Unlisted
+                                        </span>
+                                    )}
                                 </div>
                             </div>
-
-
                             <div className="p-4">
                                 <div className="flex items-start justify-between mb-2">
                                     <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
                                         {course.title}
                                     </h3>
                                 </div>
-
                                 <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                                     {course.description}
                                 </p>
-
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-4 text-sm text-gray-500">
                                         <span className="flex items-center gap-1">
@@ -232,21 +197,18 @@ const TutorCourses = () => {
                                         <span>{course.duration} hrs</span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <span className="text-yellow-500">★</span>
+                                        <span className="text-yellow-500">?</span>
                                         <span className="text-sm text-gray-600">
                                             {course.average_rating || 0} ({course.total_reviews || 0})
                                         </span>
                                     </div>
                                 </div>
-
                                 <div className="flex items-center justify-between mb-4">
                                     <PriceDisplay price={course.price} offerPercentage={course.offer_percentage} />
                                     <span className="text-sm text-gray-500">
                                         {course.enrolled_count} enrolled
                                     </span>
                                 </div>
-
-
                                 <div className="flex gap-2 mb-2">
                                     <button
                                         onClick={() => navigate(`/tutor/edit-course/${course.id}`)}
@@ -255,20 +217,23 @@ const TutorCourses = () => {
                                         <Edit className="w-4 h-4 inline mr-1" />
                                         Edit
                                     </button>
-
                                     <button
                                         onClick={() => handleToggleListing(course)}
-                                        disabled={loading}
-                                        className={`flex-1 px-3 py-2 rounded-lg transition-colors text-sm font-medium disabled:opacity-50 ${course.listed
-                                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                                            : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                        disabled={loading || (course.unlistedByAdmin && !course.listed)}
+                                        className={`flex-1 px-3 py-2 rounded-lg transition-colors text-sm font-medium disabled:opacity-50 ${
+                                            course.unlistedByAdmin && !course.listed
+                                                ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                                                : course.listed
+                                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                                : 'bg-green-100 text-green-700 hover:bg-green-200'
                                             }`}
+                                        title={course.unlistedByAdmin && !course.listed ? 'This course was unlisted by admin' : ''}
                                     >
-                                        {loading ? "..." : (course.listed ? "Unlist" : "List")}
+                                        {loading ? "..." : 
+                                         course.unlistedByAdmin && !course.listed ? "Admin Unlisted" :
+                                         (course.listed ? "Unlist" : "List")}
                                     </button>
                                 </div>
-
-
                                 <button
                                     onClick={() => navigate(`/tutor/add-lesson/${course.id}`)}
                                     className="w-full px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-bold border-2 border-teal-600"
@@ -302,15 +267,12 @@ const TutorCourses = () => {
                     </div>
                 )}
             </div>
-
-
             {pagination && pagination.totalPages > 1 && (
                 <div className="bg-white rounded-lg shadow p-4">
                     <div className="flex items-center justify-between">
                         <div className="text-sm text-gray-700">
                             Showing {((pagination.currentPage - 1) * 6) + 1} to {Math.min(pagination.currentPage * 6, pagination.totalItems)} of {pagination.totalItems} courses
                         </div>
-
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => handlePageChange(pagination.currentPage - 1)}
@@ -319,7 +281,6 @@ const TutorCourses = () => {
                             >
                                 Previous
                             </button>
-
                             {generatePaginationNumbers().map((page) => (
                                 <button
                                     key={page}
@@ -332,7 +293,6 @@ const TutorCourses = () => {
                                     {page}
                                 </button>
                             ))}
-
                             <button
                                 onClick={() => handlePageChange(pagination.currentPage + 1)}
                                 disabled={!pagination.hasNext}
@@ -344,10 +304,7 @@ const TutorCourses = () => {
                     </div>
                 </div>
             )}
-
-
         </TutorLayout>
     );
 };
-
 export default TutorCourses;

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Play, Clock, Users, Star, Globe, Award, CheckCircle, PlayCircle } from 'lucide-react';
@@ -7,41 +7,25 @@ import Footer from '../../components/Common/Footer';
 import PriceDisplay from '../../components/PriceDisplay';
 import Loading from '../../ui/Loading';
 import { fetchCourseDetails } from '../../Redux/userCourseSlice';
-
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 const CourseDetail = () => {
     const { courseId } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-
     const { selectedCourse, courseDetailsLoading, error } = useSelector((state) => state.userCourses);
-    const [userInfo, setUserInfo] = useState(null);
-
-    useEffect(() => {
-        const storedUserInfo = localStorage.getItem('userInfo');
-        if (storedUserInfo) {
-            try {
-                setUserInfo(JSON.parse(storedUserInfo));
-            } catch (error) {
-            }
-        }
-    }, []);
-
+    const { user } = useCurrentUser();
     useEffect(() => {
         if (courseId) {
             dispatch(fetchCourseDetails(courseId));
         }
     }, [courseId, dispatch]);
-
-
-
     if (courseDetailsLoading) {
         return <Loading />;
     }
-
     if (error) {
         return (
             <div className="min-h-screen bg-gray-50">
-                <Header user={userInfo} />
+                <Header />
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="text-center">
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">Course Not Found</h2>
@@ -58,15 +42,12 @@ const CourseDetail = () => {
             </div>
         );
     }
-
     if (!selectedCourse) {
         return <Loading />;
     }
-
     return (
         <div className="min-h-screen bg-gray-50">
-            <Header user={userInfo} />
-
+            <Header />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
@@ -76,10 +57,9 @@ const CourseDetail = () => {
                                     onClick={() => navigate('/user/courses')}
                                     className="text-teal-600 hover:text-teal-700 text-sm font-medium"
                                 >
-                                    ← Back to Courses
+                                    ? Back to Courses
                                 </button>
                             </div>
-
                             <div className="mb-6">
                                 <span className="inline-block px-4 py-2 bg-teal-100 text-teal-800 text-sm font-semibold rounded-full mb-4">
                                     {selectedCourse.category?.title || 'Course'}
@@ -91,8 +71,6 @@ const CourseDetail = () => {
                                     {selectedCourse.description}
                                 </p>
                             </div>
-
-
                             <div className="flex flex-wrap items-center gap-8 text-sm text-gray-600 mb-8">
                                 <div className="flex items-center gap-2">
                                     <Users className="w-5 h-5 text-teal-600" />
@@ -113,8 +91,6 @@ const CourseDetail = () => {
                                     </div>
                                 )}
                             </div>
-
-
                             <div className="border-t pt-6">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Instructor</h3>
                                 <div className="flex items-center gap-6">
@@ -135,8 +111,6 @@ const CourseDetail = () => {
                                 </div>
                             </div>
                         </div>
-
-
                         <div className="bg-white rounded-lg shadow-sm p-8 mb-6">
                             <h2 className="text-2xl font-bold text-gray-900 mb-6">What you'll learn</h2>
                             <div className="grid md:grid-cols-2 gap-4">
@@ -170,8 +144,6 @@ const CourseDetail = () => {
                                 )}
                             </div>
                         </div>
-
-
                         <div className="bg-white rounded-lg shadow-sm p-8 mb-6">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-2xl font-bold text-gray-900">Course content</h2>
@@ -210,10 +182,6 @@ const CourseDetail = () => {
                                 )}
                             </div>
                         </div>
-
-
-
-
                         <div className="bg-white rounded-lg shadow-sm p-6">
                             <h2 className="text-xl font-bold text-gray-900 mb-4">About This Course</h2>
                             <div className="prose max-w-none text-gray-700">
@@ -221,10 +189,8 @@ const CourseDetail = () => {
                             </div>
                         </div>
                     </div>
-
                     <div className="lg:col-span-1">
                         <div className="bg-white rounded-lg shadow-sm overflow-hidden sticky top-8">
-
                             <div className="relative">
                                 <img
                                     src={selectedCourse.course_thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=225&fit=crop"}
@@ -237,9 +203,7 @@ const CourseDetail = () => {
                                     </button>
                                 </div>
                             </div>
-
                             <div className="p-8">
-
                                 <div className="mb-8 text-center">
                                     <PriceDisplay
                                         price={selectedCourse.price}
@@ -252,12 +216,9 @@ const CourseDetail = () => {
                                         </p>
                                     )}
                                 </div>
-
-
                                 <button className="w-full bg-gradient-to-r from-teal-600 to-teal-700 text-white py-4 px-6 rounded-lg font-bold text-lg hover:from-teal-700 hover:to-teal-800 transition-all transform hover:scale-105 mb-6 shadow-lg">
                                     Enroll Now
                                 </button>
-
                                 <div className="text-center mb-8">
                                     <p className="text-sm text-gray-600 mb-2">
                                         💰 30-Day Money-Back Guarantee
@@ -266,8 +227,6 @@ const CourseDetail = () => {
                                         Full refund if you're not satisfied
                                     </p>
                                 </div>
-
-
                                 <div className="border-t pt-6">
                                     <h3 className="font-bold text-gray-900 mb-4 text-lg">This course includes:</h3>
                                     <div className="space-y-3">
@@ -297,8 +256,6 @@ const CourseDetail = () => {
                         </div>
                     </div>
                 </div>
-
-
                 <div className="mt-12 bg-white rounded-lg shadow-sm p-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">About the Instructor</h2>
                     <div className="flex flex-col md:flex-row gap-8">
@@ -325,10 +282,8 @@ const CourseDetail = () => {
                     </div>
                 </div>
             </div>
-
             <Footer />
         </div>
     );
 };
-
 export default CourseDetail;

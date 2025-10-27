@@ -1,23 +1,20 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import TutorLayout from "./COMMON/TutorLayout";
 import ImageUpload from "../../components/ImageUpload";
-
 import {
     updateCourse,
     fetchCourseDetails,
     fetchCategories,
     clearError
 } from "../../Redux/courseSlice";
-
 const EditCourse = () => {
     const { courseId } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { categories, selectedCourse, loading, error } = useSelector((state) => state.courses);
-
     const [formData, setFormData] = useState({
         title: "",
         category: "",
@@ -27,16 +24,12 @@ const EditCourse = () => {
         course_thumbnail: ""
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-
-
     useEffect(() => {
         if (courseId) {
             dispatch(fetchCourseDetails(courseId));
         }
         dispatch(fetchCategories());
     }, [dispatch, courseId]);
-
     useEffect(() => {
         if (selectedCourse) {
             console.log("Selected course data:", selectedCourse);
@@ -50,14 +43,12 @@ const EditCourse = () => {
             });
         }
     }, [selectedCourse]);
-
     useEffect(() => {
         if (error) {
             toast.error(error);
             dispatch(clearError());
         }
     }, [error, dispatch]);
-
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -65,19 +56,14 @@ const EditCourse = () => {
             [name]: value
         }));
     };
-
     const handleImageUpload = (imageUrl) => {
         setFormData(prev => ({
             ...prev,
             course_thumbnail: imageUrl
         }));
     };
-
-
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (isSubmitting) return;
         if (!formData.title || !formData.title.trim()) {
             toast.error("Course title is required");
@@ -99,9 +85,7 @@ const EditCourse = () => {
             toast.error("Please upload a course thumbnail");
             return;
         }
-
         setIsSubmitting(true);
-
         try {
             const courseData = {
                 title: formData.title.trim(),
@@ -111,14 +95,10 @@ const EditCourse = () => {
                 offer_percentage: parseFloat(formData.offer_percentage) || 0,
                 course_thumbnail: formData.course_thumbnail
             };
-
             console.log("Updating course with data:", courseData);
             console.log("Course ID:", courseId);
-
             const result = await dispatch(updateCourse({ id: courseId, courseData }));
-
             console.log("Update result:", result);
-
             if (updateCourse.fulfilled.match(result)) {
                 toast.success("Course updated successfully!");
                 setTimeout(() => {
@@ -135,7 +115,6 @@ const EditCourse = () => {
             setIsSubmitting(false);
         }
     };
-
     if (loading && !selectedCourse) {
         return (
             <TutorLayout title="Edit Course" subtitle="Loading course details...">
@@ -145,14 +124,12 @@ const EditCourse = () => {
             </TutorLayout>
         );
     }
-
     return (
         <TutorLayout title="Edit Course" subtitle="Update your course information">
             <div className="max-w-4xl mx-auto">
                 <div className="space-y-6">
                     <div className="bg-white rounded-lg shadow-md p-6">
                         <form onSubmit={handleSubmit} className="space-y-6">
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Course Title *
@@ -167,8 +144,6 @@ const EditCourse = () => {
                                     required
                                 />
                             </div>
-
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Category *
@@ -188,8 +163,6 @@ const EditCourse = () => {
                                     ))}
                                 </select>
                             </div>
-
-
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -207,7 +180,6 @@ const EditCourse = () => {
                                         required
                                     />
                                 </div>
-
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Offer Percentage (%)
@@ -224,7 +196,6 @@ const EditCourse = () => {
                                     />
                                 </div>
                             </div>
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Course Thumbnail *
@@ -236,8 +207,6 @@ const EditCourse = () => {
                                     uploadFolder="course-thumbnails"
                                 />
                             </div>
-
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Description *
@@ -252,8 +221,6 @@ const EditCourse = () => {
                                     required
                                 />
                             </div>
-
-
                             <div className="flex gap-4 justify-end">
                                 <button
                                     type="button"
@@ -267,7 +234,7 @@ const EditCourse = () => {
                                     disabled={loading || isSubmitting}
                                     className="px-8 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {isSubmitting ? "Updating..." : "🔄 UPDATE COURSE"}
+                                    {isSubmitting ? "Updating..." : "📚 UPDATE COURSE"}
                                 </button>
                             </div>
                         </form>
@@ -277,5 +244,4 @@ const EditCourse = () => {
         </TutorLayout>
     );
 };
-
 export default EditCourse;

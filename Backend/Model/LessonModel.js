@@ -1,5 +1,4 @@
-﻿import mongoose from 'mongoose';
-
+import mongoose from 'mongoose';
 const LessonSchema = new mongoose.Schema(
   {
     title: {
@@ -54,12 +53,8 @@ const LessonSchema = new mongoose.Schema(
     timestamps: true
   }
 );
-
-
 LessonSchema.index({ course: 1, order: 1 });
 LessonSchema.index({ tutor: 1 });
 LessonSchema.index({ isPublished: 1 });
-
 const Lesson = mongoose.model('lessons', LessonSchema);
-
 export default Lesson;

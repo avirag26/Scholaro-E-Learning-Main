@@ -4,14 +4,21 @@ import { toast } from "react-toastify";
 import Banner from "../../assets/Register.jpg";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner";
 import { useNavigate } from "react-router-dom";
-import { publicAPI } from "../../api/axiosConfig";
-import { useAuth } from "../../Context/AuthContext";
+import axios from "axios";
+
+// Create clean API instance for registration without interceptors
+const registrationAPI = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  timeout: 10000,
+  headers: { "Content-Type": "application/json" },
+});
+
+import { useCurrentUser } from "../../hooks/useCurrentUser";
 import OtpModal from "../../ui/OTP";
 import { GoogleLogin } from "@react-oauth/google";
-
 export default function Register() {
   const navigate = useNavigate();
-  const { setAuth } = useAuth();
+  const { login } = useCurrentUser();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,21 +30,17 @@ export default function Register() {
     password: "",
     confirmPassword: "",
   });
-
   useEffect(() => {
     const savedFormData = localStorage.getItem("registerFormData");
-
     if (savedFormData) {
       setFormData(JSON.parse(savedFormData));
     }
   }, []);
-
   useEffect(() => {
     if (Object.values(formData).some((value) => value !== "")) {
       localStorage.setItem("registerFormData", JSON.stringify(formData));
     }
   }, [formData]);
-
   const [errors, setErrors] = useState({
     full_name: "",
     email: "",
@@ -45,7 +48,6 @@ export default function Register() {
     password: "",
     confirmPassword: "",
   });
-
   const validationRules = {
     full_name: {
       required: true,
@@ -67,11 +69,9 @@ export default function Register() {
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     },
   };
-
   const validateField = (name, value) => {
     let error = "";
     const rules = validationRules[name];
-
     if (rules) {
       if (rules.required && !value) {
         error = `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
@@ -99,24 +99,18 @@ export default function Register() {
         error = `Maximum ${rules.maxLength} characters allowed`;
       }
     }
-
     if (name === "confirmPassword" && value !== formData.password) {
       error = "Passwords do not match";
     }
-
     return error;
   };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-
     const newErrors = {};
     Object.keys(formData).forEach((key) => {
       newErrors[key] = validateField(key, formData[key]);
@@ -125,21 +119,16 @@ export default function Register() {
       setErrors(newErrors);
       return;
     }
-
     setIsSubmitting(true);
-
     try {
       const { ...registerData } = formData;
-      const response = await publicAPI.post("/api/users", registerData);
-
+      const response = await registrationAPI.post("/api/users", registerData);
       toast.success(response.data.message);
       setIsOtpModalOpen(true);
-
     } catch (err) {
       if (!err?.response) {
         toast.error("No Server Response");
       } else if (err.response?.status === 400) {
-
         toast.error(err.response.data.message || "Registration failed.");
       } else {
         toast.error("Registration Failed");
@@ -148,27 +137,21 @@ export default function Register() {
       setIsSubmitting(false);
     }
   };
-
   const handleVerifyOtp = async (otp) => {
     setIsSubmitting(true);
     try {
-      const response = await publicAPI.post(`/api/users/verify-otp`, {
+      const response = await registrationAPI.post(`/api/users/verify-otp`, {
         email: formData.email,
         otp,
       });
-
       toast.success(response.data.message);
-
-
-      localStorage.setItem("authToken", response.data.accessToken);
-      localStorage.setItem("userInfo", JSON.stringify({
+      const userData = {
         _id: response.data._id,
         name: response.data.name,
         email: response.data.email
-      }));
-
+      };
+      login(userData, response.data.accessToken);
       localStorage.removeItem("registerFormData");
-
       setIsOtpModalOpen(false);
       navigate("/user/home");
     } catch (error) {
@@ -177,22 +160,15 @@ export default function Register() {
       setIsSubmitting(false);
     }
   };
-
-
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       setIsSubmitting(true);
-      const response = await publicAPI.post("/api/users/google-auth", {
+      const response = await registrationAPI.post("/api/users/google-auth", {
         credential: credentialResponse.credential
       });
-
       const { accessToken, user } = response.data;
-
-      setAuth({ user, accessToken });
-      localStorage.setItem("authToken", accessToken);
-      localStorage.setItem("userInfo", JSON.stringify(user));
+      login(user, accessToken);
       localStorage.removeItem("registerFormData");
-
       toast.success(response.data.message || "Google registration successful!");
       navigate("/user/home");
     } catch (err) {
@@ -201,12 +177,9 @@ export default function Register() {
       setIsSubmitting(false);
     }
   };
-
   const handleGoogleError = () => {
     toast.error("Google registration failed. Please try again.");
   };
-
-
   return (
     <div className="min-h-screen flex relative">
       <div className="hidden lg:flex lg:w-1/2 bg-gray-100 relative">
@@ -216,34 +189,23 @@ export default function Register() {
           className="w-full h-full object-cover"
         />
       </div>
-
-
-
-
-
       <div className="w-full lg:w-1/2 ml-auto flex flex-col p-8 lg:p-12">
-
-
         <div className="flex flex-col lg:flex-row lg:justify-center items-center gap-2 mb-8">
           <div className="flex gap-2 p-1 bg-sky-100 rounded-full">
-
             <button
               className="px-6 py-2 text-sky-600 rounded-full hover:bg-sky-200 transition-colors duration-300"
               onClick={() => navigate('/user/login')}
             >
               Login
             </button>
-
             <button className="px-6 py-2 bg-sky-500 text-white rounded-full transition-colors duration-300">
               Register
             </button>
           </div>
         </div>
-
         <div className="absolute top-4 right-6">
           <h1 className="text-2xl font-bold text-sky-500">Scholaro</h1>
         </div>
-
         <div className="max-w-md w-full mx-auto">
           <div className="mb-8">
             <h2 className="text-2xl font-semibold mb-2">
@@ -254,10 +216,6 @@ export default function Register() {
               those who prepare for it today.
             </p>
           </div>
-
-
-
-
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
@@ -281,7 +239,6 @@ export default function Register() {
                 <p className="mt-1 text-xs text-red-500">{errors.full_name}</p>
               )}
             </div>
-
             <div>
               <label
                 htmlFor="email"
@@ -304,7 +261,6 @@ export default function Register() {
                 <p className="mt-1 text-xs text-red-500">{errors.email}</p>
               )}
             </div>
-
             <div>
               <label
                 htmlFor="phone"
@@ -312,7 +268,7 @@ export default function Register() {
               >
                 Phone Number
               </label>
-              <input
+              <input 
                 type="text"
                 id="phone"
                 name="phone"
@@ -327,7 +283,6 @@ export default function Register() {
                 <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
               )}
             </div>
-
             <div>
               <label
                 htmlFor="password"
@@ -358,7 +313,6 @@ export default function Register() {
                 <p className="mt-1 text-xs text-red-500">{errors.password}</p>
               )}
             </div>
-
             <div>
               <label
                 htmlFor="confirmPassword"
@@ -393,7 +347,6 @@ export default function Register() {
                 </p>
               )}
             </div>
-
             <p className="text-center text-sm text-gray-600">
               Already have Account{" "}
               <a href="/user/login" className="text-sky-500 hover:underline">
@@ -409,7 +362,6 @@ export default function Register() {
                 {isSubmitting ? <DotDotDotSpinner /> : "Register"}
               </button>
             </div>
-
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
@@ -418,7 +370,6 @@ export default function Register() {
                 <span className="px-2 bg-white text-gray-500">Or register with</span>
               </div>
             </div>
-
             <div className="mt-6 flex justify-center">
               <div className="w-full">
                 <GoogleLogin
@@ -433,7 +384,6 @@ export default function Register() {
               </div>
             </div>
           </form>
-
         </div>
         <OtpModal
           isOpen={isOtpModalOpen}
@@ -442,10 +392,7 @@ export default function Register() {
           email={formData.email}
           userType="user"
         />
-
-
       </div>
     </div>
   );
-
 }

@@ -1,16 +1,15 @@
-﻿import React from "react";
-
+import React from "react";
 export default function Footer() {
   return (
     <footer className="w-full bg-black text-white rounded-t-3xl py-12 px-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-      {/* About column */}
+      {}
       <div>
         <div className="font-normal text-gray-300 mb-2">
           Empowering learners through accessible and engaging online education.<br />
           Byway is a leading online learning platform dedicated to providing high-quality, flexible, and affordable educational experiences.
         </div>
       </div>
-      {/* Get Help column */}
+      {}
       <div>
         <div className="font-bold mb-2 text-white">Get Help</div>
         <ul className="text-gray-300 space-y-1">
@@ -19,7 +18,7 @@ export default function Footer() {
           <li>FAQ</li>
         </ul>
       </div>
-      {/* Programs column */}
+      {}
       <div>
         <div className="font-bold mb-2 text-white">Programs</div>
         <ul className="text-gray-300 space-y-1">
@@ -30,14 +29,14 @@ export default function Footer() {
           <li>Programming</li>
         </ul>
       </div>
-      {/* Contact column */}
+      {}
       <div>
         <div className="font-bold mb-2 text-white">Contact Us</div>
         <div className="text-gray-300 text-sm mb-1">Address: 123 Main Street, Anytown, CA 12345</div>
         <div className="text-gray-300 text-sm mb-1">Tel: +(123) 456-7890</div>
         <div className="text-gray-300 text-sm mb-1">Mail: bywayedu@webkul.in</div>
         <div className="mt-4 flex gap-5">
-          {/* Social Icons - you can change these SVGs as needed */}
+          {}
           <SocialIcon>
             <svg className="w-8 h-8" viewBox="0 0 32 32" fill="currentColor">
               <circle cx="16" cy="16" r="16" fill="#fff"/>
@@ -78,7 +77,6 @@ export default function Footer() {
     </footer>
   );
 }
-
 function SocialIcon({ children }) {
   return (
     <span className="inline-flex items-center justify-center">

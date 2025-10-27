@@ -1,20 +1,17 @@
-﻿import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../Context/AuthContext';
+import { Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useEffect, useState, useRef } from 'react';
 import { userAPI, tutorAPI, adminAPI } from '../../api/axiosConfig';
-
 const ProtectedRoute = ({ children, userType }) => {
-  const { auth } = useAuth();
+  const user = useSelector((state) => state.currentUser);
+  const tutor = useSelector((state) => state.currentTutor);
+  const admin = useSelector((state) => state.currentAdmin);
   const [isBlocked, setIsBlocked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const hasCheckedStatus = useRef(false);
-
-
-  const userToken = auth?.accessToken || localStorage.getItem('authToken');
-  const tutorToken = localStorage.getItem('tutorAuthToken');
-  const adminToken = localStorage.getItem('adminAuthToken');
-
-
+  const userToken = user.accessToken || localStorage.getItem('authToken');
+  const tutorToken = tutor.accessToken || localStorage.getItem('tutorAuthToken');
+  const adminToken = admin.accessToken || localStorage.getItem('adminAuthToken');
   useEffect(() => {
     const checkBlockedStatus = async () => {
       if (hasCheckedStatus.current) {
@@ -24,7 +21,6 @@ const ProtectedRoute = ({ children, userType }) => {
       hasCheckedStatus.current = true;
       let endpoint = '';
       let apiInstance;
-
       if (userType === 'user' && userToken) {
         endpoint = '/api/users/check-status';
         apiInstance = userAPI;
@@ -35,7 +31,6 @@ const ProtectedRoute = ({ children, userType }) => {
         endpoint = '/api/admin/check-status';
         apiInstance = adminAPI;
       }
-
       if (endpoint) {
         try {
           await apiInstance.get(endpoint);
@@ -43,7 +38,6 @@ const ProtectedRoute = ({ children, userType }) => {
         } catch (error) {
           if (error.response?.status === 403) {
             setIsBlocked(true);
-
             localStorage.removeItem('authToken');
             localStorage.removeItem('tutorAuthToken');
             localStorage.removeItem('adminAuthToken');
@@ -54,17 +48,12 @@ const ProtectedRoute = ({ children, userType }) => {
           }
         }
       }
-
       setIsLoading(false);
     };
-
     checkBlockedStatus();
-
     const interval = setInterval(checkBlockedStatus, 30000);
     return () => clearInterval(interval);
   }, [userType, userToken, tutorToken, adminToken]);
-
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -75,14 +64,11 @@ const ProtectedRoute = ({ children, userType }) => {
       </div>
     );
   }
-
-
   if (isBlocked) {
     if (userType === 'user') return <Navigate to="/user/login" replace />;
     if (userType === 'tutor') return <Navigate to="/tutor/login" replace />;
     if (userType === 'admin') return <Navigate to="/admin/login" replace />;
   }
-
   if (userType === 'user') {
     if (!userToken) {
       if (tutorToken) return <Navigate to="/tutor/home" replace />;
@@ -91,8 +77,6 @@ const ProtectedRoute = ({ children, userType }) => {
     }
     return children;
   }
-
-
   if (userType === 'tutor') {
     if (!tutorToken) {
       if (userToken) return <Navigate to="/user/home" replace />;
@@ -101,8 +85,6 @@ const ProtectedRoute = ({ children, userType }) => {
     }
     return children;
   }
-
-
   if (userType === 'admin') {
     if (!adminToken) {
       if (userToken) return <Navigate to="/user/home" replace />;
@@ -111,9 +93,6 @@ const ProtectedRoute = ({ children, userType }) => {
     }
     return children;
   }
-
-
   return <Navigate to="/" replace />;
 };
-
 export default ProtectedRoute;

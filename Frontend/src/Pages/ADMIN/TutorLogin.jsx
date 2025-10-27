@@ -1,12 +1,11 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Eye, EyeOff, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { adminAPI } from "../../api/axiosConfig";
 import { toast } from "react-toastify";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner";
-import { clearUserData, clearTutorData, redirectAfterLogin } from "../../helpers/auth";
-
+import { clearUserData, clearTutorData, redirectAfterLogin } from "../../utils/authUtils";
 export default function AdminLogin() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -15,9 +14,6 @@ export default function AdminLogin() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-
-
   const validateEmail = (inputEmail) => {
     if (!inputEmail) {
       setEmailError("Email is required");
@@ -27,7 +23,6 @@ export default function AdminLogin() {
       setEmailError("");
     }
   };
-
   const validatePassword = (inputPassword) => {
     if (!inputPassword) {
       setPasswordError("Password is required");
@@ -35,32 +30,26 @@ export default function AdminLogin() {
       setPasswordError("");
     }
   };
-
   const handleEmailChange = (e) => {
     const inputEmail = e.target.value;
     setEmail(inputEmail);
     validateEmail(inputEmail);
   };
-
   const handlePasswordChange = (e) => {
     const inputPassword = e.target.value;
     setPassword(inputPassword);
     validatePassword(inputPassword);
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     validateEmail(email);
     validatePassword(password);
-
     if (emailError || passwordError || !email || !password) return;
-
     setIsSubmitting(true);
     try {
       const response = await adminAPI.post("/api/admin/login", { email, password });
       clearUserData();
       clearTutorData();
-      
       localStorage.setItem("adminAuthToken", response.data.accessToken);
       localStorage.setItem("adminInfo", JSON.stringify({ 
         name: response.data.name, 
@@ -70,7 +59,6 @@ export default function AdminLogin() {
         role: response.data.role 
       }));
       toast.success("Admin login successful! Welcome back.");
-      
       redirectAfterLogin(navigate, 'admin');
     } catch (err) {
       toast.error(err.response?.data?.message || "Login Failed");
@@ -78,10 +66,9 @@ export default function AdminLogin() {
       setIsSubmitting(false);
     }
   };
-
   return (
     <div className="min-h-screen flex">
-      {/* Left Section - Image */}
+      {}
       <div className="hidden lg:flex lg:w-1/2 bg-gray-100 relative">
         <img
           src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2026&q=80"
@@ -89,33 +76,29 @@ export default function AdminLogin() {
           className="w-full h-full object-cover"
         />
       </div>
-
-      {/* Right Section - Login Form */}
+      {}
       <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-12 bg-white">
-        {/* Scholaro Logo */}
+        {}
         <div className="absolute top-4 right-4 hidden lg:block">
           <h1 className="text-2xl font-bold text-sky-500">Scholaro</h1>
         </div>
         <div className="flex justify-between items-center mb-8 lg:hidden">
           <h1 className="text-2xl font-bold text-sky-500">Scholaro</h1>
         </div>
-
-        {/* Welcome Section */}
+        {}
         <div className="max-w-md w-full mx-auto">
           <div className="mb-8">
             <h2 className="text-2xl font-semibold mb-2 text-gray-800">Welcome to lorem..!</h2>
             <p className="text-gray-600">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
           </div>
-
-          {/* Login Button (Active) */}
+          {}
           <div className="flex justify-center mb-8">
             <button className="px-8 py-3 bg-sky-500 text-white rounded-full font-medium">
               Login
             </button>
           </div>
-
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-            {/* Username/Email Input */}
+            {}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 User name
@@ -141,8 +124,7 @@ export default function AdminLogin() {
                 </div>
               )}
             </div>
-
-            {/* Password Input */}
+            {}
             <div className="relative">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
@@ -176,13 +158,10 @@ export default function AdminLogin() {
                 </div>
               )}
             </div>
-
-            {/* Forgot Password Link */}
+            {}
             <div className="flex justify-end">
-            
             </div>
-
-            {/* Submit Button */}
+            {}
             <button
               type="submit"
               className="w-full bg-sky-500 text-white py-3 rounded-full hover:bg-sky-600 transition-colors duration-300 disabled:opacity-50 font-medium"
@@ -192,7 +171,6 @@ export default function AdminLogin() {
             </button>
           </form>
         </div>
-
       </div>
     </div>
   );

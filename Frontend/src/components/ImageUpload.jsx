@@ -1,8 +1,7 @@
-﻿import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { uploadToCloudinary, validateImageFile } from '../utils/cloudinary';
-
 const ImageUpload = ({
     onImageUpload,
     currentImage,
@@ -15,46 +14,36 @@ const ImageUpload = ({
     const [uploading, setUploading] = useState(false);
     const [preview, setPreview] = useState(currentImage);
     const fileInputRef = useRef(null);
-
-
     useEffect(() => {
         setPreview(currentImage);
     }, [currentImage]);
-
     const handleFileSelect = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         const validation = validateImageFile(file);
         if (!validation.valid) {
             toast.error(validation.error);
             return;
         }
-
-
         const reader = new FileReader();
         reader.onload = (event) => {
             setPreview(event.target.result);
         };
         reader.readAsDataURL(file);
-
         setUploading(true);
         try {
             const uploadResult = await uploadToCloudinary(file, uploadFolder);
-
             if (uploadResult.success) {
                 setPreview(uploadResult.url);
                 onImageUpload(uploadResult.url);
                 toast.success("Image uploaded successfully!");
             } else {
                 toast.error(uploadResult.error || "Failed to upload image");
-
                 setPreview(currentImage);
             }
         } catch (error) {
             console.error('Upload error:', error);
             toast.error("Failed to upload image");
-
             setPreview(currentImage);
         } finally {
             setUploading(false);
@@ -63,7 +52,6 @@ const ImageUpload = ({
             }
         }
     };
-
     const handleRemoveImage = () => {
         setPreview(null);
         onImageUpload('');
@@ -71,7 +59,6 @@ const ImageUpload = ({
             fileInputRef.current.value = '';
         }
     };
-
     return (
         <div className={className}>
             {preview ? (
@@ -92,8 +79,7 @@ const ImageUpload = ({
                             console.log('Image loaded successfully:', preview);
                         }}
                     />
-                    
-                    {/* Upload loading indicator */}
+                    {}
                     {uploading && (
                         <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-50 rounded-lg">
                             <div className="flex flex-col items-center">
@@ -102,8 +88,7 @@ const ImageUpload = ({
                             </div>
                         </div>
                     )}
-                    
-                    {/* Action buttons - always visible */}
+                    {}
                     <div className="absolute top-2 right-2 flex gap-1">
                         <button
                             onClick={() => fileInputRef.current?.click()}
@@ -146,7 +131,6 @@ const ImageUpload = ({
                     )}
                 </div>
             )}
-
             <input
                 ref={fileInputRef}
                 type="file"
@@ -158,5 +142,4 @@ const ImageUpload = ({
         </div>
     );
 };
-
 export default ImageUpload;

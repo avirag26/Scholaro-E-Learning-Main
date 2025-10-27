@@ -5,7 +5,6 @@ import AdminLayout from "./common/AdminLayout";
 import { toast } from "react-toastify";
 import { adminAPI } from "../../api/axiosConfig";
 import Swal from "sweetalert2";
-
 const Students = () => {
   const dispatch = useDispatch();
   const users = useSelector((state) => state.users.users);
@@ -13,37 +12,39 @@ const Students = () => {
   const stats = useSelector((state) => state.users.stats);
   const loading = useSelector((state) => state.users.loading);
   const error = useSelector((state) => state.users.error);
-
   const [actionLoading, setActionLoading] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
 
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+  // Fetch users when component mounts or page/filter/search changes
   useEffect(() => {
     dispatch(fetchUsers({
       page: currentPage,
-      search: "",
+      search: debouncedSearchTerm,
       status: statusFilter
     }));
-  }, [dispatch, currentPage, statusFilter]);
+  }, [dispatch, currentPage, statusFilter, debouncedSearchTerm]);
 
+  // Reset to first page when filter or search changes
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [statusFilter, debouncedSearchTerm]);
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = searchTerm === "" || 
-      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" ||
-      (statusFilter === "active" && !user.is_blocked) ||
-      (statusFilter === "blocked" && user.is_blocked);
-    
-    return matchesSearch && matchesStatus;
-  });
-
+  // Use server-filtered users directly (no client-side filtering needed)
+  const filteredUsers = users;
   const handleBlockUnblock = async (userId, currentStatus) => {
-
-
     const action = currentStatus ? 'unblock' : 'block';
     const result = await Swal.fire({
       title: `${action.charAt(0).toUpperCase() + action.slice(1)} Student?`,
@@ -57,24 +58,19 @@ const Students = () => {
       confirmButtonText: `Yes, ${action}!`,
       cancelButtonText: 'Cancel'
     });
-
     if (!result.isConfirmed) {
       return;
     }
-
     setActionLoading(prev => ({ ...prev, [userId]: true }));
-
     try {
       const action = currentStatus ? 'unblock' : 'block';
       const response = await adminAPI.patch(`/api/admin/users/${userId}/${action}`);
-
       if (response.data.success) {
         if (action === 'block') {
           toast.success(`🚫 Student has been blocked successfully. They will be logged out on next page refresh.`);
         } else {
           toast.success(`✅ Student has been unblocked successfully. They can now access their account.`);
         }
-
         dispatch(fetchUsers({
           page: currentPage,
           search: searchTerm,
@@ -83,16 +79,14 @@ const Students = () => {
       }
     } catch (error) {
       const actionText = currentStatus ? 'unblock' : 'block';
-      toast.error(`❌ Failed to ${actionText} student. ${error.response?.data?.message || 'Please try again.'}`);
+      toast.error(`? Failed to ${actionText} student. ${error.response?.data?.message || 'Please try again.'}`);
     } finally {
       setActionLoading(prev => ({ ...prev, [userId]: false }));
     }
   };
-
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
-
   if (loading) {
     return (
       <AdminLayout title="Students">
@@ -102,7 +96,6 @@ const Students = () => {
       </AdminLayout>
     );
   }
-
   if (error) {
     return (
       <AdminLayout title="Students">
@@ -118,14 +111,13 @@ const Students = () => {
       </AdminLayout>
     );
   }
-
   return (
     <AdminLayout title="Students" subtitle="Manage all registered students">
-      {/* Stats Cards */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
-            <div className="text-2xl text-blue-500 mr-3">👥</div>
+            <div className="text-2xl text-blue-500 mr-3"></div>
             <div>
               <p className="text-sm text-gray-500">Total Students</p>
               <p className="text-xl font-semibold text-gray-900">
@@ -134,10 +126,9 @@ const Students = () => {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
-            <div className="text-2xl text-green-500 mr-3">✅</div>
+            <div className="text-2xl text-green-500 mr-3"></div>
             <div>
               <p className="text-sm text-gray-500">Listed Students</p>
               <p className="text-xl font-semibold text-gray-900">
@@ -146,10 +137,9 @@ const Students = () => {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
-            <div className="text-2xl text-red-500 mr-3">🚫</div>
+            <div className="text-2xl text-red-500 mr-3"></div>
             <div>
               <p className="text-sm text-gray-500">Unlisted Students</p>
               <p className="text-xl font-semibold text-gray-900">
@@ -159,17 +149,15 @@ const Students = () => {
           </div>
         </div>
       </div>
-
-      {/* Main Content */}
+      {}
       <div className="bg-white rounded-lg shadow">
-        {/* Header with Search and Filters */}
+        {}
         <div className="p-4 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
               <h2 className="text-lg font-semibold text-gray-900">
                 Student List
               </h2>
-
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -180,7 +168,6 @@ const Students = () => {
                 <option value="blocked">Blocked Only</option>
               </select>
             </div>
-
             <div className="flex items-center gap-3">
               <input
                 type="text"
@@ -189,7 +176,6 @@ const Students = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500 w-64"
               />
-
               <button
                 onClick={() => dispatch(fetchUsers({
                   page: currentPage,
@@ -203,8 +189,7 @@ const Students = () => {
             </div>
           </div>
         </div>
-
-        {/* Table */}
+        {}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -290,18 +275,16 @@ const Students = () => {
             </tbody>
           </table>
         </div>
-
-        {/* Server-side Pagination */}
+        {}
         {pagination && (pagination.totalUsers > 0 || pagination.totalPages > 0) && (
           <div className="px-6 py-4 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-700">
                 Showing {((pagination.currentPage - 1) * (pagination.limit || 5)) + 1} to {Math.min(pagination.currentPage * (pagination.limit || 5), pagination.totalUsers || 0)} of {pagination.totalUsers || 0} students
               </div>
-
               {pagination.totalPages > 1 && (
                 <div className="flex items-center space-x-2">
-                  {/* Previous Button */}
+                  {}
                   <button
                     onClick={() => handlePageChange(pagination.currentPage - 1)}
                     disabled={!pagination.hasPrev}
@@ -312,8 +295,7 @@ const Students = () => {
                   >
                     Previous
                   </button>
-
-                  {/* Page Numbers */}
+                  {}
                   <div className="flex space-x-1">
                     {pagination.totalPages > 1 && Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
                       <button
@@ -328,8 +310,7 @@ const Students = () => {
                       </button>
                     ))}
                   </div>
-
-                  {/* Next Button */}
+                  {}
                   <button
                     onClick={() => handlePageChange(pagination.currentPage + 1)}
                     disabled={!pagination.hasNext}
@@ -349,5 +330,4 @@ const Students = () => {
     </AdminLayout>
   );
 };
-
 export default Students;

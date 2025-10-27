@@ -1,5 +1,4 @@
-﻿import Card from "./Card";
-
+import Card from "./Card";
 export default function CategoryCards() {
   const categories = [
     { 
@@ -31,7 +30,6 @@ export default function CategoryCards() {
       description: 'Management, Finance, Entrepreneurship'
     },
   ];
-
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -43,7 +41,6 @@ export default function CategoryCards() {
             Explore our most popular course categories
           </p>
         </div>
-
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {categories.map((category) => (
             <Card key={category.name} className="p-8 hover:shadow-xl transition-shadow cursor-pointer group">

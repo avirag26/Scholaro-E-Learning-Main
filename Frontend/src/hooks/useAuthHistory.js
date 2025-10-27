@@ -1,13 +1,11 @@
-﻿import { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { checkUserAuth, checkTutorAuth, checkAdminAuth, clearAllData } from '../helpers/auth';
 import { userAPI, tutorAPI, adminAPI } from '../api/axiosConfig';
 import { toast } from 'react-toastify';
-
 export const useAuthProtection = (userType) => {
   const navigate = useNavigate();
   const location = useLocation();
-
   useEffect(() => {
     if (location.pathname.includes('/login') || location.pathname.includes('/register')) {
       return;
@@ -15,29 +13,23 @@ export const useAuthProtection = (userType) => {
     const userToken = checkUserAuth();
     const tutorToken = checkTutorAuth();
     const adminToken = checkAdminAuth();
-
     const isAuthenticated = (userType === 'user' && userToken) ||
                            (userType === 'tutor' && tutorToken) ||
                            (userType === 'admin' && adminToken);
-
     if (!isAuthenticated) {
       navigate(`/${userType}/login`, { replace: true });
       return;
     }
-
     const preventBackToAuth = (event) => {
       const currentPath = location.pathname;
-      
       if (isAuthenticated) {
         window.history.pushState(null, '', currentPath);
         event.preventDefault();
       }
     };
-
     const clearAuthHistory = () => {
       window.history.replaceState(null, '', location.pathname);
     };
-
     const checkIfBlocked = async () => {
       let apiInstance;
       if (userType === 'user') {
@@ -49,7 +41,6 @@ export const useAuthProtection = (userType) => {
       } else {
         return;
       }
-
       try {
         await apiInstance.get(`/api/${userType}s/check-status`);
       } catch (error) {
@@ -60,19 +51,14 @@ export const useAuthProtection = (userType) => {
         }
       }
     };
-
     clearAuthHistory();
     checkIfBlocked();
-
     window.addEventListener('popstate', preventBackToAuth);
-    
     const blockCheckInterval = setInterval(checkIfBlocked, 30000);
-
     return () => {
       window.removeEventListener('popstate', preventBackToAuth);
       clearInterval(blockCheckInterval);
     };
   }, [navigate, userType, location.pathname]);
 };
-
 export default useAuthProtection;

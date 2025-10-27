@@ -1,9 +1,10 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { X, Eye, EyeOff, Key } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import OtpModal from "./OTP";
-
+import { useCurrentUser } from "../hooks/useCurrentUser";
 const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) => {
+    const { user } = useCurrentUser();
     const [showOtpModal, setShowOtpModal] = useState(false);
     const [formData, setFormData] = useState({
         newPassword: '',
@@ -15,13 +16,11 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
     });
     const [errors, setErrors] = useState({});
     const [userEmail, setUserEmail] = useState('');
-
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
-
         if (errors[field]) {
             setErrors(prev => ({
                 ...prev,
@@ -29,18 +28,14 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
             }));
         }
     };
-
     const togglePasswordVisibility = (field) => {
         setShowPasswords(prev => ({
             ...prev,
             [field]: !prev[field]
         }));
     };
-
     const validatePasswordForm = () => {
         const newErrors = {};
-
-
         if (!formData.newPassword) {
             newErrors.newPassword = 'New password is required';
         } else if (formData.newPassword.length < 8) {
@@ -50,32 +45,23 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
         } else if (/\s/.test(formData.newPassword)) {
             newErrors.newPassword = 'Password cannot contain spaces';
         }
-
         if (!formData.confirmPassword) {
             newErrors.confirmPassword = 'Please confirm your password';
         } else if (formData.newPassword !== formData.confirmPassword) {
             newErrors.confirmPassword = 'Passwords do not match';
         }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
-
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
         if (validatePasswordForm()) {
-
-            const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-            setUserEmail(userInfo.email);
-            
-
+            setUserEmail(user?.email || '');
             await onSubmit({ action: 'sendOtp', password: formData.newPassword });
             setShowOtpModal(true);
         }
     };
-
     const handleOtpVerify = async (otp) => {
-
         await onSubmit({ 
             action: 'changePassword', 
             password: formData.newPassword, 
@@ -83,11 +69,9 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
         });
         setShowOtpModal(false);
     };
-
     const handleOtpModalClose = () => {
         setShowOtpModal(false);
     };
-
     const handleClose = () => {
         setFormData({
             newPassword: '',
@@ -101,9 +85,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
         setShowOtpModal(false);
         onClose();
     };
-
     if (!isOpen) return null;
-
     return (
         <AnimatePresence>
             <motion.div
@@ -121,7 +103,6 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                     className="bg-white rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl max-h-[90vh] overflow-y-auto"
                     onClick={(e) => e.stopPropagation()}
                 >
-
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-sky-100 rounded-full flex items-center justify-center">
@@ -139,9 +120,7 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                             <X className="w-6 h-6" />
                         </button>
                     </div>
-
                     <form onSubmit={handlePasswordSubmit} className="space-y-4">
-
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 New Password
@@ -167,8 +146,6 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                                 <p className="text-red-500 text-sm mt-1">{errors.newPassword}</p>
                             )}
                         </div>
-
-
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Confirm New Password
@@ -194,10 +171,6 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                                 <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
                             )}
                         </div>
-
-
-
-
                         <div className="flex gap-3 pt-6">
                             <button
                                 type="submit"
@@ -225,8 +198,6 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
                     </form>
                 </motion.div>
             </motion.div>
-
-
             <OtpModal
                 isOpen={showOtpModal}
                 onClose={handleOtpModalClose}
@@ -237,5 +208,4 @@ const ChangePasswordModal = ({ isOpen, onClose, onSubmit, isLoading = false }) =
         </AnimatePresence>
     );
 };
-
 export default ChangePasswordModal;

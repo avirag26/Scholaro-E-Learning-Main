@@ -1,5 +1,4 @@
-﻿import { CheckCircle } from "lucide-react";
-
+import { CheckCircle } from "lucide-react";
 export default function AboutSection({ aboutImg, officeImg }) {
   const features = [
     "Expert instructors from top companies",
@@ -9,7 +8,6 @@ export default function AboutSection({ aboutImg, officeImg }) {
     "Hands-on projects and assignments",
     "Global learning community"
   ];
-
   return (
     <section className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,7 +24,6 @@ export default function AboutSection({ aboutImg, officeImg }) {
                 through high-quality online education.
               </p>
             </div>
-            
            <div className="space-y-4">
             {features.map((feature,index)=>(
                 <div key={index} className="flex items-center space-x-3">
@@ -34,10 +31,8 @@ export default function AboutSection({ aboutImg, officeImg }) {
                     <span className="text-grey-700">{feature}</span>
                 </div>
             ))}
-
            </div>
           </div>
-          
           <div className="relative">
             <div className="grid grid-cols-2 gap-4">
               <img
@@ -51,7 +46,7 @@ export default function AboutSection({ aboutImg, officeImg }) {
                 className="rounded-2xl shadow-lg mt-8"
               />
             </div>
-            {/* Floating stats card */}
+            {}
             <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-xl">
               <div className="text-2xl font-bold text-teal-600">98%</div>
               <div className="text-gray-600 text-sm">Student Success Rate</div>

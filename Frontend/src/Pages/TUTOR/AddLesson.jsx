@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -21,13 +21,11 @@ import {
   updateLesson,
   clearError
 } from "../../Redux/lessonSlice";
-
 const AddLesson = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { lessons, courseInfo, loading, error } = useSelector((state) => state.lessons);
-
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -36,9 +34,6 @@ const AddLesson = () => {
     pdfFile: null,
     thumbnailFile: null
   });
-
-
-
   const [videoPreview, setVideoPreview] = useState(null);
   const [pdfPreview, setPdfPreview] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
@@ -52,25 +47,17 @@ const AddLesson = () => {
     pdf: false,
     thumbnail: false
   });
-
-
-
-
   useEffect(() => {
     if (courseId) {
       dispatch(fetchCourseLessons(courseId));
     }
   }, [dispatch, courseId]);
-
-
   useEffect(() => {
     if (error) {
       toast.error(error);
       dispatch(clearError());
     }
   }, [error, dispatch]);
-
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -78,26 +65,17 @@ const AddLesson = () => {
       [name]: value
     }));
   };
-
-
   const handleVideoUpload = async (file) => {
-
     const validation = validateVideoFile(file);
     if (!validation.valid) {
       toast.error(validation.error);
       return;
     }
-
     setUploading(prev => ({ ...prev, video: true }));
-
     try {
-
       const videoUrl = URL.createObjectURL(file);
       setVideoPreview(videoUrl);
-
-
       const uploadResult = await uploadVideoToCloudinary(file);
-
       if (uploadResult.success) {
         setFormData(prev => ({
           ...prev,
@@ -116,25 +94,16 @@ const AddLesson = () => {
       setUploading(prev => ({ ...prev, video: false }));
     }
   };
-
-
   const handlePdfUpload = async (file) => {
-
     const validation = validatePdfFile(file);
     if (!validation.valid) {
       toast.error(validation.error);
       return;
     }
-
     setUploading(prev => ({ ...prev, pdf: true }));
-
     try {
-
       setPdfPreview(file.name);
-
-
       const uploadResult = await uploadDocumentToCloudinary(file);
-
       if (uploadResult.success) {
         setFormData(prev => ({
           ...prev,
@@ -152,8 +121,6 @@ const AddLesson = () => {
       setUploading(prev => ({ ...prev, pdf: false }));
     }
   };
-
-
   const handleThumbnailUpload = (croppedImageUrl) => {
     setFormData(prev => ({
       ...prev,
@@ -162,8 +129,6 @@ const AddLesson = () => {
     setThumbnailPreview(croppedImageUrl);
     toast.success("Thumbnail uploaded successfully!");
   };
-
-
   const handleDrag = (e, type) => {
     e.preventDefault();
     e.stopPropagation();
@@ -173,13 +138,10 @@ const AddLesson = () => {
       setDragActive(prev => ({ ...prev, [type]: false }));
     }
   };
-
-
   const handleDrop = (e, type) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(prev => ({ ...prev, [type]: false }));
-
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       if (type === 'video') {
@@ -187,11 +149,8 @@ const AddLesson = () => {
       } else if (type === 'pdf') {
         handlePdfUpload(file);
       }
-
     }
   };
-
-
   const handleFileChange = (e, type) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -200,11 +159,8 @@ const AddLesson = () => {
       } else if (type === 'pdf') {
         handlePdfUpload(file);
       }
-
     }
   };
-
-
   const removeFile = (type) => {
     if (type === 'video') {
       setVideoPreview(null);
@@ -217,26 +173,20 @@ const AddLesson = () => {
       setFormData(prev => ({ ...prev, thumbnailFile: null }));
     }
   };
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!formData.title.trim()) {
       toast.error("Lesson title is required");
       return;
     }
-
     if (!formData.description.trim()) {
       toast.error("Lesson description is required");
       return;
     }
-
     if (!courseId) {
       toast.error("Course ID is required");
       return;
     }
-
     try {
       const lessonData = {
         title: formData.title,
@@ -246,11 +196,8 @@ const AddLesson = () => {
         thumbnailUrl: formData.thumbnailFile,
         pdfUrl: formData.pdfFile
       };
-
       const result = await dispatch(createLesson({ courseId, lessonData }));
-      
       if (createLesson.fulfilled.match(result)) {
-
         setFormData({
           title: "",
           description: "",
@@ -262,15 +209,12 @@ const AddLesson = () => {
         setVideoPreview(null);
         setPdfPreview(null);
         setThumbnailPreview(null);
-
         toast.success("Lesson added successfully!");
       }
     } catch (error) {
-
+     console.log(error)
     }
   };
-
-
   const handleDeleteLesson = async (lessonId) => {
     const result = await Swal.fire({
       title: "Delete Lesson?",
@@ -282,21 +226,16 @@ const AddLesson = () => {
       confirmButtonText: "Yes, delete it!",
       cancelButtonText: "Cancel"
     });
-
     if (!result.isConfirmed) return;
-
     try {
       const result = await dispatch(deleteLesson(lessonId));
       if (deleteLesson.fulfilled.match(result)) {
         toast.success("Lesson deleted successfully!");
       }
     } catch (error) {
-
+      console.log(error)
     }
   };
-
-
-
   return (
     <TutorLayout 
       title="Add New Lesson" 
@@ -304,7 +243,7 @@ const AddLesson = () => {
     >
       <div className="max-w-6xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Main Form Section */}
+          {}
           <div className="bg-green-50 rounded-lg shadow p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
               Add New Lesson
@@ -314,11 +253,10 @@ const AddLesson = () => {
                 </span>
               )}
             </h2>
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Column */}
+              {}
               <div className="space-y-4">
-                {/* Lesson Title */}
+                {}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Lesson Title
@@ -333,8 +271,7 @@ const AddLesson = () => {
                     required
                   />
                 </div>
-
-                {/* Lesson Description */}
+                {}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Lesson Description
@@ -349,8 +286,7 @@ const AddLesson = () => {
                     required
                   />
                 </div>
-
-                {/* Lesson Duration */}
+                {}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Lesson Duration
@@ -364,8 +300,7 @@ const AddLesson = () => {
                     placeholder="e.g., 15:30 minutes or 1:20 hours"
                   />
                 </div>
-
-                {/* Upload Video */}
+                {}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Upload Video
@@ -428,10 +363,9 @@ const AddLesson = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Right Column */}
+              {}
               <div className="space-y-4">
-                {/* Upload PDF Notes */}
+                {}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Upload PDF notes
@@ -503,8 +437,7 @@ const AddLesson = () => {
                     )}
                   </div>
                 </div>
-
-                {/* Upload Thumbnail with Cropping */}
+                {}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Upload Thumbnail
@@ -520,23 +453,20 @@ const AddLesson = () => {
                 </div>
               </div>
             </div>
-
-            {/* Add Button */}
+            {}
             <div className="mt-8 text-center">
               <button
                 type="submit"
                 disabled={loading || uploading.video || uploading.pdf || uploading.thumbnail}
                 className="px-12 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-lg"
               >
-                {loading ? "Adding..." : "➕ Add Lesson"}
+                {loading ? "Adding..." : "? Add Lesson"}
               </button>
             </div>
           </div>
-
-          {/* Lessons List */}
+          {}
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Lessons</h3>
-
             <div className="space-y-4">
               {lessons.map((lesson) => (
                 <div key={lesson.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
@@ -554,7 +484,6 @@ const AddLesson = () => {
                       <p className="text-sm text-gray-500">{lesson.description}</p>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-gray-600">
                       Duration: {lesson.duration || 'Not set'}
@@ -582,14 +511,12 @@ const AddLesson = () => {
                 </div>
               ))}
             </div>
-
-            {/* Submit Button */}
+            {}
             <div className="mt-8 text-center">
               <button
                 type="button"
                 className="px-12 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium text-lg"
                 onClick={() =>{navigate('/tutor/courses'), toast.success("Course lessons submitted successfully!")}}
-                
               >
                 Submit
               </button>
@@ -600,5 +527,4 @@ const AddLesson = () => {
     </TutorLayout>
   );
 };
-
 export default AddLesson;

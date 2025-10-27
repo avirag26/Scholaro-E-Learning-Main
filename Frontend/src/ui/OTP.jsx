@@ -1,22 +1,27 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { X, Mail, Shield, CheckCircle, Clock } from "lucide-react";
 import { toast } from "react-toastify";
-import { publicAPI } from "../api/axiosConfig.js";
+import axios from "axios";
+import { userAPI, tutorAPI } from "../api/axiosConfig.js";
 import { motion, AnimatePresence } from "framer-motion";
 
-const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
+// Create a clean axios instance for OTP operations without interceptors
+const otpAPI = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  timeout: 10000,
+  headers: { "Content-Type": "application/json" },
+});
+const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user', userRole = 'user' }) => {
   const [otp, setOtp] = useState(Array(6).fill(""));
   const [timer, setTimer] = useState(60);
   const [isResending, setIsResending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const inputRefs = useRef([]);
-
   useEffect(() => {
     if (isOpen) {
       inputRefs.current[0]?.focus();
       const storedExpiryTime = localStorage.getItem(`otpExpiryTime_${email}`);
-
       if (storedExpiryTime) {
         const expiryTime = parseInt(storedExpiryTime);
         const currentTime = new Date().getTime();
@@ -34,7 +39,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
       setOtp(Array(6).fill(""));
     }
   }, [isOpen, email]);
-
   useEffect(() => {
     let interval;
     if (isOpen && timer > 0) {
@@ -51,7 +55,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
     }
     return () => clearInterval(interval);
   }, [isOpen, timer, email]);
-
   const handleOtpChange = (index, value) => {
     if (isNaN(value)) return;
     const newOtp = [...otp];
@@ -62,29 +65,27 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
       setFocusedIndex(index + 1);
     }
   };
-
   const handleKeyDown = (index, e) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
       setFocusedIndex(index - 1);
     }
   };
-
   const handleResend = async () => {
     if (isResending || timer > 0) return;
     try {
       setIsResending(true);
       let response;
-      
       if (userType === 'password-change') {
-        const { userAPI } = await import('../api/axiosConfig.js');
-        response = await userAPI.post('/api/users/change-password/send-otp');
+        const apiInstance = userRole === 'tutor' ? tutorAPI : userAPI;
+        const endpoint = userRole === 'tutor' ? '/api/tutors/change-password/send-otp' : '/api/users/change-password/send-otp';
+        response = await apiInstance.post(endpoint);
       } else if (userType === 'email-change') {
-
         const storedNewEmail = localStorage.getItem('pendingEmailChange');
         if (storedNewEmail) {
-          const { userAPI } = await import('../api/axiosConfig.js');
-          response = await userAPI.post('/api/users/change-email/send-otp', {
+          const apiInstance = userRole === 'tutor' ? tutorAPI : userAPI;
+          const endpoint = userRole === 'tutor' ? '/api/tutors/change-email/send-otp' : '/api/users/change-email/send-otp';
+          response = await apiInstance.post(endpoint, {
             newEmail: storedNewEmail
           });
         } else {
@@ -93,9 +94,8 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
           return;
         }
       } else {
-        response = await publicAPI.post(`/api/${userType}s/resend-otp`, { email });
+        response = await otpAPI.post(`/api/${userType}s/resend-otp`, { email });
       }
-      
       if (response.status === 200) {
         const newExpiryTime = new Date().getTime() + 60 * 1000;
         localStorage.setItem(`otpExpiryTime_${email}`, newExpiryTime.toString());
@@ -113,14 +113,12 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
       setIsResending(false);
     }
   };
-
   const handleVerify = async () => {
     const otpString = otp.join("");
     if (otpString.length !== 6) {
       toast.error("Please enter a 6-digit OTP.");
       return;
     }
-    
     setIsVerifying(true);
     try {
       await onVerify(otpString);
@@ -128,50 +126,45 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
       setIsVerifying(false);
     }
   };
-
   const handleModalClose = () => {
     onClose();
   };
-
   if (!isOpen) return null;
-
   const backdropVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { duration: 0.3 }
     },
-    exit: { 
+    exit: {
       opacity: 0,
       transition: { duration: 0.2 }
     }
   };
-
   const modalVariants = {
-    hidden: { 
-      opacity: 0, 
+    hidden: {
+      opacity: 0,
       scale: 0.8,
       y: 50
     },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       scale: 1,
       y: 0,
-      transition: { 
+      transition: {
         type: "spring",
         damping: 25,
         stiffness: 300,
         duration: 0.4
       }
     },
-    exit: { 
-      opacity: 0, 
+    exit: {
+      opacity: 0,
       scale: 0.8,
       y: 50,
       transition: { duration: 0.2 }
     }
   };
-
   const inputVariants = {
     initial: { opacity: 0, y: 20, scale: 0.8 },
     animate: (index) => ({
@@ -198,11 +191,10 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
       transition: { duration: 0.2 }
     }
   };
-
   const iconVariants = {
     initial: { scale: 0, rotate: -180 },
-    animate: { 
-      scale: 1, 
+    animate: {
+      scale: 1,
       rotate: 0,
       transition: {
         type: "spring",
@@ -212,15 +204,13 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
       }
     }
   };
-
   const progressVariants = {
     initial: { width: "0%" },
-    animate: { 
+    animate: {
       width: `${((60 - timer) / 60) * 100}%`,
       transition: { duration: 0.5 }
     }
   };
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -233,7 +223,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
             onClick={handleModalClose}
           />
-          
           <motion.div
             variants={modalVariants}
             initial="hidden"
@@ -245,7 +234,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
             <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-sky-100 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-sky-100 to-sky-200 rounded-full -translate-y-16 translate-x-16 opacity-50" />
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-sky-50 to-sky-100 rounded-full translate-y-12 -translate-x-12 opacity-30" />
-              
               <div className="relative flex justify-between items-start mb-6">
                 <div className="flex items-center space-x-3">
                   <motion.div
@@ -270,7 +258,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
                   <X size={20} />
                 </motion.button>
               </div>
-
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -285,7 +272,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
                   </div>
                 </div>
               </motion.div>
-
               <div className="mb-6">
                 <p className="text-center text-gray-600 mb-4">Enter the 6-digit code</p>
                 <div className="flex justify-center gap-3">
@@ -314,7 +300,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
                   ))}
                 </div>
               </div>
-
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -359,7 +344,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
                   </div>
                 )}
               </motion.div>
-
               <motion.button
                 onClick={handleVerify}
                 disabled={isVerifying || otp.join("").length !== 6}
@@ -382,7 +366,6 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
                   </>
                 )}
               </motion.button>
-
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -398,5 +381,4 @@ const OtpModal = ({ isOpen, onClose, onVerify, email, userType = 'user' }) => {
     </AnimatePresence>
   );
 };
-
 export default OtpModal;

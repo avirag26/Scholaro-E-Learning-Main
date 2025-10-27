@@ -1,39 +1,34 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Mail } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from "./Common/Header"; 
 import Footer from '../../components/Common/Footer';
-import { publicAPI } from '../../api/axiosConfig';
-
+import useUserInfo from '../../hooks/useUserInfo';
+import { tutorService } from '../../services/tutorService';
+import { DEFAULT_IMAGES, SORT_OPTIONS } from '../../constants/defaults';
+import { ROUTES, safeNavigate } from '../../utils/navigationUtils';
 const Teachers = () => {
+  const navigate = useNavigate();
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('relevance');
   const [showFilter, setShowFilter] = useState(false);
   const [filteredTeachers, setFilteredTeachers] = useState([]);
-
-
+  const userInfo = useUserInfo();
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
         setLoading(true);
-        console.log('Fetching teachers from API...');
-        const response = await publicAPI.get('/api/users/tutors');
-        console.log('API Response:', response.data);
-        
-        const tutorsData = response.data.tutors || [];
-        console.log('Tutors data:', tutorsData);
-        
+        const data = await tutorService.getPublicTutors();
+        const tutorsData = data.tutors || [];
         setTeachers(tutorsData);
         setFilteredTeachers(tutorsData);
-        
         if (tutorsData.length === 0) {
           toast.info('No tutors found in the system');
         }
       } catch (error) {
-        console.error('Error fetching teachers:', error);
-        console.error('Error details:', error.response?.data);
         toast.error(`Failed to load teachers: ${error.response?.data?.message || error.message}`);
         setTeachers([]);
         setFilteredTeachers([]);
@@ -41,23 +36,16 @@ const Teachers = () => {
         setLoading(false);
       }
     };
-
     fetchTeachers();
   }, []);
-
-
   useEffect(() => {
     let filtered = teachers;
-
-
     if (searchTerm) {
       filtered = filtered.filter(teacher =>
         teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         teacher.subjects.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
-
     switch (sortBy) {
       case 'name':
         filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -69,22 +57,20 @@ const Teachers = () => {
         filtered.sort((a, b) => (b.totalStudents || 0) - (a.totalStudents || 0));
         break;
       default:
-
         break;
     }
-
     setFilteredTeachers(filtered);
   }, [teachers, searchTerm, sortBy]);
-
   const handleSendMessage = (teacher) => {
-
-    console.log('Send message to:', teacher.name);
+    toast.info(`Messaging feature coming soon for ${teacher.name}!`);
   };
-
+  const handleTutorClick = (tutorId) => {
+    safeNavigate(navigate, ROUTES.USER.TUTOR_DETAIL(tutorId));
+  };
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
+        <Header user={userInfo}/>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto"></div>
@@ -95,21 +81,18 @@ const Teachers = () => {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-      
+      <Header user={userInfo} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Section */}
+        {}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Tutors</h1>
           <p className="text-gray-600">Find the perfect tutor for your learning journey</p>
         </div>
-
-        {/* Search and Filter Section */}
+        {}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
-          {/* Search Bar */}
+          {}
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
@@ -120,8 +103,7 @@ const Teachers = () => {
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
             />
           </div>
-
-          {/* Sort By */}
+          {}
           <div className="flex gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-700">Sort By:</span>
@@ -130,14 +112,14 @@ const Teachers = () => {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-white"
               >
-                <option value="relevance">Relevance</option>
-                <option value="name">Name</option>
-                <option value="rating">Rating</option>
-                <option value="students">Students</option>
+                {SORT_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
-
-            {/* Filter Button */}
+            {}
             <button
               onClick={() => setShowFilter(!showFilter)}
               className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -147,31 +129,29 @@ const Teachers = () => {
             </button>
           </div>
         </div>
-
-        {/* Results Count */}
+        {}
         <div className="mb-6">
           <p className="text-gray-600">
             Showing {filteredTeachers.length} of {teachers.length} tutors
           </p>
         </div>
-
-        {/* Teachers Grid */}
+        {}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredTeachers.map((teacher) => (
             <div
               key={teacher._id}
-              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6"
+              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 cursor-pointer"
+              onClick={() => handleTutorClick(teacher._id)}
             >
-              {/* Profile Image */}
+              {}
               <div className="text-center mb-4">
                 <img
-                  src={teacher.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"}
+                  src={teacher.profileImage || DEFAULT_IMAGES.PROFILE}
                   alt={teacher.name}
                   className="w-20 h-20 rounded-full object-cover mx-auto border-4 border-gray-100"
                 />
               </div>
-
-              {/* Teacher Info */}
+              {}
               <div className="text-center mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">
                   {teacher.name}
@@ -179,12 +159,11 @@ const Teachers = () => {
                 <p className="text-sm text-gray-600 mb-2">
                   {teacher.subjects}
                 </p>
-                
-                {/* Rating and Students */}
+                {}
                 <div className="flex items-center justify-center gap-4 text-xs text-gray-500 mb-3">
                   {teacher.rating && (
                     <span className="flex items-center gap-1">
-                      <span className="text-yellow-400">★</span>
+                      <span className="text-yellow-400">?</span>
                       {teacher.rating}
                     </span>
                   )}
@@ -192,28 +171,38 @@ const Teachers = () => {
                     <span>{teacher.totalStudents} students</span>
                   )}
                 </div>
-
-                {/* Bio */}
+                {}
                 {teacher.bio && (
                   <p className="text-xs text-gray-500 mb-4 line-clamp-2">
                     {teacher.bio}
                   </p>
                 )}
               </div>
-
-              {/* Send Message Button */}
-              <button
-                onClick={() => handleSendMessage(teacher)}
-                className="w-full flex items-center justify-center gap-2 bg-teal-600 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors font-medium"
-              >
-                <Mail className="w-4 h-4" />
-                Send Message
-              </button>
+              {}
+              <div className="space-y-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTutorClick(teacher._id);
+                  }}
+                  className="w-full bg-teal-600 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors font-medium"
+                >
+                  View Profile
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSendMessage(teacher);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 border border-teal-600 text-teal-600 py-2 px-4 rounded-lg hover:bg-teal-50 transition-colors font-medium"
+                >
+                  Send Message
+                </button>
+              </div>
             </div>
           ))}
         </div>
-
-        {/* No Results */}
+        {}
         {filteredTeachers.length === 0 && !loading && (
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
@@ -231,10 +220,8 @@ const Teachers = () => {
           </div>
         )}
       </div>
-
       <Footer />
     </div>
   );
 };
-
 export default Teachers;

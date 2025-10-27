@@ -1,20 +1,27 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "react-toastify";
 import TutorBanner from "../../assets/TutorBanner.jpg";
 import { useNavigate } from "react-router-dom";
-import { publicAPI } from "../../api/axiosConfig";
+import axios from "axios";
+
+// Create clean API instance for registration without interceptors
+const registrationAPI = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  timeout: 10000,
+  headers: { "Content-Type": "application/json" },
+});
 import OtpModal from "../../ui/OTP";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner";
 import { GoogleLogin } from "@react-oauth/google";
-
+import { useCurrentTutor } from "../../hooks/useCurrentTutor";
 export default function TutorRegister() {
   const navigate = useNavigate();
+  const { login } = useCurrentTutor();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
-
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -22,9 +29,7 @@ export default function TutorRegister() {
     password: "",
     confirmPassword: "",
   });
-
   const [errors, setErrors] = useState({});
-
   const validateField = (name, value) => {
     let error = "";
     if (name === "full_name" && !value) error = "Full name is required.";
@@ -44,13 +49,11 @@ export default function TutorRegister() {
       error = "Passwords do not match.";
     return error;
   };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = Object.keys(formData).reduce((acc, key) => {
@@ -58,16 +61,14 @@ export default function TutorRegister() {
       if (error) acc[key] = error;
       return acc;
     }, {});
-
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-
     setIsSubmitting(true);
     try {
       const {  ...registerData } = formData;
-      const response = await publicAPI.post("/api/tutors/register", registerData);
+      const response = await registrationAPI.post("/api/tutors/register", registerData);
       toast.success(response.data.message);
       setIsOtpModalOpen(true);
     } catch (err) {
@@ -76,24 +77,23 @@ export default function TutorRegister() {
       setIsSubmitting(false);
     }
   };
-
   const handleVerifyOtp = async (otp) => {
     setIsSubmitting(true);
     try {
-      const response = await publicAPI.post("/api/tutors/verify-otp", {
+      const response = await registrationAPI.post("/api/tutors/verify-otp", {
         email: formData.email,
         otp,
       });
       toast.success(response.data.message);
-      localStorage.setItem("tutorAuthToken", response.data.accessToken);
-      localStorage.setItem("tutorInfo", JSON.stringify({ 
+      const tutorData = { 
         name: response.data.name, 
         email: response.data.email,
         phone: response.data.phone,
         subjects: response.data.subjects,
         bio: response.data.bio,
         profileImage: response.data.profileImage
-      }));
+      };
+      login(tutorData, response.data.accessToken);
       setIsOtpModalOpen(false);
       navigate("/tutor/home");
     } catch (error) {
@@ -102,17 +102,13 @@ export default function TutorRegister() {
       setIsSubmitting(false);
     }
   };
-
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       setIsSubmitting(true);
-      const response = await publicAPI.post("/api/tutors/google-auth", {
+      const response = await registrationAPI.post("/api/tutors/google-auth", {
         credential: credentialResponse.credential
       });
-
-      localStorage.setItem("tutorAuthToken", response.data.accessToken);
-      localStorage.setItem("tutorInfo", JSON.stringify(response.data.tutor));
-
+      login(response.data.tutor, response.data.accessToken);
       toast.success(response.data.message || "Google registration successful!");
       navigate("/tutor/home");
     } catch (err) {
@@ -121,15 +117,12 @@ export default function TutorRegister() {
       setIsSubmitting(false);
     }
   };
-
   const handleGoogleError = () => {
     toast.error("Google registration failed. Please try again.");
   };
-
   return (
     <div className="min-h-screen flex relative bg-sky-50">
-
-      {/* Left Banner Section */}
+      {}
       <div className="hidden lg:flex lg:w-1/2 bg-sky-100 relative">
         <img
           src={TutorBanner}
@@ -137,14 +130,12 @@ export default function TutorRegister() {
           className="w-full h-full object-cover"
         />
       </div>
-
-      {/* Main Form Section */}
+      {}
       <div className="w-full lg:w-1/2 ml-auto flex flex-col p-8 lg:p-12">
-        {/* Logo in top right */}
+        {}
         <div className="absolute top-4 right-6">
           <h1 className="text-2xl font-bold text-sky-600">Scholaro</h1>
         </div>
-
         <div className="max-w-md w-full mx-auto">
           <div className="mb-8 text-center">
             <h2 className="text-2xl font-semibold mb-2">
@@ -155,23 +146,19 @@ export default function TutorRegister() {
               those who prepare for it today.
             </p>
           </div>
-          
         <div className="flex flex-col lg:flex-row lg:justify-center items-center gap-2 mb-8">
           <div className="flex gap-2 p-1 bg-sky-100 rounded-full">
-           
             <button
               className="px-6 py-2 text-sky-600 rounded-full hover:bg-sky-200 transition-colors duration-300"
                onClick={()=>navigate('/tutor/login')}
             >
               Login
             </button>
-
              <button className="px-6 py-2 bg-sky-500 text-white rounded-full transition-colors duration-300">
               Register
             </button>
           </div>
         </div>
-
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
               <label
@@ -196,7 +183,6 @@ export default function TutorRegister() {
                 <p className="mt-1 text-xs text-red-500">{errors.full_name}</p>
               )}
             </div>
-
             <div>
               <label
                 htmlFor="email"
@@ -220,7 +206,6 @@ export default function TutorRegister() {
                 <p className="mt-1 text-xs text-red-500">{errors.email}</p>
               )}
             </div>
-
             <div>
               <label
                 htmlFor="phone"
@@ -244,7 +229,6 @@ export default function TutorRegister() {
                 <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
               )}
             </div>
-
             <div>
               <label
                 htmlFor="password"
@@ -276,7 +260,6 @@ export default function TutorRegister() {
                 <p className="mt-1 text-xs text-red-500">{errors.password}</p>
               )}
             </div>
-
             <div>
               <label
                 htmlFor="confirmPassword"
@@ -308,7 +291,6 @@ export default function TutorRegister() {
                 <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>
               )}
             </div>
-
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -322,7 +304,6 @@ export default function TutorRegister() {
                 </a>
               </span>
             </div>
-
             <p className="text-center text-sm text-sky-600">
               Already have an account?{" "}
               <button
@@ -332,7 +313,6 @@ export default function TutorRegister() {
                 Sign In !
               </button>
             </p>
-
             <div>
               <button
                 type="submit"
@@ -342,8 +322,7 @@ export default function TutorRegister() {
                 {isSubmitting ? <DotDotDotSpinner /> : "Register"}
               </button>
             </div>
-
-            {/* Divider */}
+            {}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-sky-200"></div>
@@ -352,8 +331,7 @@ export default function TutorRegister() {
                 <span className="px-2 bg-sky-50 text-sky-600">Or register with</span>
               </div>
             </div>
-
-            {/* Google Registration Button */}
+            {}
             <div className="mt-6 flex justify-center">
               <div className="w-full">
                 <GoogleLogin
@@ -370,7 +348,6 @@ export default function TutorRegister() {
           </form>
         </div>
       </div>
-
       <OtpModal
         isOpen={isOtpModalOpen}
         onClose={() => setIsOtpModalOpen(false)}

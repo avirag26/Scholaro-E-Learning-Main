@@ -1,6 +1,5 @@
-﻿import LandingPage from '../../Landing/LandingPage';
+import LandingPage from '../../Landing/LandingPage';
 import GuestRoute from './GuestRoute';
-
 const LandingProtection = () => {
     return (
         <GuestRoute>
@@ -8,5 +7,4 @@ const LandingProtection = () => {
         </GuestRoute>
     );
 };
-
 export default LandingProtection;

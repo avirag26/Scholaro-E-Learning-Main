@@ -1,7 +1,5 @@
-﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { publicAPI, tutorAPI } from "../api/axiosConfig";
-
-
 export const fetchCoursesByCategory = createAsyncThunk(
   'courses/fetchCoursesByCategory',
   async ({ categoryId, ...params }, { rejectWithValue }) => {
@@ -15,8 +13,6 @@ export const fetchCoursesByCategory = createAsyncThunk(
     }
   }
 );
-
-
 export const fetchTutorCourses = createAsyncThunk(
   'courses/fetchTutorCourses',
   async (params = {}, { rejectWithValue }) => {
@@ -31,7 +27,6 @@ export const fetchTutorCourses = createAsyncThunk(
     }
   }
 );
-
 export const createCourse = createAsyncThunk(
   'courses/createCourse',
   async (courseData, { rejectWithValue }) => {
@@ -43,7 +38,6 @@ export const createCourse = createAsyncThunk(
     }
   }
 );
-
 export const updateCourse = createAsyncThunk(
   'courses/updateCourse',
   async ({ id, courseData }, { rejectWithValue }) => {
@@ -55,7 +49,6 @@ export const updateCourse = createAsyncThunk(
     }
   }
 );
-
 export const toggleCourseListing = createAsyncThunk(
   'courses/toggleListing',
   async (courseId, { rejectWithValue }) => {
@@ -63,11 +56,16 @@ export const toggleCourseListing = createAsyncThunk(
       const response = await tutorAPI.patch(`/api/tutors/courses/${courseId}/toggle-listing`);
       return response.data.course;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update course listing');
+      // Pass the full error response for better handling
+      const errorMessage = error.response?.data?.message || 'Failed to update course listing';
+      const isUnlistedByAdmin = error.response?.data?.unlistedByAdmin || false;
+      return rejectWithValue({
+        message: errorMessage,
+        unlistedByAdmin: isUnlistedByAdmin
+      });
     }
   }
 );
-
 export const fetchCourseDetails = createAsyncThunk(
   'courses/fetchCourseDetails',
   async (courseId, { rejectWithValue }) => {
@@ -79,7 +77,6 @@ export const fetchCourseDetails = createAsyncThunk(
     }
   }
 );
-
 export const fetchCategories = createAsyncThunk(
   'courses/fetchCategories',
   async (_, { rejectWithValue }) => {
@@ -91,100 +88,75 @@ export const fetchCategories = createAsyncThunk(
     }
   }
 );
-
 const courseSlice = createSlice({
   name: "courses",
   initialState: {
-
     publicCourses: (() => {
       try {
         const storedData = localStorage.getItem("publicCourses");
         return storedData ? JSON.parse(storedData) : [];
       } catch (error) {
+        console.log(error)
         localStorage.removeItem("publicCourses");
         return [];
       }
     })(),
-    
-
     tutorCourses: [],
     categories: [],
-    
-
     selectedCourse: null,
     pagination: null,
     stats: null,
-    
-
     userProgress: (() => {
       try {
         const storedProgress = localStorage.getItem("userProgress");
         return storedProgress ? JSON.parse(storedProgress) : {};
       } catch (error) {
+        console.log(error)
         localStorage.removeItem("userProgress");
         return {};
       }
     })(),
-    
-
     offerPrices: {},
-    
-
     loading: false,
     error: null,
     currentUserId: null,
   },
-  
   reducers: {
-
     setSelectedCourse: (state, action) => {
       state.selectedCourse = action.payload;
     },
-    
     clearSelectedCourse: (state) => {
       state.selectedCourse = null;
     },
-    
     clearError: (state) => {
       state.error = null;
     },
-    
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
-    
-
     setPublicCourses: (state, action) => {
       const courses = Array.isArray(action.payload) ? action.payload : [action.payload];
       state.publicCourses = courses.filter(course => course.listed);
       localStorage.setItem("publicCourses", JSON.stringify(state.publicCourses));
     },
-    
     clearPublicCourses: (state) => {
       state.publicCourses = [];
       localStorage.removeItem("publicCourses");
     },
-    
-
     updateUserProgress: (state, action) => {
       const { courseId, lessonId, progress, userId } = action.payload;
-      
       if (!state.userProgress[userId]) {
         state.userProgress[userId] = {};
       }
-      
       if (!state.userProgress[userId][courseId]) {
         state.userProgress[userId][courseId] = {};
       }
-      
       state.userProgress[userId][courseId][lessonId] = progress;
       localStorage.setItem("userProgress", JSON.stringify(state.userProgress));
     },
-    
     loadUserProgress: (state, action) => {
       state.currentUserId = action.payload;
     },
-    
     clearUserProgress: (state, action) => {
       const userId = action.payload;
       if (state.userProgress[userId]) {
@@ -193,17 +165,13 @@ const courseSlice = createSlice({
       }
       state.currentUserId = null;
     },
-    
-
     setOfferPrice: (state, action) => {
       const { courseId, offerPrice } = action.payload;
       state.offerPrices[courseId] = offerPrice;
     },
   },
-  
   extraReducers: (builder) => {
     builder
-
       .addCase(fetchCoursesByCategory.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -222,8 +190,6 @@ const courseSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-
       .addCase(fetchTutorCourses.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -238,8 +204,6 @@ const courseSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-
       .addCase(createCourse.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -252,8 +216,6 @@ const courseSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-
       .addCase(updateCourse.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -272,8 +234,6 @@ const courseSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-
       .addCase(toggleCourseListing.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -287,10 +247,8 @@ const courseSlice = createSlice({
       })
       .addCase(toggleCourseListing.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || action.payload;
       })
-
-
       .addCase(fetchCourseDetails.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -303,8 +261,6 @@ const courseSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-
       .addCase(fetchCategories.pending, (state) => {
         state.error = null;
       })
@@ -316,7 +272,6 @@ const courseSlice = createSlice({
       });
   },
 });
-
 export const {
   setSelectedCourse,
   clearSelectedCourse,
@@ -329,5 +284,4 @@ export const {
   clearUserProgress,
   setOfferPrice
 } = courseSlice.actions;
-
 export default courseSlice.reducer;

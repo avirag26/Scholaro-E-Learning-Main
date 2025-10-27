@@ -1,6 +1,13 @@
 ﻿import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { publicAPI } from '../../api/axiosConfig';
+import axios from "axios";
+
+// Create clean API instance without interceptors
+const authAPI = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  timeout: 10000,
+  headers: { "Content-Type": "application/json" },
+});
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import DotDotDotSpinner from '../../ui/Spinner/DotSpinner';
@@ -26,7 +33,7 @@ export default function UserResetPassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.password || !formData.confirmPassword) {
       toast.error('Please fill in all fields.');
       return;
@@ -44,7 +51,7 @@ export default function UserResetPassword() {
 
     setIsSubmitting(true);
     try {
-      const response = await publicAPI.post(`/api/users/reset-password/${token}`, {
+      const response = await authAPI.post(`/api/users/reset-password/${token}`, {
         password: formData.password
       });
       toast.success(response.data.message);
@@ -89,7 +96,7 @@ export default function UserResetPassword() {
               </button>
             </div>
           </div>
-          
+
           <div className="mb-6">
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
             <div className="relative">
@@ -113,15 +120,15 @@ export default function UserResetPassword() {
             </div>
           </div>
 
-          <button 
-            type="submit" 
-            className="w-full bg-sky-500 text-white py-3 rounded-lg hover:bg-sky-600 transition disabled:opacity-50" 
+          <button
+            type="submit"
+            className="w-full bg-sky-500 text-white py-3 rounded-lg hover:bg-sky-600 transition disabled:opacity-50"
             disabled={isSubmitting}
           >
             {isSubmitting ? <DotDotDotSpinner /> : 'Reset Password'}
           </button>
         </form>
-        
+
         <p className="text-center text-sm text-gray-600 mt-4">
           Remember your password? <Link to="/user/login" className="text-sky-500 hover:underline">Login here</Link>
         </p>

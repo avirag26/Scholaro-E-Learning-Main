@@ -1,15 +1,18 @@
-﻿import { useState } from 'react';
-import { publicAPI } from '../../api/axiosConfig';
+import { useState } from 'react';
+import axios from "axios";
+
+// Create clean API instance without interceptors
+const authAPI = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  timeout: 10000,
+  headers: { "Content-Type": "application/json" },
+});
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import DotDotDotSpinner from '../../ui/Spinner/DotSpinner';
-
 export default function UserForgotPassword() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
@@ -18,18 +21,17 @@ export default function UserForgotPassword() {
     }
     setIsSubmitting(true);
     try {
-      const response = await publicAPI.post('/api/users/forgot-password', { email });
+      const response = await authAPI.post('/api/users/forgot-password', { email });
       toast.success(response.data.message);
     } catch (err) {
+      console.log(err)
       toast.success('If an account with that email exists, a password reset link has been sent.');
     } finally {
       setIsSubmitting(false);
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Forgot Your Password?</h2>
         <p className="text-center text-gray-600 mb-6">

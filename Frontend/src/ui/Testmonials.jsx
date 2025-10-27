@@ -1,9 +1,7 @@
-﻿import React from "react";
+import React from "react";
 import { Star } from 'lucide-react';
 import Card from "./Card";
-
 export default function Testimonials({ testimonials = [] }) {
-
   const defaultTestimonials = [
     {
       name: 'Sarah Johnson',
@@ -27,9 +25,7 @@ export default function Testimonials({ testimonials = [] }) {
       rating: 5
     }
   ];
-
   const testimonialsToShow = testimonials.length > 0 ? testimonials : defaultTestimonials;
-
   return (
     <section className="py-20 bg-teal-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,7 +37,6 @@ export default function Testimonials({ testimonials = [] }) {
             Real feedback from our learning community
           </p>
         </div>
-
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {testimonialsToShow.map((testimonial, index) => (
             <Card key={index} className="p-8 hover:shadow-xl transition-shadow">

@@ -1,5 +1,4 @@
-﻿import React from "react";
-
+import React from "react";
 export default function Button({ children, variant = "primary", className = "", ...rest }) {
   let style = "px-5 py-2 rounded-lg font-semibold transition ";
   if (variant === "primary")

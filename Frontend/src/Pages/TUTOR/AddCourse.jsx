@@ -1,21 +1,18 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import TutorLayout from "./COMMON/TutorLayout";
 import ImageUpload from "../../components/ImageUpload";
-
 import {
     createCourse,
     fetchCategories,
     clearError
 } from "../../Redux/courseSlice";
-
 const AddCourse = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { categories, loading, error } = useSelector((state) => state.courses);
-
     const [formData, setFormData] = useState({
         title: "",
         category: "",
@@ -24,23 +21,15 @@ const AddCourse = () => {
         offer_percentage: "",
         course_thumbnail: ""
     });
-
-
-
-
     useEffect(() => {
         dispatch(fetchCategories());
     }, [dispatch]);
-
-
     useEffect(() => {
         if (error) {
             toast.error(error);
             dispatch(clearError());
         }
     }, [error, dispatch]);
-
-
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -48,19 +37,14 @@ const AddCourse = () => {
             [name]: value
         }));
     };
-
     const handleImageUpload = (imageUrl) => {
         setFormData(prev => ({
             ...prev,
             course_thumbnail: imageUrl
         }));
     };
-
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-
         if (!formData.title || !formData.title.trim()) {
             toast.error("Course title is required");
             return;
@@ -81,7 +65,6 @@ const AddCourse = () => {
             toast.error("Please upload a course thumbnail");
             return;
         }
-
         try {
             const courseData = {
                 ...formData,
@@ -90,9 +73,7 @@ const AddCourse = () => {
                 duration: 1,
                 level: "Beginner"
             };
-
             const result = await dispatch(createCourse(courseData));
-
             if (createCourse.fulfilled.match(result)) {
                 toast.success("Course created successfully!");
                 setTimeout(() => {
@@ -106,18 +87,16 @@ const AddCourse = () => {
             toast.error("Failed to create course");
         }
     };
-
     return (
         <TutorLayout title="Add New Course" subtitle="Create a new course for your students">
             <div className="max-w-4xl mx-auto">
                 <div className="space-y-6">
                     <div className="bg-white rounded-lg shadow p-6">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Add New Course</h2>
-
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* Left Column */}
+                            {}
                             <div className="space-y-4">
-                                {/* Course Title */}
+                                {}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Course Title *
@@ -132,8 +111,7 @@ const AddCourse = () => {
                                         required
                                     />
                                 </div>
-
-                                {/* Course Category */}
+                                {}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Course Category *
@@ -153,8 +131,7 @@ const AddCourse = () => {
                                         ))}
                                     </select>
                                 </div>
-
-                                {/* Regular Price */}
+                                {}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Regular Price *
@@ -171,8 +148,7 @@ const AddCourse = () => {
                                         required
                                     />
                                 </div>
-
-                                {/* Offer Percentage */}
+                                {}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Offer Percentage
@@ -189,8 +165,7 @@ const AddCourse = () => {
                                     />
                                 </div>
                             </div>
-
-                            {/* Right Column */}
+                            {}
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -203,8 +178,7 @@ const AddCourse = () => {
                                         uploadFolder="course-thumbnails"
                                     />
                                 </div>
-
-                                {/* Description */}
+                                {}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Description *
@@ -221,10 +195,7 @@ const AddCourse = () => {
                                 </div>
                             </div>
                         </div>
-
-
-
-                        {/* Submit Button */}
+                        {}
                         <div className="mt-8 text-center">
                             <button
                                 type="submit"
@@ -235,12 +206,10 @@ const AddCourse = () => {
                                 {loading ? "Creating Course..." : "CREATE COURSE"}
                             </button>
                         </div>
-
                     </div>
                 </div>
             </div>
         </TutorLayout>
     );
 };
-
 export default AddCourse;

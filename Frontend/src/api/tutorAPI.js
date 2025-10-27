@@ -1,5 +1,4 @@
-﻿import { tutorAPI, publicAPI } from './axiosConfig';
-
+import { tutorAPI, publicAPI } from './axiosConfig';
 export const tutorAuthAPI = {
   register: (tutorData) => publicAPI.post('/api/tutors/register', tutorData),
   login: (credentials) => publicAPI.post('/api/tutors/login', credentials),
@@ -9,7 +8,6 @@ export const tutorAuthAPI = {
   resetPassword: (token, password) => publicAPI.patch(`/api/tutors/reset-password/${token}`, { password }),
   googleAuth: (credential) => publicAPI.post('/api/tutors/google-auth', { credential }),
 };
-
 export const tutorProtectedAPI = {
   checkStatus: () => tutorAPI.get('/api/tutors/check-status'),
   getProfile: () => tutorAPI.get('/api/tutors/profile'),
@@ -23,7 +21,6 @@ export const tutorProtectedAPI = {
   getNotifications: () => tutorAPI.get('/api/tutors/notifications'),
   markNotificationRead: (notificationId) => tutorAPI.patch(`/api/tutors/notifications/${notificationId}/read`),
 };
-
 export const tutorAPIService = {
   ...tutorAuthAPI,
   ...tutorProtectedAPI,

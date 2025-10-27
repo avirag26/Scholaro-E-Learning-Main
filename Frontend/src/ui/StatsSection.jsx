@@ -1,5 +1,4 @@
-﻿import React from "react";
-
+import React from "react";
 export default function StatsSection() {
   const stats = [
     { value: "25K+", label: "Active Students", description: "Learning worldwide" },
@@ -7,7 +6,6 @@ export default function StatsSection() {
     { value: "5K+", label: "Online Courses", description: "Across all categories" },
     { value: "98%", label: "Success Rate", description: "Student satisfaction" },
   ];
-
   return (
     <section className="py-20 bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,7 +17,6 @@ export default function StatsSection() {
             Thousands of students and instructors trust Scholaro
           </p>
         </div>
-
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           {stats.map((stat) => (
             <div key={stat.label} className="p-6">

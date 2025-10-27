@@ -1,5 +1,6 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Search, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import AdminLayout from "./common/AdminLayout";
@@ -11,14 +12,23 @@ import {
   toggleCategoryListingAPI,
   clearError
 } from "../../Redux/categorySlice";
-
 const Categories = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { categoryDatas: categories, pagination, loading, error } = useSelector(state => state.category);
-
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -26,52 +36,80 @@ const Categories = () => {
     name: "",
     description: ""
   });
-
   useEffect(() => {
     dispatch(fetchCategories({
       page: currentPage,
-      limit: itemsPerPage
+      limit: itemsPerPage,
+      search: debouncedSearchTerm
     }));
-  }, [dispatch, currentPage, itemsPerPage]);
+  }, [dispatch, currentPage, itemsPerPage, debouncedSearchTerm]);
 
+  // Reset to first page when search changes
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [debouncedSearchTerm]);
   useEffect(() => {
     if (error) {
       toast.error(error);
       dispatch(clearError());
     }
   }, [error, dispatch]);
-
   const handleAddCategory = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) {
       toast.error("Category name is required");
       return;
     }
-
+    
+    // Client-side duplicate check
+    const isDuplicate = categories.some(category => 
+      category.title?.toLowerCase() === formData.name.toLowerCase()
+    );
+    
+    if (isDuplicate) {
+      toast.error("Category with this name already exists");
+      return;
+    }
+    
     try {
       const result = await dispatch(createCategory(formData));
       if (createCategory.fulfilled.match(result)) {
         setFormData({ name: "", description: "" });
         setShowAddModal(false);
         toast.success("Category added successfully!");
-
         dispatch(fetchCategories({
           page: currentPage,
-          limit: itemsPerPage
+          limit: itemsPerPage,
+          search: debouncedSearchTerm
         }));
+      } else if (createCategory.rejected.match(result)) {
+        // Handle the error from the rejected action
+        toast.error(result.payload || "Failed to add category");
       }
     } catch (error) {
-
+      toast.error("An unexpected error occurred");
     }
   };
-
   const handleEditCategory = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) {
       toast.error("Category name is required");
       return;
     }
-
+    
+    // Client-side duplicate check (excluding current category)
+    const isDuplicate = categories.some(category => 
+      category.title?.toLowerCase() === formData.name.toLowerCase() && 
+      category.id !== selectedCategory.id
+    );
+    
+    if (isDuplicate) {
+      toast.error("Category with this name already exists");
+      return;
+    }
+    
     try {
       const result = await dispatch(updateCategoryAPI({
         id: selectedCategory.id,
@@ -82,21 +120,22 @@ const Categories = () => {
         setShowEditModal(false);
         setSelectedCategory(null);
         toast.success("Category updated successfully!");
-
         dispatch(fetchCategories({
           page: currentPage,
-          limit: itemsPerPage
+          limit: itemsPerPage,
+          search: debouncedSearchTerm
         }));
+      } else if (updateCategoryAPI.rejected.match(result)) {
+        // Handle the error from the rejected action
+        toast.error(result.payload || "Failed to update category");
       }
     } catch (error) {
-
+      toast.error("An unexpected error occurred");
     }
   };
-
   const handleToggleListing = async (category) => {
     const action = category.isVisible ? "unlist" : "list";
     const actionPast = category.isVisible ? "unlisted" : "listed";
-
     const result = await Swal.fire({
       title: `${action.charAt(0).toUpperCase() + action.slice(1)} Category?`,
       text: `Are you sure you want to ${action} "${category.name}"?`,
@@ -107,24 +146,19 @@ const Categories = () => {
       confirmButtonText: `Yes, ${action} it!`,
       cancelButtonText: "Cancel"
     });
-
     if (!result.isConfirmed) return;
-
     try {
       const result = await dispatch(toggleCategoryListingAPI(category.id));
       if (toggleCategoryListingAPI.fulfilled.match(result)) {
         toast.success(`Category ${actionPast} successfully!`);
-
         dispatch(fetchCategories({
           page: currentPage,
           limit: itemsPerPage
         }));
       }
     } catch (error) {
-
     }
   };
-
   const openEditModal = (category) => {
     setSelectedCategory(category);
     setFormData({
@@ -133,25 +167,17 @@ const Categories = () => {
     });
     setShowEditModal(true);
   };
-
   const closeModals = () => {
     setShowAddModal(false);
     setShowEditModal(false);
     setSelectedCategory(null);
     setFormData({ name: "", description: "" });
   };
-
-
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
-
-
-  const filteredCategories = categories.filter(category =>
-    category.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    category.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+  // Use server-filtered categories directly (no client-side filtering needed)
+  const filteredCategories = categories;
   if (loading && categories.length === 0) {
     return (
       <AdminLayout title="Categories" subtitle="Manage course categories">
@@ -161,16 +187,14 @@ const Categories = () => {
       </AdminLayout>
     );
   }
-
   return (
     <AdminLayout title="Category Management" subtitle="Manage course categories">
-      {/* Header Section */}
+      {}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-semibold text-gray-900">List of Categories</h2>
           </div>
-
           <div className="flex items-center gap-3">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -182,7 +206,6 @@ const Categories = () => {
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500 w-64"
               />
             </div>
-
             <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 px-4 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors font-medium"
@@ -193,8 +216,7 @@ const Categories = () => {
           </div>
         </div>
       </div>
-
-      {/* Categories List */}
+      {}
       <div className="space-y-4">
         {filteredCategories.length > 0 ? (
           filteredCategories.map((category) => (
@@ -216,7 +238,6 @@ const Categories = () => {
                     <p className="text-gray-600 text-sm">{category.description}</p>
                   )}
                 </div>
-
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => openEditModal(category)}
@@ -224,7 +245,6 @@ const Categories = () => {
                   >
                     Edit
                   </button>
-
                   <button
                     onClick={() => handleToggleListing(category)}
                     disabled={loading}
@@ -235,8 +255,10 @@ const Categories = () => {
                   >
                     {loading ? "Updating..." : (category.isVisible ? "Unlist" : "List")}
                   </button>
-
-                  <button className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 transition-colors font-medium text-sm">
+                  <button 
+                    onClick={() => navigate(`/admin/categories/${category.id}/courses`)}
+                    className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 transition-colors font-medium text-sm"
+                  >
                     View
                   </button>
                 </div>
@@ -266,17 +288,15 @@ const Categories = () => {
           </div>
         )}
       </div>
-
-      {/* Pagination Controls */}
+      {}
       {!searchTerm && pagination && pagination.totalPages > 1 && (
         <div className="bg-white rounded-lg shadow p-6 mt-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            {/* Total items info */}
+            {}
             <div className="text-sm text-gray-700">
               Total: {pagination.totalItems} categories
             </div>
-
-            {/* Pagination buttons */}
+            {}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
@@ -286,27 +306,21 @@ const Categories = () => {
                 <ChevronLeft className="w-4 h-4" />
                 Previous
               </button>
-
-              {/* Page numbers */}
+              {}
               <div className="flex items-center gap-1">
                 {[...Array(pagination.totalPages)].map((_, index) => {
                   const page = index + 1;
                   const isCurrentPage = page === currentPage;
-                  
-
                   const showPage = 
                     page === 1 || 
                     page === pagination.totalPages || 
                     (page >= currentPage - 1 && page <= currentPage + 1);
-
                   if (!showPage) {
-
                     if (page === currentPage - 2 || page === currentPage + 2) {
                       return <span key={page} className="px-2 text-gray-500">...</span>;
                     }
                     return null;
                   }
-
                   return (
                     <button
                       key={page}
@@ -322,7 +336,6 @@ const Categories = () => {
                   );
                 })}
               </div>
-
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={!pagination.hasNextPage}
@@ -333,20 +346,17 @@ const Categories = () => {
               </button>
             </div>
           </div>
-
-          {/* Page info */}
+          {}
           <div className="mt-4 text-sm text-gray-600 text-center">
             Showing {((currentPage - 1) * 5) + 1} to {Math.min(currentPage * 5, pagination.totalItems)} of {pagination.totalItems} entries
           </div>
         </div>
       )}
-
-      {/* Add Category Modal */}
+      {}
       {showAddModal && (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg border border-gray-300 shadow-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Add New Category</h3>
-
             <form onSubmit={handleAddCategory} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -361,7 +371,6 @@ const Categories = () => {
                   required
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description
@@ -374,7 +383,6 @@ const Categories = () => {
                   rows="3"
                 />
               </div>
-
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
@@ -395,13 +403,11 @@ const Categories = () => {
           </div>
         </div>
       )}
-
-      {/* Edit Category Modal */}
+      {}
       {showEditModal && (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg border border-gray-300 shadow-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Edit Category</h3>
-
             <form onSubmit={handleEditCategory} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -416,7 +422,6 @@ const Categories = () => {
                   required
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description
@@ -429,7 +434,6 @@ const Categories = () => {
                   rows="3"
                 />
               </div>
-
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
@@ -453,5 +457,4 @@ const Categories = () => {
     </AdminLayout>
   );
 };
-
 export default Categories;

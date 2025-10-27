@@ -1,6 +1,5 @@
-﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { adminAPI } from "../api/axiosConfig";
-
 export const fetchTutors = createAsyncThunk(
   "tutors/fetchTutors",
   async ({ page = 1, search = '', status = 'all' } = {}, { rejectWithValue }) => {
@@ -11,9 +10,7 @@ export const fetchTutors = createAsyncThunk(
         status
       });
       const { data } = await adminAPI.get(`/api/admin/tutors?${params}`);
-
       return data;
-
     }
     catch (error) {
       return rejectWithValue(
@@ -21,7 +18,6 @@ export const fetchTutors = createAsyncThunk(
       );
     }
   });
-
 const tutorSlice = createSlice({
   name: "tutors",
   initialState: {
@@ -51,5 +47,4 @@ const tutorSlice = createSlice({
       });
   }
 })
-
 export default tutorSlice.reducer;

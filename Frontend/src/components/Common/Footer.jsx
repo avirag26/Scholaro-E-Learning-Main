@@ -1,13 +1,12 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, BookOpen } from 'lucide-react';
-
 const Footer = () => {
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Main Footer Content */}
+        {}
         <div className="py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info */}
+          {}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <BookOpen className="h-8 w-8 text-teal-400" />
@@ -31,8 +30,7 @@ const Footer = () => {
               </a>
             </div>
           </div>
-
-          {/* Quick Links */}
+          {}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Quick Links</h3>
             <ul className="space-y-2">
@@ -63,8 +61,7 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-
-          {/* For Educators */}
+          {}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">For Educators</h3>
             <ul className="space-y-2">
@@ -95,8 +92,7 @@ const Footer = () => {
               </li>
             </ul>
           </div>
-
-          {/* Contact Info */}
+          {}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-white">Contact Us</h3>
             <div className="space-y-3">
@@ -118,12 +114,11 @@ const Footer = () => {
             </div>
           </div>
         </div>
-
-        {/* Bottom Footer */}
+        {}
         <div className="border-t border-gray-800 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-gray-400 text-sm">
-              © 2024 Scholaro. All rights reserved.
+              � 2024 Scholaro. All rights reserved.
             </div>
             <div className="flex space-x-6">
               <Link to="/privacy" className="text-gray-400 hover:text-teal-400 transition-colors text-sm">
@@ -142,5 +137,4 @@ const Footer = () => {
     </footer>
   );
 };
-
 export default Footer;

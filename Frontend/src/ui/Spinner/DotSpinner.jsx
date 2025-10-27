@@ -1,6 +1,5 @@
-﻿import React from "react";
+import React from "react";
 import "./DotSpinner.css";
-
 const DotDotDotSpinner = () => {
   return (
     <div className="dot-dot-dot-spinner">
@@ -10,5 +9,4 @@ const DotDotDotSpinner = () => {
     </div>
   );
 };
-
 export default DotDotDotSpinner;

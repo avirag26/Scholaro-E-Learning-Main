@@ -1,9 +1,8 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, MessageCircle, HelpCircle, Users } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
-
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -13,7 +12,6 @@ const Contact = () => {
     category: 'general'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const contactInfo = [
     {
       icon: <Mail className="w-6 h-6 text-teal-600" />,
@@ -40,14 +38,12 @@ const Contact = () => {
       description: 'Weekend support available'
     }
   ];
-
   const categories = [
     { value: 'general', label: 'General Inquiry', icon: <MessageCircle className="w-5 h-5" /> },
     { value: 'support', label: 'Technical Support', icon: <HelpCircle className="w-5 h-5" /> },
     { value: 'tutor', label: 'Become a Tutor', icon: <Users className="w-5 h-5" /> },
     { value: 'partnership', label: 'Partnership', icon: <Mail className="w-5 h-5" /> }
   ];
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -55,14 +51,11 @@ const Contact = () => {
       [name]: value
     }));
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
       toast.success('Message sent successfully! We\'ll get back to you soon.');
       setFormData({
         name: '',
@@ -77,7 +70,6 @@ const Contact = () => {
       setIsSubmitting(false);
     }
   };
-
   const faqItems = [
     {
       question: 'How do I sign up as a student?',
@@ -96,11 +88,9 @@ const Contact = () => {
       answer: 'Yes, we offer a 30-day money-back guarantee for all courses. If you\'re not satisfied, contact our support team for a full refund.'
     }
   ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
       <section className="bg-gradient-to-r from-teal-600 to-blue-600 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -111,7 +101,6 @@ const Contact = () => {
           </p>
         </div>
       </section>
-
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
@@ -128,7 +117,6 @@ const Contact = () => {
           </div>
         </div>
       </section>
-
       <section className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12">
@@ -167,7 +155,6 @@ const Contact = () => {
                     />
                   </div>
                 </div>
-
                 <div>
                   <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
                     Category
@@ -186,7 +173,6 @@ const Contact = () => {
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
                     Subject *
@@ -202,7 +188,6 @@ const Contact = () => {
                     placeholder="What is this about?"
                   />
                 </div>
-
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
                     Message *
@@ -218,7 +203,6 @@ const Contact = () => {
                     placeholder="Tell us more about your inquiry..."
                   />
                 </div>
-
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -238,7 +222,6 @@ const Contact = () => {
                 </button>
               </form>
             </div>
-
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
               <div className="space-y-6">
@@ -249,7 +232,6 @@ const Contact = () => {
                   </div>
                 ))}
               </div>
-
               <div className="mt-8 p-6 bg-teal-50 rounded-lg">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Need Immediate Help?</h3>
                 <div className="space-y-3">
@@ -271,7 +253,6 @@ const Contact = () => {
           </div>
         </div>
       </section>
-
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
@@ -288,10 +269,8 @@ const Contact = () => {
           </div>
         </div>
       </section>
-
       <Footer />
     </div>
   );
 };
-
 export default Contact;

@@ -2,21 +2,36 @@
 import { Eye, EyeOff, AlertTriangle } from "lucide-react";
 import LoginBanner from "../../assets/Login.svg";
 import { Link, useNavigate } from "react-router-dom";
-import { tutorAPI } from "../../api/axiosConfig";
+import axios from "axios";
+
+// Create clean API instance for login without interceptors
+const loginAPI = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+  timeout: 10000,
+  headers: { "Content-Type": "application/json" },
+});
 import { toast } from "react-toastify";
 import DotDotDotSpinner from "../../ui/Spinner/DotSpinner";
 import { GoogleLogin } from "@react-oauth/google";
-import { clearUserData, clearAdminData, redirectAfterLogin } from "../../helpers/auth";
+import { clearUserData, clearAdminData, redirectAfterLogin } from "../../utils/authUtils";
+import { useCurrentTutor } from "../../hooks/useCurrentTutor";
+import { useEffect } from "react";
+
 
 export default function TutorLogin() {
   const navigate = useNavigate();
+  const { login } = useCurrentTutor();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { isAuthenticated } = useCurrentTutor();
+  
+  useEffect(() => {
+    if (isAuthenticated) navigate("/tutor/home", { replace: true });
+  }, [navigate, isAuthenticated]);
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const validateEmail = (inputEmail) => {
     if (!inputEmail) {
       setEmailError("Email is required");
@@ -26,7 +41,6 @@ export default function TutorLogin() {
       setEmailError("");
     }
   };
-
   const validatePassword = (inputPassword) => {
     if (!inputPassword) {
       setPasswordError("Password is required");
@@ -34,46 +48,34 @@ export default function TutorLogin() {
       setPasswordError("");
     }
   };
-
   const handleEmailChange = (e) => {
     const inputEmail = e.target.value;
     setEmail(inputEmail);
     validateEmail(inputEmail);
   };
-
   const handlePasswordChange = (e) => {
     const inputPassword = e.target.value;
     setPassword(inputPassword);
     validatePassword(inputPassword);
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     validateEmail(email);
     validatePassword(password);
-
     if (emailError || passwordError || !email || !password) return;
-
     setIsSubmitting(true);
     try {
-      const response = await tutorAPI.post("/api/tutors/login", { email, password });
-
+      const response = await loginAPI.post("/api/tutors/login", { email, password });
       clearUserData();
       clearAdminData();
-
-      localStorage.setItem("tutorAuthToken", response.data.accessToken);
-      localStorage.setItem("tutorInfo", JSON.stringify(response.data.tutor));
+      login(response.data.tutor, response.data.accessToken);
       toast.success("Login successful! Welcome back.");
-
       redirectAfterLogin(navigate, 'tutor');
     } catch (err) {
       if (err.response?.status === 403 && err.response?.data?.blocked) {
-
         toast.error(err.response.data.message || "Your account has been blocked");
-
         localStorage.removeItem('tutorAuthToken');
         localStorage.removeItem('tutorInfo');
-
         setEmail("");
         setPassword("");
         return;
@@ -83,25 +85,19 @@ export default function TutorLogin() {
       setIsSubmitting(false);
     }
   };
-
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       setIsSubmitting(true);
-      const response = await tutorAPI.post("/api/tutors/google-auth", {
+      const response = await loginAPI.post("/api/tutors/google-auth", {
         credential: credentialResponse.credential
       });
-
       clearUserData();
       clearAdminData();
-
-      localStorage.setItem("tutorAuthToken", response.data.accessToken);
-      localStorage.setItem("tutorInfo", JSON.stringify(response.data.tutor));
-
+      login(response.data.tutor, response.data.accessToken);
       toast.success(response.data.message || "Google login successful!");
       redirectAfterLogin(navigate, 'tutor');
     } catch (err) {
       if (err.response?.status === 403 && err.response.data.blocked) {
-
         toast.error(err.response.data.message || "Your account has been blocked");
         return;
       }
@@ -110,14 +106,12 @@ export default function TutorLogin() {
       setIsSubmitting(false);
     }
   };
-
   const handleGoogleError = () => {
     toast.error("Google login failed. Please try again.");
   };
-
   return (
     <div className="min-h-screen flex">
-      {/* Left Section */}
+      {}
       <div className="hidden lg:flex lg:w-1/2 bg-sky-100 relative">
         <img
           src={LoginBanner}
@@ -125,19 +119,16 @@ export default function TutorLogin() {
           className="w-full h-full object-cover"
         />
       </div>
-
-      {/* Right Section */}
+      {}
       <div className="w-full lg:w-1/2 flex flex-col p-8 lg:p-12 relative">
-
-        {/* Scholaro Logo */}
+        {}
         <div className="absolute top-4 right-4 hidden lg:block">
           <h1 className="text-2xl font-bold text-sky-600">Scholaro</h1>
         </div>
         <div className="flex justify-between items-center mb-8 lg:hidden">
           <h1 className="text-2xl font-bold text-sky-600">Scholaro</h1>
         </div>
-
-        {/* Buttons Section */}
+        {}
         <div className="flex flex-col lg:flex-row lg:justify-center items-center gap-2 mb-8">
           <div className="flex gap-2 p-1 bg-sky-200 rounded-full">
             <button className="px-6 py-2 bg-sky-600 text-white rounded-full transition-colors duration-300">
@@ -149,16 +140,14 @@ export default function TutorLogin() {
             </button>
           </div>
         </div>
-
-        {/* Form Section */}
+        {}
         <div className="max-w-md w-full mx-auto">
           <div className="mb-8">
             <h2 className="text-2xl font-semibold mb-2">Welcome to Scholaro...!</h2>
             <p className="text-sky-700">Scholaro makes you perfect</p>
           </div>
-
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-            {/* Username Input */}
+            {}
             <div>
               <label
                 htmlFor="email"
@@ -184,8 +173,7 @@ export default function TutorLogin() {
                 </div>
               )}
             </div>
-
-            {/* Password Input with Toggle */}
+            {}
             <div className="relative">
               <label
                 htmlFor="password"
@@ -219,8 +207,7 @@ export default function TutorLogin() {
                 </div>
               )}
             </div>
-
-            {/* Remember Me and Forgot Password */}
+            {}
             <div className="flex items-center justify-between">
               <label className="flex items-center space-x-2">
                 <input
@@ -233,8 +220,7 @@ export default function TutorLogin() {
                 Forgot Password?
               </Link>
             </div>
-
-            {/* Submit Button */}
+            {}
             <button
               type="submit"
               className="w-full bg-sky-600 text-white py-3 rounded-lg hover:bg-sky-700 transition-colors duration-300 disabled:opacity-50"
@@ -242,8 +228,7 @@ export default function TutorLogin() {
             >
               {isSubmitting ? <DotDotDotSpinner /> : "Login"}
             </button>
-
-            {/* Divider */}
+            {}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-sky-300"></div>
@@ -252,8 +237,7 @@ export default function TutorLogin() {
                 Sign up with
               </div>
             </div>
-
-            {/* Google Login Button */}
+            {}
             <div className="mt-6 flex justify-center">
               <div className="w-full">
                 <GoogleLogin
@@ -267,8 +251,7 @@ export default function TutorLogin() {
                 />
               </div>
             </div>
-
-            {/* Sign Up Link */}
+            {}
             <p className="text-center text-sm text-sky-700">
               Don&apos;t have an account?{" "}
               <Link to="/tutor/register" className="text-sky-600 hover:underline">

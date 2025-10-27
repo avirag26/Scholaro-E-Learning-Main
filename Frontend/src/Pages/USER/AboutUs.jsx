@@ -1,7 +1,6 @@
-﻿import { Users, Target, Award, BookOpen, Heart, Globe } from 'lucide-react';
+import { Users, Target, Award, BookOpen, Heart, Globe } from 'lucide-react';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
-
 const AboutUs = () => {
   const stats = [
     { number: '10,000+', label: 'Students Enrolled' },
@@ -9,7 +8,6 @@ const AboutUs = () => {
     { number: '1,000+', label: 'Courses Available' },
     { number: '95%', label: 'Success Rate' }
   ];
-
   const values = [
     {
       icon: <BookOpen className="w-8 h-8 text-teal-600" />,
@@ -32,7 +30,6 @@ const AboutUs = () => {
       description: 'Join a diverse, global community of learners and educators passionate about knowledge sharing.'
     }
   ];
-
   const team = [
     {
       name: 'Sarah Johnson',
@@ -53,11 +50,9 @@ const AboutUs = () => {
       description: 'Curriculum expert with a passion for personalized learning experiences.'
     }
   ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
       <section className="bg-gradient-to-r from-teal-600 to-blue-600 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -71,7 +66,6 @@ const AboutUs = () => {
           </div>
         </div>
       </section>
-
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -104,7 +98,6 @@ const AboutUs = () => {
           </div>
         </div>
       </section>
-
       <section className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -121,7 +114,6 @@ const AboutUs = () => {
           </div>
         </div>
       </section>
-
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -141,7 +133,6 @@ const AboutUs = () => {
           </div>
         </div>
       </section>
-
       <section className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -164,7 +155,6 @@ const AboutUs = () => {
           </div>
         </div>
       </section>
-
       <section className="bg-gradient-to-r from-teal-600 to-blue-600 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Start Learning?</h2>
@@ -179,10 +169,8 @@ const AboutUs = () => {
           </div>
         </div>
       </section>
-
       <Footer />
     </div>
   );
 };
-
 export default AboutUs;

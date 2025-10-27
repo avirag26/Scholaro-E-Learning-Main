@@ -1,5 +1,4 @@
-﻿import mongoose from 'mongoose';
-
+import mongoose from 'mongoose';
 const otpSchema = new mongoose.Schema({
   email: {
     type: String,
@@ -7,7 +6,6 @@ const otpSchema = new mongoose.Schema({
     index: true
   },
   otp: {
-    
     type: String,
     required: true
   },
@@ -26,10 +24,6 @@ const otpSchema = new mongoose.Schema({
     expires: 600
   }
 });
-
-
 otpSchema.index({ email: 1, userType: 1 });
-
 const OTP = mongoose.model('OTP', otpSchema);
-
 export default OTP;

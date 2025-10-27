@@ -1,6 +1,5 @@
-﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { adminAPI } from "../api/axiosConfig";
-
 export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
   async ({ page = 1, search = "", status = "all" } = {}, { rejectWithValue }) => {
@@ -8,14 +7,12 @@ export const fetchUsers = createAsyncThunk(
       const res = await adminAPI.get("/api/admin/users", {
         params: { page, search, status },
       });
-
       return res.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Something went wrong");
     }
   }
 );
-
 const userSlice = createSlice({
   name: "users",
   initialState: {
@@ -43,5 +40,4 @@ const userSlice = createSlice({
       });
   },
 });
-
 export default userSlice.reducer;

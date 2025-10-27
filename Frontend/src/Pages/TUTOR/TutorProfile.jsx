@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Edit2, Key, FileText, GraduationCap, Camera } from 'lucide-react';
 import { toast } from 'react-toastify';
 import ChangePasswordModal from '../../ui/ChangePasswordModal';
@@ -6,8 +6,6 @@ import EmailChangeModal from '../../ui/EmailChangeModal';
 import TutorLayout from './COMMON/TutorLayout';
 import { uploadToCloudinary, validateImageFile } from '../../utils/cloudinary';
 import { tutorAPI } from '../../api/axiosConfig';
-
-
 const TutorProfile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -26,26 +24,20 @@ const TutorProfile = () => {
         bio: ''
     });
     const fileInputRef = useRef(null);
-
-
-
     useEffect(() => {
         const loadTutorData = async () => {
             try {
-
                 const response = await tutorAPI.get('/api/tutors/profile');
                 const tutorData = response.data.tutor;
                 setTutorInfo(tutorData);
                 localStorage.setItem('tutorInfo', JSON.stringify(tutorData));
             } catch (error) {
-
                 try {
                     const storedTutorInfo = localStorage.getItem('tutorInfo');
                     if (storedTutorInfo) {
                         const tutorData = JSON.parse(storedTutorInfo);
                         setTutorInfo(tutorData);
                     } else {
-
                         setTutorInfo({
                             name: '',
                             email: '',
@@ -55,7 +47,6 @@ const TutorProfile = () => {
                         });
                     }
                 } catch (localError) {
-
                     setTutorInfo({
                         name: '',
                         email: '',
@@ -68,11 +59,8 @@ const TutorProfile = () => {
                 setLoading(false);
             }
         };
-
         loadTutorData();
     }, []);
-
-
     useEffect(() => {
         if (tutorInfo) {
             setFormData({
@@ -84,62 +72,42 @@ const TutorProfile = () => {
             });
         }
     }, [tutorInfo]);
-
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
     };
-
     const handleImageChange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
-
         const validation = validateImageFile(file);
         if (!validation.valid) {
             toast.error(validation.error);
             return;
         }
-
         try {
             setUploadingImage(true);
-            
-
             const reader = new FileReader();
             reader.onloadend = () => {
                 setSelectedImage(reader.result);
             };
             reader.readAsDataURL(file);
-
-
             const uploadResult = await uploadToCloudinary(file);
-            
             if (!uploadResult.success) {
                 toast.error(uploadResult.error || 'Failed to upload image');
                 setSelectedImage(null);
                 return;
             }
-
-
             await tutorAPI.post('/api/tutors/upload-profile-photo', {
                 imageUrl: uploadResult.url
             });
-
-
             const updatedTutorInfo = { ...tutorInfo, profileImage: uploadResult.url };
             setTutorInfo(updatedTutorInfo);
             localStorage.setItem('tutorInfo', JSON.stringify(updatedTutorInfo));
-            
-
             window.dispatchEvent(new CustomEvent('tutorInfoUpdated'));
-
-
             setSelectedImage(null);
-
             toast.success('Profile photo updated successfully!');
-            
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to upload profile photo');
             setSelectedImage(null);
@@ -147,14 +115,11 @@ const TutorProfile = () => {
             setUploadingImage(false);
         }
     };
-
     const handleEditClick = () => {
         setIsEditing(true);
     };
-
     const handleCancelEdit = () => {
         setIsEditing(false);
-
         if (tutorInfo) {
             setFormData({
                 name: tutorInfo.name || tutorInfo.full_name || '',
@@ -164,14 +129,11 @@ const TutorProfile = () => {
                 bio: tutorInfo.bio || ''
             });
         }
-
         setSelectedImage(null);
     };
-
     const handleSaveProfile = async () => {
         try {
             setLoading(true);
-
             const profileData = {
                 name: formData.name,
                 email: formData.email,
@@ -179,21 +141,14 @@ const TutorProfile = () => {
                 subjects: formData.subjects,
                 bio: formData.bio
             };
-
             const response = await tutorAPI.put('/api/tutors/profile', profileData);
-            
-
             const updatedTutorInfo = {
                 ...response.data.tutor,
                 profileImage: tutorInfo?.profileImage || response.data.tutor.profileImage
             };
-            
             setTutorInfo(updatedTutorInfo);
             localStorage.setItem('tutorInfo', JSON.stringify(updatedTutorInfo));
-            
-
             window.dispatchEvent(new CustomEvent('tutorInfoUpdated'));
-
             setIsEditing(false);
             toast.success('Profile updated successfully!');
         } catch (error) {
@@ -205,7 +160,6 @@ const TutorProfile = () => {
             setLoading(false)
         }
     };
-
     const handlePasswordChange = async (passwordData) => {
         setIsChangingPassword(true);
         try {
@@ -213,16 +167,13 @@ const TutorProfile = () => {
                 await tutorAPI.post('/api/tutors/change-password/send-otp');
                 toast.success("OTP sent to your email");
             } else if (passwordData.action === 'chnagePassword') {
-
                 await tutorAPI.post('/api/tutors/change-password/verify', {
                     newPassword: passwordData.password,
                     otp: passwordData.otp
                 })
-
                 setShowPasswordModal(false);
                 toast.success("Password changed successfully");
             }
-
         } catch (error) {
             const errorMessage = error.response?.data?.message || 'Failed to change password';
             toast.error(errorMessage);
@@ -230,7 +181,6 @@ const TutorProfile = () => {
             setIsChangingPassword(false);
         }
     };
-
     const handleEmailChange = async (emailData) => {
         setIsChangingEmail(true);
         try {
@@ -243,24 +193,17 @@ const TutorProfile = () => {
                     otp: emailData.otp,
                     newEmail: emailData.newEmail
                 });
-                
-
                 const updatedTutorInfo = {
                     ...tutorInfo,
                     email: emailData.newEmail
                 };
                 setTutorInfo(updatedTutorInfo);
                 localStorage.setItem('tutorInfo', JSON.stringify(updatedTutorInfo));
-                
-
                 setFormData(prev => ({
                     ...prev,
                     email: emailData.newEmail
                 }));
-                
-
                 window.dispatchEvent(new CustomEvent('tutorInfoUpdated'));
-                
                 setShowEmailChangeModal(false);
             }
         } catch (error) {
@@ -271,8 +214,6 @@ const TutorProfile = () => {
             setIsChangingEmail(false);
         }
     };
-
-
     if (loading) {
         return (
             <TutorLayout>
@@ -285,11 +226,9 @@ const TutorProfile = () => {
             </TutorLayout>
         );
     }
-
     return (
         <TutorLayout>
             <div className="rounded-2xl shadow-md px-8 py-6 bg-white border-4 border-[#b8eec4]/30">
-
                 <div className="flex justify-between items-center mb-8">
                     <h2 className="text-2xl font-bold text-sky-600">Profile Settings</h2>
                     {!isEditing ? (
@@ -318,8 +257,6 @@ const TutorProfile = () => {
                         </div>
                     )}
                 </div>
-
-
                 <div className="flex justify-center mb-8">
                     <div className="relative inline-block">
                         <img
@@ -348,10 +285,7 @@ const TutorProfile = () => {
                         />
                     </div>
                 </div>
-
-
                 <div className="space-y-6">
-
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Name
@@ -375,8 +309,6 @@ const TutorProfile = () => {
                             )}
                         </div>
                     </div>
-
-
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Email
@@ -401,8 +333,6 @@ const TutorProfile = () => {
                             Email changes require verification for security
                         </p>
                     </div>
-
-
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Phone
@@ -426,8 +356,6 @@ const TutorProfile = () => {
                             )}
                         </div>
                     </div>
-
-
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Subjects Teaching
@@ -452,8 +380,6 @@ const TutorProfile = () => {
                         </div>
                         <p className="text-sm text-gray-500 mt-1">Separate multiple subjects with commas</p>
                     </div>
-
-
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Bio
@@ -482,8 +408,6 @@ const TutorProfile = () => {
                             <p className="text-sm text-gray-500">{formData.bio.length}/500</p>
                         </div>
                     </div>
-
-
                     <div className="flex justify-center pt-6">
                         <button
                             onClick={() => setShowPasswordModal(true)}
@@ -495,16 +419,12 @@ const TutorProfile = () => {
                     </div>
                 </div>
             </div>
-
-
             <ChangePasswordModal
                 isOpen={showPasswordModal}
                 onClose={() => setShowPasswordModal(false)}
                 onSubmit={handlePasswordChange}
                 isLoading={isChangingPassword}
             />
-
-
             <EmailChangeModal
                 isOpen={showEmailChangeModal}
                 onClose={() => setShowEmailChangeModal(false)}
@@ -515,5 +435,4 @@ const TutorProfile = () => {
         </TutorLayout>
     );
 };
-
 export default TutorProfile;

@@ -1,7 +1,5 @@
-﻿
 import React from "react";
 import { BookOpen, Users, Award, TrendingUp } from 'lucide-react';
-
 export default function FeatureTabs() {
   const features = [
     { 
@@ -29,7 +27,6 @@ export default function FeatureTabs() {
       description: "Advance your career with in-demand skills"
     }
   ];
-
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,7 +38,6 @@ export default function FeatureTabs() {
             We provide everything you need to create, deliver, and scale your online education business.
           </p>
         </div>
-
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature) => {
             const IconComponent = feature.icon;

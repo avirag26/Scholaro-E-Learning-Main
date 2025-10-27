@@ -1,5 +1,6 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { fetchTutors } from "../../Redux/tutorSlice";
 import AdminLayout from "./common/AdminLayout";
 import { toast } from "react-toastify";
@@ -8,6 +9,7 @@ import Swal from "sweetalert2";
 
 const Tutors = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const tutors = useSelector((state) => state.tutors.tutors);
   const pagination = useSelector((state) => state.tutors.pagination);
   const stats = useSelector((state) => state.tutors.stats);
@@ -16,45 +18,45 @@ const Tutors = () => {
 
   const [actionLoading, setActionLoading] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
 
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Fetch tutors when component mounts or page/filter/search changes
   useEffect(() => {
     dispatch(fetchTutors({
       page: currentPage,
-      search: "",
+      search: debouncedSearchTerm,
       status: statusFilter
     }));
-  }, [dispatch, currentPage, statusFilter]);
+  }, [dispatch, currentPage, statusFilter, debouncedSearchTerm]);
 
-
+  // Reset to first page when filter or search changes
   useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [statusFilter]);
+  }, [statusFilter, debouncedSearchTerm]);
 
-
-  const filteredTutors = tutors.filter(tutor => {
-    const matchesSearch = searchTerm === "" || 
-      tutor.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tutor.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" ||
-      (statusFilter === "active" && !tutor.is_blocked) ||
-      (statusFilter === "blocked" && tutor.is_blocked);
-    
-    return matchesSearch && matchesStatus;
-  });
+  // Use server-filtered tutors directly (no client-side filtering needed)
+  const filteredTutors = tutors;
 
   const handleBlockUnblock = async (tutorId, currentStatus) => {
 
-
+    // SweetAlert confirmation dialog
     const action = currentStatus ? 'unblock' : 'block';
     const result = await Swal.fire({
       title: `${action.charAt(0).toUpperCase() + action.slice(1)} Tutor?`,
-      text: currentStatus 
+      text: currentStatus
         ? 'This tutor will regain access to their account and can login again.'
         : 'This tutor will be logged out immediately and unable to access their account.',
       icon: currentStatus ? 'question' : 'warning',
@@ -81,7 +83,7 @@ const Tutors = () => {
         } else {
           toast.success(`✅ Tutor has been unblocked successfully. They can now access their account.`);
         }
-
+        // Refresh current page
         dispatch(fetchTutors({
           page: currentPage,
           search: searchTerm,
@@ -259,22 +261,30 @@ const Tutors = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleBlockUnblock(tutor._id, tutor.is_blocked)}
-                        disabled={actionLoading[tutor._id]}
-                        className={`px-3 py-1 rounded text-xs font-medium transition-colors ${tutor.is_blocked
-                          ? 'bg-green-600 hover:bg-green-700 text-white'
-                          : 'bg-red-600 hover:bg-red-700 text-white'
-                          } ${actionLoading[tutor._id] ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        {actionLoading[tutor._id] ? (
-                          'Processing...'
-                        ) : tutor.is_blocked ? (
-                          'Unblock'
-                        ) : (
-                          'Block'
-                        )}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => navigate(`/admin/tutors/${tutor._id}/details`)}
+                          className="px-3 py-1 bg-teal-100 text-teal-700 rounded text-xs font-medium hover:bg-teal-200 transition-colors"
+                        >
+                          View
+                        </button>
+                        <button
+                          onClick={() => handleBlockUnblock(tutor._id, tutor.is_blocked)}
+                          disabled={actionLoading[tutor._id]}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${tutor.is_blocked
+                            ? 'bg-green-600 hover:bg-green-700 text-white'
+                            : 'bg-red-600 hover:bg-red-700 text-white'
+                            } ${actionLoading[tutor._id] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          {actionLoading[tutor._id] ? (
+                            'Processing...'
+                          ) : tutor.is_blocked ? (
+                            'Unblock'
+                          ) : (
+                            'Block'
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -308,45 +318,45 @@ const Tutors = () => {
 
               {pagination.totalPages > 1 && (
                 <div className="flex items-center space-x-2">
-                {/* Previous Button */}
-                <button
-                  onClick={() => handlePageChange(pagination.currentPage - 1)}
-                  disabled={!pagination.hasPrev}
-                  className={`px-3 py-1 rounded text-sm font-medium ${!pagination.hasPrev
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                    }`}
-                >
-                  Previous
-                </button>
+                  {/* Previous Button */}
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    disabled={!pagination.hasPrev}
+                    className={`px-3 py-1 rounded text-sm font-medium ${!pagination.hasPrev
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                      }`}
+                  >
+                    Previous
+                  </button>
 
-                {/* Page Numbers */}
-                <div className="flex space-x-1">
-                  {pagination.totalPages > 1 && Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`px-3 py-1 rounded text-sm font-medium ${pagination.currentPage === page
-                        ? 'bg-sky-500 text-white'
-                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                        }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
+                  {/* Page Numbers */}
+                  <div className="flex space-x-1">
+                    {pagination.totalPages > 1 && Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        className={`px-3 py-1 rounded text-sm font-medium ${pagination.currentPage === page
+                          ? 'bg-sky-500 text-white'
+                          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                          }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
 
-                {/* Next Button */}
-                <button
-                  onClick={() => handlePageChange(pagination.currentPage + 1)}
-                  disabled={!pagination.hasNext}
-                  className={`px-3 py-1 rounded text-sm font-medium ${!pagination.hasNext
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                    }`}
-                >
-                  Next
-                </button>
+                  {/* Next Button */}
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    disabled={!pagination.hasNext}
+                    className={`px-3 py-1 rounded text-sm font-medium ${!pagination.hasNext
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                      }`}
+                  >
+                    Next
+                  </button>
                 </div>
               )}
             </div>

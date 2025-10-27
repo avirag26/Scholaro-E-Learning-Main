@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -16,13 +16,11 @@ import {
   fetchLessonDetails,
   clearError
 } from "../../Redux/lessonSlice";
-
 const EditLesson = () => {
   const { lessonId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { selectedLesson, loading, error } = useSelector((state) => state.lessons);
-
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -31,7 +29,6 @@ const EditLesson = () => {
     pdfUrl: "",
     thumbnailUrl: ""
   });
-
   const [videoPreview, setVideoPreview] = useState(null);
   const [pdfPreview, setPdfPreview] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
@@ -40,16 +37,13 @@ const EditLesson = () => {
     pdf: false,
     thumbnail: false
   });
-
   const videoInputRef = useRef(null);
   const pdfInputRef = useRef(null);
-
   useEffect(() => {
     if (lessonId) {
       dispatch(fetchLessonDetails(lessonId));
     }
   }, [dispatch, lessonId]);
-
   useEffect(() => {
     if (selectedLesson) {
       setFormData({
@@ -60,7 +54,6 @@ const EditLesson = () => {
         pdfUrl: selectedLesson.pdfUrl || "",
         thumbnailUrl: selectedLesson.thumbnailUrl || ""
       });
-
       if (selectedLesson.videoUrl) {
         setVideoPreview(selectedLesson.videoUrl);
       }
@@ -72,14 +65,12 @@ const EditLesson = () => {
       }
     }
   }, [selectedLesson]);
-
   useEffect(() => {
     if (error) {
       toast.error(error);
       dispatch(clearError());
     }
   }, [error, dispatch]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -87,11 +78,9 @@ const EditLesson = () => {
       [name]: value
     }));
   };
-
   const handleVideoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const validation = validateVideoFile(file);
     if (!validation.valid) {
       toast.error(validation.error);
@@ -100,11 +89,9 @@ const EditLesson = () => {
       }
       return;
     }
-
     setUploading(prev => ({ ...prev, video: true }));
     try {
       const uploadResult = await uploadVideoToCloudinary(file, 'lesson-videos');
-
       if (uploadResult.success) {
         setFormData(prev => ({
           ...prev,
@@ -127,11 +114,9 @@ const EditLesson = () => {
       setUploading(prev => ({ ...prev, video: false }));
     }
   };
-
   const handlePdfUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const validation = validatePdfFile(file);
     if (!validation.valid) {
       toast.error(validation.error);
@@ -140,11 +125,9 @@ const EditLesson = () => {
       }
       return;
     }
-
     setUploading(prev => ({ ...prev, pdf: true }));
     try {
       const uploadResult = await uploadDocumentToCloudinary(file, 'lesson-pdfs');
-
       if (uploadResult.success) {
         setFormData(prev => ({
           ...prev,
@@ -167,7 +150,6 @@ const EditLesson = () => {
       setUploading(prev => ({ ...prev, pdf: false }));
     }
   };
-
   const handleThumbnailUpload = (croppedImageUrl) => {
     setFormData(prev => ({
       ...prev,
@@ -176,7 +158,6 @@ const EditLesson = () => {
     setThumbnailPreview(croppedImageUrl);
     toast.success("Thumbnail uploaded successfully!");
   };
-
   const removeVideo = () => {
     setVideoPreview(null);
     setFormData(prev => ({ ...prev, videoUrl: "" }));
@@ -184,7 +165,6 @@ const EditLesson = () => {
       videoInputRef.current.value = '';
     }
   };
-
   const removePdf = () => {
     setPdfPreview(null);
     setFormData(prev => ({ ...prev, pdfUrl: "" }));
@@ -192,25 +172,20 @@ const EditLesson = () => {
       pdfInputRef.current.value = '';
     }
   };
-
   const removeThumbnail = () => {
     setThumbnailPreview(null);
     setFormData(prev => ({ ...prev, thumbnailUrl: "" }));
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!formData.title.trim()) {
       toast.error("Lesson title is required");
       return;
     }
-
     if (!formData.description.trim()) {
       toast.error("Lesson description is required");
       return;
     }
-
     try {
       const lessonData = {
         title: formData.title,
@@ -220,9 +195,7 @@ const EditLesson = () => {
         thumbnailUrl: formData.thumbnailUrl,
         pdfUrl: formData.pdfUrl
       };
-
       const result = await dispatch(updateLesson({ lessonId, lessonData }));
-
       if (updateLesson.fulfilled.match(result)) {
         toast.success("Lesson updated successfully!");
         setTimeout(() => {
@@ -235,7 +208,6 @@ const EditLesson = () => {
       toast.error("Failed to update lesson");
     }
   };
-
   if (loading && !selectedLesson) {
     return (
       <TutorLayout title="Edit Lesson" subtitle="Loading lesson details...">
@@ -245,7 +217,6 @@ const EditLesson = () => {
       </TutorLayout>
     );
   }
-
   return (
     <TutorLayout title="Edit Lesson" subtitle="Update your lesson content">
       <div className="max-w-4xl mx-auto">
@@ -254,8 +225,6 @@ const EditLesson = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
               Edit Lesson
             </h2>
-
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -271,7 +240,6 @@ const EditLesson = () => {
                   required
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Duration (minutes)
@@ -287,8 +255,6 @@ const EditLesson = () => {
                 />
               </div>
             </div>
-
-
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Description *
@@ -303,8 +269,6 @@ const EditLesson = () => {
                 required
               />
             </div>
-
-
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Lesson Video
@@ -331,7 +295,6 @@ const EditLesson = () => {
                   <p className="text-sm text-gray-500">MP4, WebM up to 100MB</p>
                 </div>
               )}
-
               <input
                 ref={videoInputRef}
                 type="file"
@@ -341,7 +304,6 @@ const EditLesson = () => {
                 disabled={uploading.video}
                 key={videoPreview ? 'video-uploaded' : 'video-empty'}
               />
-
               {uploading.video && (
                 <div className="flex items-center justify-center py-2">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-600 mr-2"></div>
@@ -349,8 +311,6 @@ const EditLesson = () => {
                 </div>
               )}
             </div>
-
-
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Video Thumbnail
@@ -364,8 +324,6 @@ const EditLesson = () => {
                 className="w-full"
               />
             </div>
-
-
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 PDF Notes (Optional)
@@ -391,7 +349,6 @@ const EditLesson = () => {
                   <p className="text-sm text-gray-500">PDF up to 10MB</p>
                 </div>
               )}
-
               <input
                 ref={pdfInputRef}
                 type="file"
@@ -401,7 +358,6 @@ const EditLesson = () => {
                 disabled={uploading.pdf}
                 key={pdfPreview ? 'pdf-uploaded' : 'pdf-empty'}
               />
-
               {uploading.pdf && (
                 <div className="flex items-center justify-center py-2">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-600 mr-2"></div>
@@ -409,8 +365,6 @@ const EditLesson = () => {
                 </div>
               )}
             </div>
-
-
             <div className="flex gap-4 justify-end">
               <button
                 type="button"
@@ -424,7 +378,7 @@ const EditLesson = () => {
                 disabled={loading || uploading.video || uploading.pdf || uploading.thumbnail}
                 className="px-8 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Updating..." : "🔄 UPDATE LESSON"}
+                {loading ? "Updating..." : "📝 UPDATE LESSON"}
               </button>
             </div>
           </div>
@@ -433,5 +387,4 @@ const EditLesson = () => {
     </TutorLayout>
   );
 };
-
 export default EditLesson;

@@ -1,7 +1,5 @@
-﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { tutorAPI } from "../api/axiosConfig";
-
-
 export const createLesson = createAsyncThunk(
     'lessons/createLesson',
     async ({ courseId, lessonData }, { rejectWithValue }) => {
@@ -13,7 +11,6 @@ export const createLesson = createAsyncThunk(
         }
     }
 );
-
 export const fetchCourseLessons = createAsyncThunk(
     'lessons/fetchCourseLessons',
     async (courseId, { rejectWithValue }) => {
@@ -25,7 +22,6 @@ export const fetchCourseLessons = createAsyncThunk(
         }
     }
 );
-
 export const updateLesson = createAsyncThunk(
     'lessons/updateLesson',
     async ({ lessonId, lessonData }, { rejectWithValue }) => {
@@ -37,7 +33,6 @@ export const updateLesson = createAsyncThunk(
         }
     }
 );
-
 export const deleteLesson = createAsyncThunk(
     'lessons/deleteLesson',
     async (lessonId, { rejectWithValue }) => {
@@ -49,7 +44,6 @@ export const deleteLesson = createAsyncThunk(
         }
     }
 );
-
 export const fetchLessonDetails = createAsyncThunk(
     'lessons/fetchLessonDetails',
     async (lessonId, { rejectWithValue }) => {
@@ -61,7 +55,6 @@ export const fetchLessonDetails = createAsyncThunk(
         }
     }
 );
-
 const lessonSlice = createSlice({
     name: "lessons",
     initialState: {
@@ -88,7 +81,6 @@ const lessonSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-
             .addCase(createLesson.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -105,8 +97,6 @@ const lessonSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-
-
             .addCase(fetchCourseLessons.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -120,8 +110,6 @@ const lessonSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-
-
             .addCase(updateLesson.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -143,8 +131,6 @@ const lessonSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-
-
             .addCase(deleteLesson.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -157,8 +143,6 @@ const lessonSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-
-
             .addCase(fetchLessonDetails.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -176,12 +160,10 @@ const lessonSlice = createSlice({
             });
     },
 });
-
 export const {
     clearError,
     clearSelectedLesson,
     setSelectedLesson,
     clearLessons
 } = lessonSlice.actions;
-
 export default lessonSlice.reducer;

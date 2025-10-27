@@ -1,5 +1,4 @@
-﻿import mongoose from "mongoose";
-
+import mongoose from "mongoose";
 const notificationSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -18,7 +17,6 @@ const notificationSchema = new mongoose.Schema({
     default: Date.now
   }
 });
-
 const tutorSchema = new mongoose.Schema(
   {
     full_name: {
@@ -109,10 +107,7 @@ const tutorSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
 tutorSchema.index({ email: 1 });
 tutorSchema.index({ googleId: 1 });
-
 const Tutor = mongoose.model("Tutor", tutorSchema);
-
 export default Tutor;

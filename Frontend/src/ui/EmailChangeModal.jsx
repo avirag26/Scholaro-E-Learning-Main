@@ -1,46 +1,43 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { X, Mail, Shield } from 'lucide-react';
 import { toast } from 'react-toastify';
 import OtpModal from './OTP.jsx';
-
+import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useCurrentTutor } from '../hooks/useCurrentTutor';
 const EmailChangeModal = ({ isOpen, onClose, onSubmit, isLoading, currentEmail }) => {
+  const { user } = useCurrentUser();
+  const { tutor } = useCurrentTutor();
+
+  // Determine user role based on who is currently logged in
+  const userRole = user && user.email ? 'user' : (tutor && tutor.email ? 'tutor' : 'user');
   const [newEmail, setNewEmail] = useState('');
   const [showOtpModal, setShowOtpModal] = useState(false);
-
   const handleSendOtp = async (e) => {
     e.preventDefault();
-
     if (!newEmail) {
       toast.error('Please enter a new email address');
       return;
     }
-
     if (newEmail === currentEmail) {
       toast.error('New email must be different from current email');
       return;
     }
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(newEmail)) {
       toast.error('Please enter a valid email address');
       return;
     }
-
     try {
       await onSubmit({ action: 'sendOtp', newEmail });
-
       localStorage.setItem('pendingEmailChange', newEmail);
       toast.success('OTP sent to your new email address');
       setShowOtpModal(true);
     } catch (error) {
-
     }
   };
-
   const handleVerifyOtp = async (otp) => {
     try {
       await onSubmit({ action: 'verifyOtp', otp, newEmail });
-
       localStorage.removeItem('pendingEmailChange');
       setShowOtpModal(false);
       handleClose();
@@ -49,25 +46,20 @@ const EmailChangeModal = ({ isOpen, onClose, onSubmit, isLoading, currentEmail }
       throw error;
     }
   };
-
   const handleClose = () => {
     setNewEmail('');
     setShowOtpModal(false);
     onClose();
   };
-
   const handleOtpModalClose = () => {
     setShowOtpModal(false);
   };
-
   if (!isOpen) return null;
-
   return (
     <>
       {!showOtpModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={handleClose} />
       )}
-
       <div className="fixed inset-0 flex items-center justify-center z-40 p-4 pointer-events-none">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto pointer-events-auto">
           <div className="flex items-center justify-between p-6 border-b">
@@ -91,7 +83,6 @@ const EmailChangeModal = ({ isOpen, onClose, onSubmit, isLoading, currentEmail }
               <X className="w-5 h-5" />
             </button>
           </div>
-
           <div className="p-6">
             <form onSubmit={handleSendOtp} className="space-y-4">
               <div>
@@ -105,7 +96,6 @@ const EmailChangeModal = ({ isOpen, onClose, onSubmit, isLoading, currentEmail }
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   New Email Address
@@ -119,7 +109,6 @@ const EmailChangeModal = ({ isOpen, onClose, onSubmit, isLoading, currentEmail }
                   disabled={isLoading}
                 />
               </div>
-
               <div className="bg-sky-50 border border-sky-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-sky-600 mt-0.5" />
@@ -131,7 +120,6 @@ const EmailChangeModal = ({ isOpen, onClose, onSubmit, isLoading, currentEmail }
                   </div>
                 </div>
               </div>
-
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
@@ -153,16 +141,15 @@ const EmailChangeModal = ({ isOpen, onClose, onSubmit, isLoading, currentEmail }
           </div>
         </div>
       </div>
-
       <OtpModal
         isOpen={showOtpModal}
         onClose={handleOtpModalClose}
         onVerify={handleVerifyOtp}
         email={newEmail}
         userType="email-change"
+        userRole={userRole}
       />
     </>
   );
 };
-
 export default EmailChangeModal;

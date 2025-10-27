@@ -1,7 +1,5 @@
 ﻿import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { userAPI } from "../api/axiosConfig";
-
-
 export const fetchPublicCategories = createAsyncThunk(
   'userCourses/fetchPublicCategories',
   async (_, { rejectWithValue }) => {
@@ -13,13 +11,11 @@ export const fetchPublicCategories = createAsyncThunk(
     }
   }
 );
-
 export const fetchPublicCourses = createAsyncThunk(
   'userCourses/fetchPublicCourses',
   async (params = {}, { rejectWithValue }) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
       if (params.search) queryParams.append('search', params.search);
@@ -28,7 +24,6 @@ export const fetchPublicCourses = createAsyncThunk(
       if (params.maxPrice) queryParams.append('maxPrice', params.maxPrice);
       if (params.rating) queryParams.append('rating', params.rating);
       if (params.sort) queryParams.append('sort', params.sort);
-
       const response = await userAPI.get(`/api/users/courses?${queryParams}`);
       return response.data;
     } catch (error) {
@@ -36,17 +31,18 @@ export const fetchPublicCourses = createAsyncThunk(
     }
   }
 );
-
 export const fetchCoursesByCategory = createAsyncThunk(
   'userCourses/fetchCoursesByCategory',
   async ({ categoryId, params = {} }, { rejectWithValue }) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.page) queryParams.append('page', params.page);
       if (params.limit) queryParams.append('limit', params.limit);
+      if (params.search) queryParams.append('search', params.search);
+      if (params.minPrice) queryParams.append('minPrice', params.minPrice);
+      if (params.maxPrice) queryParams.append('maxPrice', params.maxPrice);
+      if (params.rating) queryParams.append('rating', params.rating);
       if (params.sort) queryParams.append('sort', params.sort);
-
       const response = await userAPI.get(`/api/users/courses/category/${categoryId}?${queryParams}`);
       return response.data;
     } catch (error) {
@@ -54,7 +50,6 @@ export const fetchCoursesByCategory = createAsyncThunk(
     }
   }
 );
-
 export const fetchCourseDetails = createAsyncThunk(
   'userCourses/fetchCourseDetails',
   async (courseId, { rejectWithValue }) => {
@@ -62,13 +57,10 @@ export const fetchCourseDetails = createAsyncThunk(
       if (!courseId) {
         throw new Error('Course ID is required');
       }
-      
       const response = await userAPI.get(`/api/users/courses/${courseId}`);
-      
       if (!response.data || !response.data.course) {
         throw new Error('Invalid response format');
       }
-      
       return response.data.course;
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch course details';
@@ -76,7 +68,6 @@ export const fetchCourseDetails = createAsyncThunk(
     }
   }
 );
-
 const userCourseSlice = createSlice({
   name: "userCourses",
   initialState: {
@@ -135,7 +126,6 @@ const userCourseSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-
       .addCase(fetchPublicCategories.pending, (state) => {
         state.categoriesLoading = true;
         state.error = null;
@@ -148,8 +138,6 @@ const userCourseSlice = createSlice({
         state.categoriesLoading = false;
         state.error = action.payload;
       })
-
-
       .addCase(fetchPublicCourses.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -163,8 +151,6 @@ const userCourseSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-
       .addCase(fetchCoursesByCategory.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -179,8 +165,6 @@ const userCourseSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-
       .addCase(fetchCourseDetails.pending, (state) => {
         state.courseDetailsLoading = true;
         state.error = null;
@@ -195,7 +179,6 @@ const userCourseSlice = createSlice({
       });
   },
 });
-
 export const {
   clearCourses,
   clearSelectedCourse,
@@ -204,5 +187,4 @@ export const {
   resetFilters,
   setSelectedCategory
 } = userCourseSlice.actions;
-
 export default userCourseSlice.reducer;
