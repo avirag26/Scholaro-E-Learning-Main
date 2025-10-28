@@ -45,22 +45,66 @@ const AddCourse = () => {
     };
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validate title
         if (!formData.title || !formData.title.trim()) {
             toast.error("Course title is required");
             return;
         }
+        if (formData.title.length < 3 || formData.title.length > 100) {
+            toast.error("Course title must be between 3 and 100 characters");
+            return;
+        }
+        if (formData.title.includes('_')) {
+            toast.error("Course title cannot contain underscores");
+            return;
+        }
+        if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)]+$/.test(formData.title)) {
+            toast.error("Course title can only contain letters, numbers, spaces, and basic punctuation (- . , : ( ))");
+            return;
+        }
+        
+        // Validate category
         if (!formData.category) {
             toast.error("Please select a category");
             return;
         }
+        
+        // Validate description
         if (!formData.description || !formData.description.trim()) {
             toast.error("Course description is required");
             return;
         }
-        if (!formData.price || formData.price <= 0) {
-            toast.error("Please enter a valid price");
+        if (formData.description.length < 10 || formData.description.length > 1000) {
+            toast.error("Description must be between 10 and 1000 characters");
             return;
         }
+        if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)\!\?\'\"\n\r]+$/.test(formData.description)) {
+            toast.error("Description contains invalid characters. Only letters, numbers, spaces, and basic punctuation are allowed.");
+            return;
+        }
+        
+        // Validate price
+        if (!formData.price || formData.price <= 0) {
+            toast.error("Please enter a valid price greater than 0");
+            return;
+        }
+        const priceNum = parseFloat(formData.price);
+        if (isNaN(priceNum) || priceNum > 100000) {
+            toast.error("Price cannot exceed ₹100,000");
+            return;
+        }
+        
+        // Validate offer percentage
+        if (formData.offer_percentage) {
+            const offerNum = parseFloat(formData.offer_percentage);
+            if (isNaN(offerNum) || offerNum < 0 || offerNum > 90) {
+                toast.error("Offer percentage must be between 0 and 90");
+                return;
+            }
+        }
+        
+        // Validate thumbnail
         if (!formData.course_thumbnail) {
             toast.error("Please upload a course thumbnail");
             return;

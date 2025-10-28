@@ -48,60 +48,74 @@ export default function Register() {
     password: "",
     confirmPassword: "",
   });
-  const validationRules = {
-    full_name: {
-      required: true,
-      minLength: 3,
-      maxLength: 50,
-    },
-    email: {
-      required: true,
-      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    },
-    phone: {
-      required: true,
-      pattern: /^\d{10}$/,
-    },
-    password: {
-      required: true,
-      minLength: 8,
-      pattern:
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    },
-  };
   const validateField = (name, value) => {
     let error = "";
-    const rules = validationRules[name];
-    if (rules) {
-      if (rules.required && !value) {
-        error = `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
-      } else if (rules.pattern && !rules.pattern.test(value)) {
-        switch (name) {
-          case "full_name":
-            error = "Full name can only contain letters and spaces";
-            break;
-          case "email":
-            error = "Please enter a valid email address";
-            break;
-          case "phone":
-            error = "Please enter a valid 10-digit phone number";
-            break;
-          case "password":
-            error =
-              "Password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character";
-            break;
-          default:
-            error = "Invalid format";
+    
+    switch (name) {
+      case "full_name":
+        if (!value || !value.trim()) {
+          error = "Full name is required";
+        } else if (value.length < 2) {
+          error = "Name must be at least 2 characters long";
+        } else if (value.length > 50) {
+          error = "Name cannot exceed 50 characters";
+        } else if (!/^[a-zA-Z\s]+$/.test(value)) {
+          error = "Name can only contain letters and spaces";
+        } else if (/\d/.test(value)) {
+          error = "Name cannot contain numbers";
+        } else if (value.includes('_')) {
+          error = "Name cannot contain underscores";
         }
-      } else if (rules.minLength && value.length < rules.minLength) {
-        error = `Minimum ${rules.minLength} characters required`;
-      } else if (rules.maxLength && value.length > rules.maxLength) {
-        error = `Maximum ${rules.maxLength} characters allowed`;
-      }
+        break;
+        
+      case "email":
+        if (!value) {
+          error = "Email is required";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          error = "Please enter a valid email address";
+        }
+        break;
+        
+      case "phone":
+        if (!value) {
+          error = "Phone number is required";
+        } else if (!/^\d{10}$/.test(value)) {
+          error = "Please enter a valid 10-digit phone number";
+        } else if (!/^[6-9]\d{9}$/.test(value)) {
+          error = "Phone number must start with 6, 7, 8, or 9";
+        }
+        break;
+        
+      case "password":
+        if (!value) {
+          error = "Password is required";
+        } else if (value.length < 8) {
+          error = "Password must be at least 8 characters long";
+        } else if (value.length > 30) {
+          error = "Password cannot exceed 30 characters";
+        } else if (!/[a-z]/.test(value)) {
+          error = "Password must contain at least one lowercase letter";
+        } else if (!/[A-Z]/.test(value)) {
+          error = "Password must contain at least one uppercase letter";
+        } else if (!/\d/.test(value)) {
+          error = "Password must contain at least one number";
+        } else if (!/[@$!%*?&]/.test(value)) {
+          error = "Password must contain at least one special character (@$!%*?&)";
+        }
+        break;
+        
+      case "confirmPassword":
+        if (!value) {
+          error = "Please confirm your password";
+        } else if (value !== formData.password) {
+          error = "Passwords do not match";
+        }
+        break;
+        
+      default:
+        break;
     }
-    if (name === "confirmPassword" && value !== formData.password) {
-      error = "Passwords do not match";
-    }
+    
     return error;
   };
   const handleInputChange = (e) => {

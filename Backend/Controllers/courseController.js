@@ -31,6 +31,48 @@ const addCourse = async (req,res)=>{
         .status(400)
         .json({ message: "All required fields must be provided." });
     }
+
+    // Validate course title
+    if (title.length < 3 || title.length > 100) {
+      return res.status(400).json({ message: "Course title must be between 3 and 100 characters" });
+    }
+    if (title.includes('_')) {
+      return res.status(400).json({ message: "Course title cannot contain underscores" });
+    }
+    if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)]+$/.test(title)) {
+      return res.status(400).json({ message: "Course title can only contain letters, numbers, spaces, and basic punctuation (- . , : ( ))" });
+    }
+    if (!title.trim()) {
+      return res.status(400).json({ message: "Course title cannot be empty or just spaces" });
+    }
+
+    // Validate description
+    if (description.length < 10 || description.length > 1000) {
+      return res.status(400).json({ message: "Description must be between 10 and 1000 characters" });
+    }
+    if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)\!\?\'\"\n\r]+$/.test(description)) {
+      return res.status(400).json({ message: "Description contains invalid characters. Only letters, numbers, spaces, and basic punctuation are allowed." });
+    }
+    if (description.trim().length < 10) {
+      return res.status(400).json({ message: "Description must have at least 10 meaningful characters" });
+    }
+
+    // Validate price
+    const priceNum = parseFloat(price);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      return res.status(400).json({ message: "Price must be a valid number greater than 0" });
+    }
+    if (priceNum > 100000) {
+      return res.status(400).json({ message: "Price cannot exceed ₹100,000" });
+    }
+
+    // Validate offer percentage
+    if (offer_percentage) {
+      const offerNum = parseFloat(offer_percentage);
+      if (isNaN(offerNum) || offerNum < 0 || offerNum > 90) {
+        return res.status(400).json({ message: "Offer percentage must be between 0 and 90" });
+      }
+    }
     let categoryData;
     if (mongoose.Types.ObjectId.isValid(category)) {
       categoryData = await Category.findById(category);

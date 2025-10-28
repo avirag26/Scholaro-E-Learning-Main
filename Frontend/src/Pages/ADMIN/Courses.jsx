@@ -17,6 +17,7 @@ const Courses = () => {
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+  const [ratingFilter, setRatingFilter] = useState("all");
   const [currentPages, setCurrentPages] = useState({});
   const filterDropdownRef = useRef(null);
 
@@ -31,7 +32,7 @@ const Courses = () => {
 
   useEffect(() => {
     fetchAllCourses();
-  }, [debouncedSearchTerm, statusFilter, categoryFilter, minPrice, maxPrice]);
+  }, [debouncedSearchTerm, statusFilter, categoryFilter, minPrice, maxPrice, ratingFilter]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -54,7 +55,8 @@ const Courses = () => {
           status: statusFilter,
           category: categoryFilter,
           minPrice: minPrice || undefined,
-          maxPrice: maxPrice || undefined
+          maxPrice: maxPrice || undefined,
+          rating: ratingFilter !== 'all' ? ratingFilter : undefined
         }
       });
 
@@ -201,37 +203,16 @@ const Courses = () => {
                           />
                         </div>
                       </div>
-                      <div className="flex gap-1 mt-2">
-                        <button
-                          onClick={() => { setMinPrice("0"); setMaxPrice("0"); }}
-                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                        >
-                          Free
-                        </button>
-                        <button
-                          onClick={() => { setMinPrice("0"); setMaxPrice("50"); }}
-                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                        >
-                          $0-50
-                        </button>
-                        <button
-                          onClick={() => { setMinPrice("50"); setMaxPrice("100"); }}
-                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                        >
-                          $50-100
-                        </button>
-                        <button
-                          onClick={() => { setMinPrice("100"); setMaxPrice(""); }}
-                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                        >
-                          $100+
-                        </button>
-                      </div>
-                    </div>
+                      
+                    </div> 
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
-                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                      <select 
+                        value={ratingFilter}
+                        onChange={(e) => setRatingFilter(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                      >
                         <option value="all">All Ratings</option>
                         <option value="4+">4+ Stars</option>
                         <option value="3+">3+ Stars</option>
@@ -246,6 +227,7 @@ const Courses = () => {
                           setStatusFilter("all");
                           setMinPrice("");
                           setMaxPrice("");
+                          setRatingFilter("all");
                           setShowFilterDropdown(false);
                         }}
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm"

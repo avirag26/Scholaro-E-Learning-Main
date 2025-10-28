@@ -9,12 +9,60 @@ import { sendOtpToEmail, verifyEmailOtp, sendOtpWithData, verifyOtpWithData } fr
 const registerTutor = async (req, res) => {
   try {
     const { full_name, email, password, phone } = req.body;
+
+    // Validation
+    if (!full_name || !email || !password || !phone) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Validate full name
+    if (full_name.length < 2 || full_name.length > 50) {
+      return res.status(400).json({ message: "Name must be between 2 and 50 characters" });
+    }
+    if (!/^[a-zA-Z\s]+$/.test(full_name)) {
+      return res.status(400).json({ message: "Name can only contain letters and spaces" });
+    }
+    if (/\d/.test(full_name)) {
+      return res.status(400).json({ message: "Name cannot contain numbers" });
+    }
+    if (full_name.includes('_')) {
+      return res.status(400).json({ message: "Name cannot contain underscores" });
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Please enter a valid email address" });
+    }
+
+    // Validate phone
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      return res.status(400).json({ message: "Please enter a valid 10-digit Indian phone number starting with 6-9" });
+    }
+
+    // Validate password
+    if (password.length < 8 || password.length > 30) {
+      return res.status(400).json({ message: "Password must be between 8 and 30 characters" });
+    }
+    if (!/[a-z]/.test(password)) {
+      return res.status(400).json({ message: "Password must contain at least one lowercase letter" });
+    }
+    if (!/[A-Z]/.test(password)) {
+      return res.status(400).json({ message: "Password must contain at least one uppercase letter" });
+    }
+    if (!/\d/.test(password)) {
+      return res.status(400).json({ message: "Password must contain at least one number" });
+    }
+    if (!/[@$!%*?&]/.test(password)) {
+      return res.status(400).json({ message: "Password must contain at least one special character (@$!%*?&)" });
+    }
+
     let tutor = await Tutor.findOne({ email });
     if (tutor && tutor.is_verified) {
       return res.status(400).json({ message: "Tutor already exists" });
     }
     if (tutor && !tutor.is_verified) {
-      tutor.full_name = full_name;
+      tutor.full_name = full_name.trim();
       tutor.phone = phone;
       if (password) {
         const salt = await bcrypt.genSalt(10);
@@ -25,8 +73,8 @@ const registerTutor = async (req, res) => {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
       tutor = new Tutor({
-        full_name,
-        email,
+        full_name: full_name.trim(),
+        email: email.toLowerCase(),
         phone,
         password: hashedPassword,
         tutor_id: uuidv4(),
@@ -283,14 +331,61 @@ const updateTutorProfile = async (req, res) => {
   try {
     const { name, phone, subjects, bio } = req.body;
     const tutorId = req.tutor._id;
+
+    // Validate name if provided
+    if (name) {
+      if (name.length < 2 || name.length > 50) {
+        return res.status(400).json({ message: "Name must be between 2 and 50 characters" });
+      }
+      if (!/^[a-zA-Z\s]+$/.test(name)) {
+        return res.status(400).json({ message: "Name can only contain letters and spaces" });
+      }
+      if (/\d/.test(name)) {
+        return res.status(400).json({ message: "Name cannot contain numbers" });
+      }
+      if (name.includes('_')) {
+        return res.status(400).json({ message: "Name cannot contain underscores" });
+      }
+    }
+
+    // Validate phone if provided
+    if (phone) {
+      if (!/^[6-9]\d{9}$/.test(phone)) {
+        return res.status(400).json({ message: "Please enter a valid 10-digit Indian phone number starting with 6-9" });
+      }
+    }
+
+    // Validate subjects if provided
+    if (subjects) {
+      if (subjects.length > 200) {
+        return res.status(400).json({ message: "Subjects cannot exceed 200 characters" });
+      }
+      if (subjects.includes('_')) {
+        return res.status(400).json({ message: "Subjects cannot contain underscores" });
+      }
+      if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)]+$/.test(subjects)) {
+        return res.status(400).json({ message: "Subjects can only contain letters, numbers, spaces, and basic punctuation (- . , : ( ))" });
+      }
+    }
+
+    // Validate bio if provided
+    if (bio) {
+      if (bio.length > 500) {
+        return res.status(400).json({ message: "Bio cannot exceed 500 characters" });
+      }
+      if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)\!\?\'\"\n\r]+$/.test(bio)) {
+        return res.status(400).json({ message: "Bio contains invalid characters. Only letters, numbers, spaces, and basic punctuation are allowed." });
+      }
+    }
+
     const tutor = await Tutor.findById(tutorId);
     if (!tutor) {
       return res.status(404).json({ message: "Tutor not found" });
     }
-    if (name) tutor.full_name = name;
+    if (name) tutor.full_name = name.trim();
     if (phone) tutor.phone = phone;
-    if (subjects) tutor.subjects = subjects;
-    if (bio) tutor.bio = bio;
+    if (subjects) tutor.subjects = subjects.trim();
+    if (bio) tutor.bio = bio.trim();
     await tutor.save();
     res.status(200).json({
       message: "Profile updated successfully",

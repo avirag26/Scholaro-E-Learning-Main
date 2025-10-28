@@ -15,6 +15,31 @@ const createLesson = async (req, res) => {
     if (!title || !description) {
       return res.status(400).json({ message: "Title and description are required" });
     }
+
+    // Validate lesson title
+    if (title.length < 3 || title.length > 100) {
+      return res.status(400).json({ message: "Lesson title must be between 3 and 100 characters" });
+    }
+    if (title.includes('_')) {
+      return res.status(400).json({ message: "Lesson title cannot contain underscores" });
+    }
+    if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)]+$/.test(title)) {
+      return res.status(400).json({ message: "Lesson title can only contain letters, numbers, spaces, and basic punctuation (- . , : ( ))" });
+    }
+    if (!title.trim()) {
+      return res.status(400).json({ message: "Lesson title cannot be empty or just spaces" });
+    }
+
+    // Validate description
+    if (description.length < 10 || description.length > 500) {
+      return res.status(400).json({ message: "Description must be between 10 and 500 characters" });
+    }
+    if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)\!\?\'\"\n\r]+$/.test(description)) {
+      return res.status(400).json({ message: "Description contains invalid characters. Only letters, numbers, spaces, and basic punctuation are allowed." });
+    }
+    if (description.trim().length < 10) {
+      return res.status(400).json({ message: "Description must have at least 10 meaningful characters" });
+    }
     if (!req.tutor || !req.tutor._id) {
       return res.status(401).json({ message: "Tutor authentication required" });
     }
@@ -88,6 +113,36 @@ const updateLesson = async (req, res) => {
     const { lessonId } = req.params;
     const tutorId = req.tutor._id;
     const updateData = req.body;
+    
+    // Validate title if provided
+    if (updateData.title) {
+      if (updateData.title.length < 3 || updateData.title.length > 100) {
+        return res.status(400).json({ message: "Lesson title must be between 3 and 100 characters" });
+      }
+      if (updateData.title.includes('_')) {
+        return res.status(400).json({ message: "Lesson title cannot contain underscores" });
+      }
+      if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)]+$/.test(updateData.title)) {
+        return res.status(400).json({ message: "Lesson title can only contain letters, numbers, spaces, and basic punctuation (- . , : ( ))" });
+      }
+      if (!updateData.title.trim()) {
+        return res.status(400).json({ message: "Lesson title cannot be empty or just spaces" });
+      }
+    }
+
+    // Validate description if provided
+    if (updateData.description) {
+      if (updateData.description.length < 10 || updateData.description.length > 500) {
+        return res.status(400).json({ message: "Description must be between 10 and 500 characters" });
+      }
+      if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)\!\?\'\"\n\r]+$/.test(updateData.description)) {
+        return res.status(400).json({ message: "Description contains invalid characters. Only letters, numbers, spaces, and basic punctuation are allowed." });
+      }
+      if (updateData.description.trim().length < 10) {
+        return res.status(400).json({ message: "Description must have at least 10 meaningful characters" });
+      }
+    }
+    
     const lesson = await Lesson.findOne({ _id: lessonId, tutor: tutorId });
     if (!lesson) {
       return res.status(404).json({ message: "Lesson not found or unauthorized" });

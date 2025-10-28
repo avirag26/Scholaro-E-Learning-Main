@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -34,6 +34,7 @@ const AddLesson = () => {
     pdfFile: null,
     thumbnailFile: null
   });
+  
   const [videoPreview, setVideoPreview] = useState(null);
   const [pdfPreview, setPdfPreview] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
@@ -175,14 +176,43 @@ const AddLesson = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate title
     if (!formData.title.trim()) {
       toast.error("Lesson title is required");
       return;
     }
+    if (formData.title.length < 3 || formData.title.length > 100) {
+      toast.error("Lesson title must be between 3 and 100 characters");
+      return;
+    }
+    if (formData.title.includes('_')) {
+      toast.error("Lesson title cannot contain underscores");
+      return;
+    }
+    if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)]+$/.test(formData.title)) {
+      toast.error("Lesson title can only contain letters, numbers, spaces, and basic punctuation (- . , : ( ))");
+      return;
+    }
+    
+    // Validate description
     if (!formData.description.trim()) {
       toast.error("Lesson description is required");
       return;
     }
+    if (formData.description.length < 10 || formData.description.length > 500) {
+      toast.error("Description must be between 10 and 500 characters");
+      return;
+    }
+    if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)\!\?\'\"\n\r]+$/.test(formData.description)) {
+      toast.error("Description contains invalid characters. Only letters, numbers, spaces, and basic punctuation are allowed.");
+      return;
+    }
+    if (formData.description.trim().length < 10) {
+      toast.error("Description must have at least 10 meaningful characters");
+      return;
+    }
+    
     if (!courseId) {
       toast.error("Course ID is required");
       return;

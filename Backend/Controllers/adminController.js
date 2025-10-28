@@ -285,11 +285,35 @@ const updateAdminProfile = async (req, res) => {
   try {
     const { name, phone } = req.body;
     const adminId = req.admin._id;
+
+    // Validate name if provided
+    if (name) {
+      if (name.length < 2 || name.length > 50) {
+        return res.status(400).json({ message: "Name must be between 2 and 50 characters" });
+      }
+      if (!/^[a-zA-Z\s]+$/.test(name)) {
+        return res.status(400).json({ message: "Name can only contain letters and spaces" });
+      }
+      if (/\d/.test(name)) {
+        return res.status(400).json({ message: "Name cannot contain numbers" });
+      }
+      if (name.includes('_')) {
+        return res.status(400).json({ message: "Name cannot contain underscores" });
+      }
+    }
+
+    // Validate phone if provided
+    if (phone) {
+      if (!/^[6-9]\d{9}$/.test(phone)) {
+        return res.status(400).json({ message: "Please enter a valid 10-digit Indian phone number starting with 6-9" });
+      }
+    }
+
     const admin = await Admin.findById(adminId);
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
     }
-    if (name) admin.full_name = name;
+    if (name) admin.full_name = name.trim();
     if (phone) admin.phone = phone;
     await admin.save();
     res.status(200).json({
@@ -882,6 +906,7 @@ const getAllCourses = async (req, res) => {
     const categoryFilter = req.query.category || 'all';
     const minPrice = req.query.minPrice ? parseFloat(req.query.minPrice) : null;
     const maxPrice = req.query.maxPrice ? parseFloat(req.query.maxPrice) : null;
+    const rating = req.query.rating || 'all';
 
     // Get all categories or specific category
     let categories;
@@ -950,6 +975,16 @@ const getAllCourses = async (req, res) => {
         pipeline.push({
           $match: {
             price: priceMatch
+          }
+        });
+      }
+
+      // Add rating filter if provided
+      if (rating !== 'all') {
+        const minRating = parseInt(rating.replace('+', ''));
+        pipeline.push({
+          $match: {
+            average_rating: { $gte: minRating }
           }
         });
       }

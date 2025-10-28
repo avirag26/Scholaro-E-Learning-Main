@@ -139,8 +139,7 @@ const TutorCourses = () => {
                             <option value="all">All Courses</option>
                             <option value="listed">Listed</option>
                             <option value="unlisted">Unlisted</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
+                            
                         </select>
                         <button
                             onClick={() => navigate("/tutor/add-course")}
@@ -189,19 +188,13 @@ const TutorCourses = () => {
                                     {course.description}
                                 </p>
                                 <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                                        <span className="flex items-center gap-1">
-                                            <BookOpen className="w-4 h-4" />
-                                            {course.level}
-                                        </span>
-                                        <span>{course.duration} hrs</span>
-                                    </div>
+{/*                                     
                                     <div className="flex items-center gap-1">
                                         <span className="text-yellow-500">?</span>
                                         <span className="text-sm text-gray-600">
                                             {course.average_rating || 0} ({course.total_reviews || 0})
                                         </span>
-                                    </div>
+                                    </div> */}
                                 </div>
                                 <div className="flex items-center justify-between mb-4">
                                     <PriceDisplay price={course.price} offerPercentage={course.offer_percentage} />

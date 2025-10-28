@@ -13,19 +13,67 @@ import { sendOtpToEmail, verifyEmailOtp, sendOtpWithData, verifyOtpWithData } fr
 const registerUser = async (req, res) => {
   try {
     const { full_name, email, password, phone } = req.body;
+
+    // Validation
+    if (!full_name || !email || !password || !phone) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Validate full name
+    if (full_name.length < 2 || full_name.length > 50) {
+      return res.status(400).json({ message: "Name must be between 2 and 50 characters" });
+    }
+    if (!/^[a-zA-Z\s]+$/.test(full_name)) {
+      return res.status(400).json({ message: "Name can only contain letters and spaces" });
+    }
+    if (/\d/.test(full_name)) {
+      return res.status(400).json({ message: "Name cannot contain numbers" });
+    }
+    if (full_name.includes('_')) {
+      return res.status(400).json({ message: "Name cannot contain underscores" });
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Please enter a valid email address" });
+    }
+
+    // Validate phone
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      return res.status(400).json({ message: "Please enter a valid 10-digit Indian phone number starting with 6-9" });
+    }
+
+    // Validate password
+    if (password.length < 8 || password.length > 30) {
+      return res.status(400).json({ message: "Password must be between 8 and 30 characters" });
+    }
+    if (!/[a-z]/.test(password)) {
+      return res.status(400).json({ message: "Password must contain at least one lowercase letter" });
+    }
+    if (!/[A-Z]/.test(password)) {
+      return res.status(400).json({ message: "Password must contain at least one uppercase letter" });
+    }
+    if (!/\d/.test(password)) {
+      return res.status(400).json({ message: "Password must contain at least one number" });
+    }
+    if (!/[@$!%*?&]/.test(password)) {
+      return res.status(400).json({ message: "Password must contain at least one special character (@$!%*?&)" });
+    }
+
     let user = await User.findOne({ email });
     if (user && user.is_verified) {
       return res.status(400).json({ message: "User already exists" });
     }
     if (user && !user.is_verified) {
-      user.full_name = full_name;
+      user.full_name = full_name.trim();
       user.phone = phone;
       user.password = password;
       await user.save();
     } else {
       user = new User({
-        full_name,
-        email,
+        full_name: full_name.trim(),
+        email: email.toLowerCase(),
         phone,
         password,
         user_id: uuidv4(),
@@ -269,11 +317,35 @@ const updateUserProfile = async (req, res) => {
   try {
     const { name, phone } = req.body;
     const userId = req.user._id;
+
+    // Validate name if provided
+    if (name) {
+      if (name.length < 2 || name.length > 50) {
+        return res.status(400).json({ message: "Name must be between 2 and 50 characters" });
+      }
+      if (!/^[a-zA-Z\s]+$/.test(name)) {
+        return res.status(400).json({ message: "Name can only contain letters and spaces" });
+      }
+      if (/\d/.test(name)) {
+        return res.status(400).json({ message: "Name cannot contain numbers" });
+      }
+      if (name.includes('_')) {
+        return res.status(400).json({ message: "Name cannot contain underscores" });
+      }
+    }
+
+    // Validate phone if provided
+    if (phone) {
+      if (!/^[6-9]\d{9}$/.test(phone)) {
+        return res.status(400).json({ message: "Please enter a valid 10-digit Indian phone number starting with 6-9" });
+      }
+    }
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    if (name) user.full_name = name;
+    if (name) user.full_name = name.trim();
     if (phone) user.phone = phone;
     await user.save();
     res.status(200).json({
@@ -916,6 +988,8 @@ const getCourseDetails = async (req, res) => {
 const getPublicTutors = async (req, res) => {
   try {
     const { page = 1, limit = 12, search = '', subject = '' } = req.query;
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 12;
     let query = { is_verified: true, is_blocked: false };
     if (search) {
       query.$or = [
@@ -930,8 +1004,8 @@ const getPublicTutors = async (req, res) => {
     const tutors = await Tutor.find(query)
       .select('full_name email subjects bio profileImage createdAt')
       .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .limit(limitNum)
+      .skip((pageNum - 1) * limitNum);
     const total = await Tutor.countDocuments(query);
     const transformedTutors = tutors.map(tutor => ({
       _id: tutor._id,
@@ -953,8 +1027,8 @@ const getPublicTutors = async (req, res) => {
 
     res.status(200).json({
       tutors: transformedTutors,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
+      totalPages: Math.ceil(total / limitNum),
+      currentPage: pageNum,
       total,
       courseCounts
     });

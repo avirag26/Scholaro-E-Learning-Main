@@ -12,27 +12,83 @@ import Teachers from '../src/Pages/USER/Teachers';
 import TutorDetail from '../src/Pages/USER/TutorDetail';
 import AboutUs from '../src/Pages/USER/AboutUs';
 import Contact from '../src/Pages/USER/Contact';
+import ProtectedRoute from '../src/components/RouteProtection/ProtectedRoute';
+import GuestRoute from '../src/components/RouteProtection/GuestRoute';
+
 const UserRoutes = () => {
 
     return (
         <Routes>
+            {/* Public routes - accessible without authentication */}
+            <Route path="forgot-password" element={
+                <GuestRoute userType="user">
+                    <UserForgotPassword />
+                </GuestRoute>
+            } />
+            <Route path="reset-password/:token" element={
+                <GuestRoute userType="user">
+                    <UserResetPassword />
+                </GuestRoute>
+            } />
+            <Route path="register" element={
+                <GuestRoute userType="user">
+                    <Register />
+                </GuestRoute>
+            } />
+            <Route path="login" element={
+                <GuestRoute userType="user">
+                    <Login />
+                </GuestRoute>
+            } />
 
-            <Route path="forgot-password" element={<UserForgotPassword />} />
-            <Route path="reset-password/:token" element={<UserResetPassword />} />
-            <Route path="register" element={<Register />} />
-            <Route path="login" element={<Login />} />
+            {/* Protected routes - require user authentication */}
+            <Route path="home" element={
+                <ProtectedRoute userType="user">
+                    <HomePage />
+                </ProtectedRoute>
+            } />
+            <Route path="profile" element={
+                <ProtectedRoute userType="user">
+                    <UserProfile />
+                </ProtectedRoute>
+            } />
+            <Route path="courses" element={
+                <ProtectedRoute userType="user">
+                    <CourseListing />
+                </ProtectedRoute>
+            } />
+            <Route path="browse" element={
+                <ProtectedRoute userType="user">
+                    <CourseListing />
+                </ProtectedRoute>
+            } />
+            <Route path="course/:courseId" element={
+                <ProtectedRoute userType="user">
+                    <CourseDetail />
+                </ProtectedRoute>
+            } />
+            <Route path="teachers" element={
+                <ProtectedRoute userType="user">
+                    <Teachers />
+                </ProtectedRoute>
+            } />
+            <Route path="tutor/:tutorId" element={
+                <ProtectedRoute userType="user">
+                    <TutorDetail />
+                </ProtectedRoute>
+            } />
+            <Route path='aboutus' element={
+                <ProtectedRoute userType="user">
+                    <AboutUs />
+                </ProtectedRoute>
+            } />
+            <Route path='contact' element={
+                <ProtectedRoute userType="user">
+                    <Contact />
+                </ProtectedRoute>
+            } />
 
-
-            <Route path="home" element={<HomePage />} />
-            <Route path="profile" element={<UserProfile />} />
-            <Route path="courses" element={<CourseListing />} />
-            <Route path="browse" element={<CourseListing />} />
-            <Route path="course/:courseId" element={<CourseDetail />} />
-            <Route path="teachers" element={<Teachers />} />
-            <Route path="tutor/:tutorId" element={<TutorDetail />} />
             <Route path='*' element={<NotFoundPage />} />
-            <Route path='aboutus' element={<AboutUs />} />
-            <Route path='contact' element={<Contact />} />
         </Routes>
     )
 }

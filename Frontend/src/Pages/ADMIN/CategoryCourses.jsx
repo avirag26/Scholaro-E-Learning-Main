@@ -225,32 +225,7 @@ const CategoryCourses = () => {
                           />
                         </div>
                       </div>
-                      <div className="flex gap-1 mt-2">
-                        <button
-                          onClick={() => { setMinPrice("0"); setMaxPrice("0"); }}
-                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                        >
-                          Free
-                        </button>
-                        <button
-                          onClick={() => { setMinPrice("0"); setMaxPrice("50"); }}
-                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                        >
-                          $0-50
-                        </button>
-                        <button
-                          onClick={() => { setMinPrice("50"); setMaxPrice("100"); }}
-                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                        >
-                          $50-100
-                        </button>
-                        <button
-                          onClick={() => { setMinPrice("100"); setMaxPrice(""); }}
-                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                        >
-                          $100+
-                        </button>
-                      </div>
+                     
                     </div>
                     
                     <div className="flex gap-2 pt-2">

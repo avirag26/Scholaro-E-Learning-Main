@@ -67,11 +67,12 @@ export default function AdminLayout({ children, title, subtitle }) {
                         <button className="p-2 text-gray-600 hover:text-sky-500">
                             <Bell className="w-5 h-5" />
                         </button>
-                        <div className="w-8 h-8 bg-sky-500 rounded-full flex items-center justify-center">
-                            <span className="text-white text-sm font-medium">
-                                {adminInfo?.name?.charAt(0) || 'A'}
-                            </span>
-                        </div>
+                        <img
+                                    src={adminInfo?.profileImage}
+                                    alt="Profile"
+                                    className="h-8 w-8 rounded-full object-cover"
+                                    onClick={() => navigate("/user/profile")}
+                                  />
                     </div>
                 </div>
             </header>
