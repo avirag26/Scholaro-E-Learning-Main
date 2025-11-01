@@ -54,7 +54,7 @@ const CourseDetailActions = ({ courseId, className = "" }) => {
         className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-medium transition-colors ${
           isInCart
             ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-            : 'bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50'
+            : 'bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50'
         }`}
       >
         <ShoppingCart className="w-5 h-5" />

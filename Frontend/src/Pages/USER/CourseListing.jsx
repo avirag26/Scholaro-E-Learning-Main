@@ -208,7 +208,7 @@ const CourseListing = () => {
                   placeholder="Search courses..."
                   value={localFilters.search}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                 />
               </div>
             </form>
@@ -219,7 +219,7 @@ const CourseListing = () => {
                   handleFilterChange('sort', e.target.value);
                   updateURLParams({ sort: e.target.value, page: 1 });
                 }}
-                className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 pr-8 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 pr-8 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
               >
                 {sortOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -247,7 +247,7 @@ const CourseListing = () => {
                   <select
                     value={localFilters.category}
                     onChange={(e) => handleFilterChange('category', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   >
                     <option value="">All Categories</option>
                     {categories.map(category => (
@@ -266,7 +266,7 @@ const CourseListing = () => {
                     placeholder="₹0"
                     value={localFilters.minPrice}
                     onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
                 <div>
@@ -278,7 +278,7 @@ const CourseListing = () => {
                     placeholder="₹10000"
                     value={localFilters.maxPrice}
                     onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
                 
@@ -286,7 +286,7 @@ const CourseListing = () => {
               <div className="flex gap-4 mt-4">
                 <button
                   onClick={applyFilters}
-                  className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                  className="px-6 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors"
                 >
                   Apply Filters
                 </button>
@@ -306,15 +306,15 @@ const CourseListing = () => {
             <button
               onClick={() => handleCategorySelect('')}
               className={`px-4 py-2 rounded-full border transition-colors ${!localFilters.category
-                ? 'bg-teal-600 text-white border-teal-600'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-teal-600 hover:text-teal-600'
+                ? 'bg-sky-600 text-white border-sky-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:border-sky-600 hover:text-sky-600'
                 }`}
             >
               All Categories
             </button>
             {categoriesLoading ? (
               <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-teal-500"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sky-500"></div>
                 <span className="text-gray-600">Loading categories...</span>
               </div>
             ) : (
@@ -323,8 +323,8 @@ const CourseListing = () => {
                   key={category.id}
                   onClick={() => handleCategorySelect(category.id)}
                   className={`px-4 py-2 rounded-full border transition-colors ${localFilters.category === category.id
-                    ? 'bg-teal-600 text-white border-teal-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-teal-600 hover:text-teal-600'
+                    ? 'bg-sky-600 text-white border-sky-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-sky-600 hover:text-sky-600'
                     }`}
                 >
                   {category.title}

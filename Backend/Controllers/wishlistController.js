@@ -160,10 +160,15 @@ export const moveToCart = async (req, res) => {
     }
 
     const existingItem = cart.items.find(item => item.course.toString() === courseId);
-    if (!existingItem) {
-      cart.items.push({ course: courseId });
-      await cart.save();
+    if (existingItem) {
+      return res.status(200).json({
+        success: true,
+        message: 'Course is already in cart'
+      });
     }
+
+    cart.items.push({ course: courseId });
+    await cart.save();
 
     res.status(200).json({
       success: true,

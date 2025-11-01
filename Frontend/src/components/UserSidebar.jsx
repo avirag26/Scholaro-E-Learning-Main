@@ -62,7 +62,7 @@ const UserSidebar = ({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingImage}
-              className="absolute -bottom-1 -right-1 bg-teal-600 text-white p-1.5 rounded-full hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute -bottom-1 -right-1 bg-sky-600 text-white p-1.5 rounded-full hover:bg-sky-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploadingImage ? (
                 <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
@@ -83,10 +83,10 @@ const UserSidebar = ({
             />
           )}
         </div>
-        <h3 className="mt-3 font-semibold text-teal-600 text-lg">
+        <h3 className="mt-3 font-semibold text-sky-600 text-lg">
           {user?.name || 'John Doe'}
         </h3>
-        <button className="mt-2 px-4 py-1 bg-teal-50 text-teal-600 text-sm rounded-full border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1 mx-auto">
+        <button className="mt-2 px-4 py-1 bg-sky-50 text-sky-600 text-sm rounded-full border border-sky-200 hover:bg-sky-100 transition-colors flex items-center gap-1 mx-auto">
           <span>Share Profile</span>
           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
             <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
@@ -102,7 +102,7 @@ const UserSidebar = ({
             onClick={() => handleSidebarClick(item)}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
               activeSection === item.id
-                ? 'bg-teal-600 text-white'
+                ? 'bg-sky-600 text-white'
                 : 'text-gray-600 hover:bg-gray-50'
             }`}
           >

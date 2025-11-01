@@ -14,6 +14,7 @@ import AboutUs from '../src/Pages/USER/AboutUs';
 import Contact from '../src/Pages/USER/Contact';
 import Cart from '../src/Pages/USER/Cart';
 import Wishlist from '../src/Pages/USER/Wishlist';
+import Checkout from '../src/Pages/USER/Checkout';
 import ProtectedRoute from '../src/components/RouteProtection/ProtectedRoute';
 import GuestRoute from '../src/components/RouteProtection/GuestRoute';
 
@@ -97,6 +98,11 @@ const UserRoutes = () => {
             <Route path='wishlist' element={
                 <ProtectedRoute userType="user">
                     <Wishlist />
+                </ProtectedRoute>
+            } />
+            <Route path='checkout' element={
+                <ProtectedRoute userType="user">
+                    <Checkout />
                 </ProtectedRoute>
             } />
 

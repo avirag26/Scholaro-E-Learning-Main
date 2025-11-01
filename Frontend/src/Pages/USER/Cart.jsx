@@ -7,16 +7,18 @@ import Header from './Common/Header';
 import Footer from './Common/Footer';
 import UserSidebar from '../../components/UserSidebar';
 import { getCart, removeFromCart, clearCart, moveToWishlist } from '../../Redux/cartSlice';
-import { addToWishlist } from '../../Redux/wishlistSlice';
+import { getWishlist } from '../../Redux/wishlistSlice';
 
 export default function Cart() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items, totalAmount, totalItems, loading, error } = useSelector(state => state.cart);
+  const { items: wishlistItems } = useSelector(state => state.wishlist);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     dispatch(getCart());
+    dispatch(getWishlist());
   }, [dispatch]);
 
   useEffect(() => {
@@ -37,7 +39,9 @@ export default function Cart() {
   const handleMoveToWishlist = async (courseId) => {
     try {
       await dispatch(moveToWishlist(courseId)).unwrap();
-      dispatch(addToWishlist(courseId));
+      // Refresh both cart and wishlist data
+      dispatch(getCart());
+      dispatch(getWishlist());
       toast.success('Course moved to wishlist');
     } catch (error) {
       toast.error(error);
@@ -143,6 +147,7 @@ export default function Cart() {
                   {items.map((item) => {
                     const course = item.course;
                     const discountedPrice = calculateDiscountedPrice(course.price, course.offer_percentage);
+                    const isInWishlist = wishlistItems?.some(wishlistItem => wishlistItem.course._id === course._id);
                     
                     return (
                       <div key={item._id} className="p-6">
@@ -196,10 +201,15 @@ export default function Cart() {
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => handleMoveToWishlist(course._id)}
-                                  className="flex items-center gap-1 px-3 py-1 text-sm text-sky-600 hover:text-sky-700 border border-sky-200 rounded-md hover:bg-sky-50"
+                                  disabled={isInWishlist}
+                                  className={`flex items-center gap-1 px-3 py-1 text-sm rounded-md transition-colors ${
+                                    isInWishlist
+                                      ? 'text-gray-400 border border-gray-200 cursor-not-allowed'
+                                      : 'text-sky-600 hover:text-sky-700 border border-sky-200 hover:bg-sky-50'
+                                  }`}
                                 >
-                                  <Heart className="h-4 w-4" />
-                                  Save for later
+                                  <Heart className={`h-4 w-4 ${isInWishlist ? 'fill-current' : ''}`} />
+                                  {isInWishlist ? 'In Wishlist' : 'Save for later'}
                                 </button>
                               </div>
                             </div>
@@ -245,12 +255,12 @@ export default function Cart() {
                   </div>
                 </div>
                 
-                <button
-                  onClick={() => navigate('/user/checkout')}
-                  className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors mb-3"
+                <Link
+                  to="/user/checkout"
+                  className="block w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors mb-3 text-center"
                 >
                   Proceed to Checkout
-                </button>
+                </Link>
                 
                 <Link
                   to="/user/courses"

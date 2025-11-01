@@ -1,24 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Trash2, ShoppingCart, Heart, Filter } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import Footer from './Common/Footer';
 import UserSidebar from '../../components/UserSidebar';
 import { getWishlist, removeFromWishlist, moveToCart, clearWishlist } from '../../Redux/wishlistSlice';
-import { addToCart } from '../../Redux/cartSlice';
+import { getCart } from '../../Redux/cartSlice';
 
 export default function Wishlist() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { items, loading, error } = useSelector(state => state.wishlist);
+  const { items: cartItems } = useSelector(state => state.cart);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     dispatch(getWishlist());
+    dispatch(getCart());
   }, [dispatch]);
 
   useEffect(() => {
@@ -39,8 +40,10 @@ export default function Wishlist() {
   const handleMoveToCart = async (courseId) => {
     try {
       await dispatch(moveToCart(courseId)).unwrap();
-      dispatch(addToCart(courseId));
-      toast.success('Course added to cart');
+      // Refresh both cart and wishlist data
+      dispatch(getCart());
+      dispatch(getWishlist());
+      toast.success('Course moved to cart');
     } catch (error) {
       toast.error(error);
     }
@@ -200,6 +203,7 @@ export default function Wishlist() {
                   {filteredAndSortedItems.map((item) => {
                     const course = item.course;
                     const discountedPrice = calculateDiscountedPrice(course.price, course.offer_percentage);
+                    const isInCart = cartItems?.some(cartItem => cartItem.course._id === course._id);
                     
                     return (
                       <div key={item._id} className="p-6">
@@ -250,19 +254,18 @@ export default function Wishlist() {
                                 )}
                               </div>
                               
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center justify-end">
                                 <button
                                   onClick={() => handleMoveToCart(course._id)}
-                                  className="flex items-center gap-2 px-4 py-2 bg-sky-500 text-white font-medium rounded-lg hover:bg-sky-600 transition-colors"
+                                  disabled={isInCart}
+                                  className={`flex items-center gap-2 px-4 py-2 font-medium rounded-lg transition-colors ${
+                                    isInCart 
+                                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
+                                      : 'bg-sky-500 text-white hover:bg-sky-600'
+                                  }`}
                                 >
                                   <ShoppingCart className="h-4 w-4" />
-                                  Add To Cart
-                                </button>
-                                <button
-                                  onClick={() => handleRemoveItem(course._id)}
-                                  className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-                                >
-                                  Remove
+                                  {isInCart ? 'In Cart' : 'Add To Cart'}
                                 </button>
                               </div>
                             </div>

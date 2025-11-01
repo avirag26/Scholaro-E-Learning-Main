@@ -190,10 +190,15 @@ export const moveToWishlist = async (req, res) => {
     }
 
     const existingItem = wishlist.items.find(item => item.course.toString() === courseId);
-    if (!existingItem) {
-      wishlist.items.push({ course: courseId });
-      await wishlist.save();
+    if (existingItem) {
+      return res.status(200).json({
+        success: true,
+        message: 'Course is already in wishlist'
+      });
     }
+
+    wishlist.items.push({ course: courseId });
+    await wishlist.save();
 
     res.status(200).json({
       success: true,
