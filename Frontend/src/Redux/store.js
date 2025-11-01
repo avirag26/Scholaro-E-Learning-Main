@@ -10,6 +10,7 @@ import lessonReducer from './lessonSlice';
 import userCourseReducer from './userCourseSlice';
 import cartReducer from './cartSlice';
 import wishlistReducer from './wishlistSlice';
+import paymentReducer from './paymentSlice';
 
 export const store = configureStore({
   reducer: {
@@ -24,5 +25,6 @@ export const store = configureStore({
     userCourses: userCourseReducer,
     cart: cartReducer,
     wishlist: wishlistReducer,
+    payment: paymentReducer,
   },
 });

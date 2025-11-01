@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Trash2, ShoppingCart, Heart, Filter } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
-import Footer from './Common/Footer';
+import Footer from '../../components/Common/Footer';
 import UserSidebar from '../../components/UserSidebar';
 import { getWishlist, removeFromWishlist, moveToCart, clearWishlist } from '../../Redux/wishlistSlice';
-import { addToCart } from '../../Redux/cartSlice';
 
 export default function Wishlist() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { items, loading, error } = useSelector(state => state.wishlist);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
@@ -32,17 +30,18 @@ export default function Wishlist() {
       await dispatch(removeFromWishlist(courseId)).unwrap();
       toast.success('Course removed from wishlist');
     } catch (error) {
-      toast.error(error);
+      toast.error(error.message || 'Failed to remove course');
     }
   };
 
   const handleMoveToCart = async (courseId) => {
     try {
       await dispatch(moveToCart(courseId)).unwrap();
-      dispatch(addToCart(courseId));
-      toast.success('Course added to cart');
+      // Refresh wishlist data after moving to cart
+      dispatch(getWishlist());
+      toast.success('Course moved to cart');
     } catch (error) {
-      toast.error(error);
+      toast.error(error.message || 'Failed to move course');
     }
   };
 
@@ -51,7 +50,7 @@ export default function Wishlist() {
       await dispatch(clearWishlist()).unwrap();
       toast.success('Wishlist cleared');
     } catch (error) {
-      toast.error(error);
+      toast.error(error.message || 'Failed to clear wishlist');
     }
   };
 
@@ -241,11 +240,11 @@ export default function Wishlist() {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
                                 <span className="text-xl font-bold text-gray-900">
-                                  ${discountedPrice.toFixed(2)}
+                                  ₹{discountedPrice.toFixed(2)}
                                 </span>
                                 {course.offer_percentage > 0 && (
                                   <span className="text-sm text-gray-500 line-through">
-                                    ${course.price.toFixed(2)}
+                                    ₹{course.price.toFixed(2)}
                                   </span>
                                 )}
                               </div>
@@ -258,12 +257,7 @@ export default function Wishlist() {
                                   <ShoppingCart className="h-4 w-4" />
                                   Add To Cart
                                 </button>
-                                <button
-                                  onClick={() => handleRemoveItem(course._id)}
-                                  className="px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-                                >
-                                  Remove
-                                </button>
+                                
                               </div>
                             </div>
                           </div>

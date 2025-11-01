@@ -59,6 +59,19 @@ export const addToWishlist = async (req, res) => {
       });
     }
 
+    // Check if course is already in cart
+    const Cart = (await import('../Model/CartModel.js')).default;
+    const cart = await Cart.findOne({ user: userId });
+    if (cart) {
+      const isInCart = cart.items.some(item => item.course.toString() === courseId);
+      if (isInCart) {
+        return res.status(400).json({
+          success: false,
+          message: 'Course is already in your cart'
+        });
+      }
+    }
+
     let wishlist = await Wishlist.findOne({ user: userId });
     if (!wishlist) {
       wishlist = new Wishlist({ user: userId, items: [] });

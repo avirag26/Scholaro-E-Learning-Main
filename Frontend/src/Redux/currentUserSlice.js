@@ -1,5 +1,18 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { userAPI } from '../api/axiosConfig';
+
+// Fetch fresh user data from server
+export const fetchUserProfile = createAsyncThunk(
+  'currentUser/fetchProfile',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await userAPI.get('/api/users/profile');
+      return response.data.user;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch user profile');
+    }
+  }
+);
 const currentUserSlice = createSlice({
   name: 'currentUser',
   initialState: {
@@ -38,6 +51,7 @@ const currentUserSlice = createSlice({
         localStorage.setItem('userInfo', JSON.stringify(state.user));
       }
     },
+
     restoreFromStorage: (state) => {
       const token = localStorage.getItem('authToken');
       const userInfo = localStorage.getItem('userInfo');
@@ -54,16 +68,39 @@ const currentUserSlice = createSlice({
     },
     setLoading: (state, action) => {
       state.loading = action.payload;
+    },
+    refreshUserData: (state, action) => {
+      if (state.user && action.payload) {
+        state.user = { ...state.user, ...action.payload };
+        localStorage.setItem('userInfo', JSON.stringify(state.user));
+      }
     }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchUserProfile.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.user) {
+          state.user = action.payload;
+          localStorage.setItem('userInfo', JSON.stringify(state.user));
+        }
+      })
+      .addCase(fetchUserProfile.rejected, (state) => {
+        state.loading = false;
+      });
   }
 });
-export const { 
-  loginSuccess, 
-  logout, 
-  updateUserProfile, 
-  updateProfileImage, 
-  restoreFromStorage, 
-  setLoading 
+export const {
+  loginSuccess,
+  logout,
+  updateUserProfile,
+  updateProfileImage,
+  restoreFromStorage,
+  setLoading,
+  refreshUserData
 } = currentUserSlice.actions;
 export const logoutUser = (navigate) => async (dispatch) => {
   try {

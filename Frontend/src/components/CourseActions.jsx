@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ShoppingCart, Heart } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { ShoppingCart, Heart, Trash2, ArrowRightLeft } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { addToCart } from '../Redux/cartSlice';
-import { addToWishlist, removeFromWishlist } from '../Redux/wishlistSlice';
+import { addToCart, removeFromCart, moveToWishlist, getCart } from '../Redux/cartSlice';
+import { addToWishlist, removeFromWishlist, moveToCart, getWishlist } from '../Redux/wishlistSlice';
 
 const CourseActions = ({ courseId, className = "" }) => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const [loading, setLoading] = useState({ cart: false, wishlist: false });
   
   const { items: cartItems } = useSelector(state => state.cart);
@@ -14,14 +16,31 @@ const CourseActions = ({ courseId, className = "" }) => {
   
   const isInCart = cartItems?.some(item => item.course._id === courseId);
   const isInWishlist = wishlistItems?.some(item => item.course._id === courseId);
+  
+  // Determine current page context
+  const isCartPage = location.pathname.includes('/cart');
+  const isWishlistPage = location.pathname.includes('/wishlist');
 
-  const handleAddToCart = async () => {
-    if (isInCart) return;
-    
+  const handleCartAction = async () => {
     setLoading(prev => ({ ...prev, cart: true }));
     try {
-      await dispatch(addToCart(courseId)).unwrap();
-      toast.success('Course added to cart');
+      if (isCartPage && isInCart) {
+        // Remove from cart when on cart page
+        await dispatch(removeFromCart(courseId)).unwrap();
+        toast.success('Course removed from cart');
+      } else if (isWishlistPage && !isInCart) {
+        // Move to cart when on wishlist page
+        await dispatch(moveToCart(courseId)).unwrap();
+        // Refresh cart data to update state
+        setTimeout(() => {
+          dispatch(getCart());
+        }, 100);
+        toast.success('Course moved to cart');
+      } else if (!isInCart) {
+        // Add to cart on other pages
+        await dispatch(addToCart(courseId)).unwrap();
+        toast.success('Course added to cart');
+      }
     } catch (error) {
       toast.error(error);
     } finally {
@@ -29,13 +48,33 @@ const CourseActions = ({ courseId, className = "" }) => {
     }
   };
 
-  const handleWishlistToggle = async () => {
+  const handleWishlistAction = async () => {
+    // Don't allow adding to wishlist if course is in cart (except on cart page)
+    if (isInCart && !isCartPage && !isInWishlist) {
+      toast.info('Course is already in your cart');
+      return;
+    }
+
     setLoading(prev => ({ ...prev, wishlist: true }));
     try {
-      if (isInWishlist) {
+      if (isWishlistPage && isInWishlist) {
+        // Remove from wishlist when on wishlist page
+        await dispatch(removeFromWishlist(courseId)).unwrap();
+        toast.success('Course removed from wishlist');
+      } else if (isCartPage && isInCart) {
+        // Move to wishlist when on cart page
+        await dispatch(moveToWishlist(courseId)).unwrap();
+        // Refresh wishlist data to update state
+        setTimeout(() => {
+          dispatch(getWishlist());
+        }, 100);
+        toast.success('Course moved to wishlist');
+      } else if (isInWishlist) {
+        // Remove from wishlist on other pages
         await dispatch(removeFromWishlist(courseId)).unwrap();
         toast.success('Course removed from wishlist');
       } else {
+        // Add to wishlist on other pages (only if not in cart)
         await dispatch(addToWishlist(courseId)).unwrap();
         toast.success('Course added to wishlist');
       }
@@ -46,32 +85,113 @@ const CourseActions = ({ courseId, className = "" }) => {
     }
   };
 
+  // Determine button text and style based on context
+  const getCartButtonConfig = () => {
+    if (loading.cart) return { text: 'Processing...', icon: ShoppingCart, disabled: true };
+    
+    if (isCartPage && isInCart) {
+      return { 
+        text: 'Remove from Cart', 
+        icon: Trash2, 
+        disabled: false,
+        className: 'bg-red-500 text-white hover:bg-red-600'
+      };
+    }
+    
+    if (isWishlistPage && !isInCart) {
+      return { 
+        text: 'Move to Cart', 
+        icon: ArrowRightLeft, 
+        disabled: false,
+        className: 'bg-sky-500 text-white hover:bg-sky-600'
+      };
+    }
+    
+    if (isInCart) {
+      return { 
+        text: 'In Cart', 
+        icon: ShoppingCart, 
+        disabled: true,
+        className: 'bg-gray-100 text-gray-500 cursor-not-allowed'
+      };
+    }
+    
+    return { 
+      text: 'Add to Cart', 
+      icon: ShoppingCart, 
+      disabled: false,
+      className: 'bg-sky-500 text-white hover:bg-sky-600'
+    };
+  };
+
+  const getWishlistButtonConfig = () => {
+    if (loading.wishlist) return { disabled: true };
+    
+    if (isWishlistPage && isInWishlist) {
+      return {
+        className: 'border-red-500 bg-red-500 text-white',
+        title: 'Remove from Wishlist',
+        icon: Trash2
+      };
+    }
+    
+    if (isCartPage && isInCart) {
+      return {
+        className: 'border-sky-500 bg-sky-500 text-white',
+        title: 'Move to Wishlist',
+        icon: ArrowRightLeft
+      };
+    }
+    
+    if (isInWishlist) {
+      return {
+        className: 'border-red-500 bg-red-500 text-white',
+        title: 'Remove from Wishlist',
+        icon: Heart
+      };
+    }
+    
+    // If course is in cart, disable wishlist button on other pages
+    if (isInCart && !isCartPage) {
+      return {
+        className: 'border-gray-300 text-gray-400 cursor-not-allowed',
+        title: 'Already in Cart',
+        icon: Heart,
+        disabled: true
+      };
+    }
+    
+    return {
+      className: 'border-gray-300 text-gray-600 hover:border-red-500 hover:text-red-500',
+      title: 'Add to Wishlist',
+      icon: Heart
+    };
+  };
+
+  const cartConfig = getCartButtonConfig();
+  const wishlistConfig = getWishlistButtonConfig();
+  const WishlistIcon = wishlistConfig.icon || Heart;
+
   return (
     <div className={`flex gap-3 ${className}`}>
       <button
-        onClick={handleAddToCart}
-        disabled={isInCart || loading.cart}
-        className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-medium transition-colors ${
-          isInCart
-            ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-            : 'bg-sky-500 text-white hover:bg-sky-600 disabled:opacity-50'
+        onClick={handleCartAction}
+        disabled={cartConfig.disabled || loading.cart}
+        className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+          cartConfig.className || 'bg-sky-500 text-white hover:bg-sky-600'
         }`}
       >
-        <ShoppingCart className="w-5 h-5" />
-        {loading.cart ? 'Adding...' : isInCart ? 'In Cart' : 'Add to Cart'}
+        <cartConfig.icon className="w-5 h-5" />
+        {cartConfig.text}
       </button>
       
       <button
-        onClick={handleWishlistToggle}
-        disabled={loading.wishlist}
-        className={`p-3 rounded-lg border-2 transition-colors disabled:opacity-50 ${
-          isInWishlist
-            ? 'border-red-500 bg-red-500 text-white'
-            : 'border-gray-300 text-gray-600 hover:border-red-500 hover:text-red-500'
-        }`}
-        title={isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
+        onClick={handleWishlistAction}
+        disabled={loading.wishlist || wishlistConfig.disabled}
+        className={`p-3 rounded-lg border-2 transition-colors disabled:opacity-50 ${wishlistConfig.className}`}
+        title={wishlistConfig.title}
       >
-        <Heart className={`w-5 h-5 ${isInWishlist ? 'fill-current' : ''}`} />
+        <WishlistIcon className={`w-5 h-5 ${isInWishlist && !isWishlistPage ? 'fill-current' : ''}`} />
       </button>
     </div>
   );

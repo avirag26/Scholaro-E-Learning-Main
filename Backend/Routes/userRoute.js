@@ -40,6 +40,13 @@ import {
   moveToCart,
   clearWishlist
 } from "../Controllers/wishlistController.js";
+import {
+  createOrder,
+  verifyPayment,
+  getOrder,
+  getUserOrders,
+  generateInvoice
+} from "../Controllers/paymentController.js";
 import { protectUser } from "../Middleware/userMiddleware.js";
 router.route("/").post(registerUser);
 router.post("/verify-otp", verifyOtp);
@@ -78,5 +85,12 @@ router.post("/wishlist/add", protectUser, addToWishlist);
 router.delete("/wishlist/remove/:courseId", protectUser, removeFromWishlist);
 router.post("/wishlist/move-to-cart", protectUser, moveToCart);
 router.delete("/wishlist/clear", protectUser, clearWishlist);
+
+// Payment routes
+router.post("/payment/create-order", protectUser, createOrder);
+router.post("/payment/verify", protectUser, verifyPayment);
+router.get("/payment/order/:orderId", protectUser, getOrder);
+router.get("/payment/orders", protectUser, getUserOrders);
+router.get("/payment/invoice/:orderId", protectUser, generateInvoice);
 
 export default router;

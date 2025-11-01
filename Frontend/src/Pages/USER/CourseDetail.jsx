@@ -170,7 +170,7 @@ const CourseDetail = () => {
                                                 </div>
                                             </div>
                                             <div className="text-sm text-gray-500 font-medium">
-                                                {lesson.duration || '10:00'}
+                                                {lesson.duration || '0:00'}
                                             </div>
                                         </div>
                                     ))

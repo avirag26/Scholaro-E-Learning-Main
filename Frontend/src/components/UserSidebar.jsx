@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, BookOpen, GraduationCap, ShoppingBag, Award, LogOut, Heart, Camera } from 'lucide-react';
+import { User, BookOpen, GraduationCap, ShoppingBag, Award, LogOut, Heart, Camera, Package, ShoppingCart } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 
@@ -40,8 +40,8 @@ const UserSidebar = ({
     { id: 'profile', icon: User, label: 'Profile', path: '/user/profile' },
     { id: 'courses', icon: BookOpen, label: 'My Courses', path: '/user/courses' },
     { id: 'teachers', icon: GraduationCap, label: 'Teachers', path: '/user/teachers' },
-    { id: 'orders', icon: ShoppingBag, label: 'My Orders', path: '/user/orders' },
-    { id: 'cart', icon: ShoppingBag, label: 'Shopping Cart', path: '/user/cart' },
+    { id: 'orders', icon: Package, label: 'My Orders', path: '/user/orders' },
+    { id: 'cart', icon: ShoppingCart, label: 'Shopping Cart', path: '/user/cart' },
     { id: 'wishlist', icon: Heart, label: 'Wishlist', path: '/user/wishlist' },
     { id: 'certificates', icon: Award, label: 'Certificates', path: '/user/certificates' },
     { id: 'logout', icon: LogOut, label: 'Logout', path: null }

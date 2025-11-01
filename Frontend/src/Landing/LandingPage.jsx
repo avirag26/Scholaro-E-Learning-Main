@@ -175,7 +175,7 @@ export default function LandingPage(){
                                         className="w-64 h-64 rounded-full object-cover border-8 border-white/20 shadow-2xl"
                                     />
                                     <div className="absolute -top-4 -right-4 bg-yellow-400 text-gray-900 px-4 py-2 rounded-full font-bold text-sm">
-                                        Earn $50-200/hr
+                                        Earn ₹4000-16000/hr
                                     </div>
                                     <div className="absolute -bottom-4 -left-4 bg-white text-teal-600 px-4 py-2 rounded-full font-bold text-sm">
                                         Join 1000+ Tutors

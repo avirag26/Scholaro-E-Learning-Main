@@ -4,10 +4,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Heart, ShoppingBag } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
-import Footer from './Common/Footer';
+import Footer from '../../components/Common/Footer';
 import UserSidebar from '../../components/UserSidebar';
 import { getCart, removeFromCart, clearCart, moveToWishlist } from '../../Redux/cartSlice';
-import { addToWishlist } from '../../Redux/wishlistSlice';
 
 export default function Cart() {
   const dispatch = useDispatch();
@@ -30,17 +29,18 @@ export default function Cart() {
       await dispatch(removeFromCart(courseId)).unwrap();
       toast.success('Course removed from cart');
     } catch (error) {
-      toast.error(error);
+      toast.error(error.message || 'Failed to remove course');
     }
   };
 
   const handleMoveToWishlist = async (courseId) => {
     try {
       await dispatch(moveToWishlist(courseId)).unwrap();
-      dispatch(addToWishlist(courseId));
+      // Refresh cart data after moving to wishlist
+      dispatch(getCart());
       toast.success('Course moved to wishlist');
     } catch (error) {
-      toast.error(error);
+      toast.error(error.message || 'Failed to move course');
     }
   };
 
@@ -49,7 +49,7 @@ export default function Cart() {
       await dispatch(clearCart()).unwrap();
       toast.success('Cart cleared');
     } catch (error) {
-      toast.error(error);
+      toast.error(error.message || 'Failed to clear cart');
     }
   };
 
@@ -184,11 +184,11 @@ export default function Cart() {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
                                 <span className="text-xl font-bold text-gray-900">
-                                  ${discountedPrice.toFixed(2)}
+                                  ₹{discountedPrice.toFixed(2)}
                                 </span>
                                 {course.offer_percentage > 0 && (
                                   <span className="text-sm text-gray-500 line-through">
-                                    ${course.price.toFixed(2)}
+                                    ₹{course.price.toFixed(2)}
                                   </span>
                                 )}
                               </div>
@@ -222,25 +222,25 @@ export default function Cart() {
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Price</span>
-                    <span className="font-medium">${(totalAmount + calculateTotalSavings()).toFixed(2)}</span>
+                    <span className="font-medium">₹{(totalAmount + calculateTotalSavings()).toFixed(2)}</span>
                   </div>
                   
                   {calculateTotalSavings() > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span>-${calculateTotalSavings().toFixed(2)}</span>
+                      <span>-₹{calculateTotalSavings().toFixed(2)}</span>
                     </div>
                   )}
                   
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Tax</span>
-                    <span className="font-medium">${(totalAmount * 0.1).toFixed(2)}</span>
+                    <span className="text-gray-600">Tax (3%)</span>
+                    <span className="font-medium">₹{(totalAmount * 0.03).toFixed(2)}</span>
                   </div>
                   
                   <div className="border-t pt-3">
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total</span>
-                      <span>${(totalAmount + (totalAmount * 0.1)).toFixed(2)}</span>
+                      <span>₹{(totalAmount + (totalAmount * 0.03)).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>

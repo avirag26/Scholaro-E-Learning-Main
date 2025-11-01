@@ -62,7 +62,7 @@ export default function TutorDashboard() {
             <span className="mt-1 text-[#666] font-normal text-base">Total Courses</span>
           </div>
           <div className="flex flex-col items-center justify-center text-sky-600 text-lg font-semibold">
-            <span className="text-2xl font-bold">$7,461,767</span>
+            <span className="text-2xl font-bold">₹6,15,78,345</span>
             <span className="mt-1 text-[#666] font-normal text-base">Total Revenue</span>
           </div>
         </div>

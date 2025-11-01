@@ -153,6 +153,8 @@ export const clearCart = async (req, res) => {
     }
 
     cart.items = [];
+    cart.totalAmount = 0;
+    cart.totalItems = 0;
     await cart.save();
 
     res.status(200).json({
