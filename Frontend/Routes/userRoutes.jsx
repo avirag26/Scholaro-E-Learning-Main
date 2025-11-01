@@ -12,6 +12,8 @@ import Teachers from '../src/Pages/USER/Teachers';
 import TutorDetail from '../src/Pages/USER/TutorDetail';
 import AboutUs from '../src/Pages/USER/AboutUs';
 import Contact from '../src/Pages/USER/Contact';
+import Cart from '../src/Pages/USER/Cart';
+import Wishlist from '../src/Pages/USER/Wishlist';
 import ProtectedRoute from '../src/components/RouteProtection/ProtectedRoute';
 import GuestRoute from '../src/components/RouteProtection/GuestRoute';
 
@@ -85,6 +87,16 @@ const UserRoutes = () => {
             <Route path='contact' element={
                 <ProtectedRoute userType="user">
                     <Contact />
+                </ProtectedRoute>
+            } />
+            <Route path='cart' element={
+                <ProtectedRoute userType="user">
+                    <Cart />
+                </ProtectedRoute>
+            } />
+            <Route path='wishlist' element={
+                <ProtectedRoute userType="user">
+                    <Wishlist />
                 </ProtectedRoute>
             } />
 

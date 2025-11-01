@@ -1,15 +1,27 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Menu, Search, ShoppingCart, Bell, MoreVertical } from "lucide-react";
+import { Menu, Search, ShoppingCart, Bell, MoreVertical, Heart } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import Button from "../../../ui/Button";
 import avatar from "../../../assets/avt.webp";
 import { useNavigate } from "react-router-dom";
 import { useCurrentUser } from "../../../hooks/useCurrentUser";
+import { getCart } from "../../../Redux/cartSlice";
+import { getWishlist } from "../../../Redux/wishlistSlice";
 export default function Header({ onMenuClick }) {
   const { user } = useCurrentUser(); // Get user from Redux
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const cartItemCount = 0;
+  const { totalItems: cartItemCount } = useSelector(state => state.cart);
+  const { items: wishlistItems } = useSelector(state => state.wishlist);
   const notificationCount = 0;
+
+  useEffect(() => {
+    if (user) {
+      dispatch(getCart());
+      dispatch(getWishlist());
+    }
+  }, [dispatch, user]);
   return (
     <header className="border-b bg-white border-gray-200">
       {}
@@ -83,6 +95,41 @@ export default function Header({ onMenuClick }) {
           <Button variant="ghost" size="icon" className="md:hidden">
             <Search className="h-5 w-5" />
           </Button>
+          {/* Wishlist */}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative hover:bg-gray-100"
+              onClick={() => navigate("/user/wishlist")}
+            >
+              <Heart className="h-5 w-5" />
+              {wishlistItems?.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                  {wishlistItems.length}
+                </span>
+              )}
+            </Button>
+          </div>
+
+          {/* Cart */}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative hover:bg-gray-100"
+              onClick={() => navigate("/user/cart")}
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-sky-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                  {cartItemCount}
+                </span>
+              )}
+            </Button>
+          </div>
+
+          {/* Notifications */}
           <div className="relative">
             <Button
               variant="ghost"
@@ -91,23 +138,8 @@ export default function Header({ onMenuClick }) {
             >
               <Bell className="h-5 w-5" />
               {notificationCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-sky-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                   {notificationCount}
-                </span>
-              )}
-            </Button>
-          </div>
-          {}
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative hover:bg-gray-100"
-            >
-              <ShoppingCart className="h-5 w-5" />
-              {cartItemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                  {cartItemCount}
                 </span>
               )}
             </Button>

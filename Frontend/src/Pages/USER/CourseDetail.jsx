@@ -5,6 +5,7 @@ import { Play, Clock, Users, Star, Globe, Award, CheckCircle, PlayCircle } from 
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
 import PriceDisplay from '../../components/PriceDisplay';
+import CourseDetailActions from '../../components/CourseDetailActions';
 import Loading from '../../ui/Loading';
 import { fetchCourseDetails } from '../../Redux/userCourseSlice';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
@@ -191,17 +192,12 @@ const CourseDetail = () => {
                     </div>
                     <div className="lg:col-span-1">
                         <div className="bg-white rounded-lg shadow-sm overflow-hidden sticky top-8">
-                            <div className="relative">
+                            <div>
                                 <img
                                     src={selectedCourse.course_thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=225&fit=crop"}
                                     alt={selectedCourse.title}
                                     className="w-full h-48 object-cover"
                                 />
-                                <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                                    <button className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all">
-                                        <Play className="w-6 h-6 text-gray-800 ml-1" />
-                                    </button>
-                                </div>
                             </div>
                             <div className="p-8">
                                 <div className="mb-8 text-center">
@@ -216,9 +212,12 @@ const CourseDetail = () => {
                                         </p>
                                     )}
                                 </div>
-                                <button className="w-full bg-gradient-to-r from-teal-600 to-teal-700 text-white py-4 px-6 rounded-lg font-bold text-lg hover:from-teal-700 hover:to-teal-800 transition-all transform hover:scale-105 mb-6 shadow-lg">
+                                <button className="w-full bg-gradient-to-r from-teal-600 to-teal-700 text-white py-4 px-6 rounded-lg font-bold text-lg hover:from-teal-700 hover:to-teal-800 transition-all transform hover:scale-105 mb-4 shadow-lg">
                                     Enroll Now
                                 </button>
+                                
+                                {/* Cart and Wishlist Actions */}
+                                <CourseDetailActions courseId={selectedCourse.id || selectedCourse._id} className="mb-6" />
                                 <div className="text-center mb-8">
                                     <p className="text-sm text-gray-600 mb-2">
                                         💰 30-Day Money-Back Guarantee

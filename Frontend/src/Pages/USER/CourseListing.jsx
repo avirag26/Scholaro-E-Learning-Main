@@ -435,6 +435,7 @@ const CourseCard = ({ course, onClick }) => {
       />
     ));
   };
+
   return (
     <div
       onClick={onClick}
@@ -464,7 +465,7 @@ const CourseCard = ({ course, onClick }) => {
             {renderStars(course.average_rating)}
           </div>
           <span className="text-sm text-gray-600">
-            {course.average_rating.toFixed(1)} ({course.total_reviews})
+            {course.average_rating?.toFixed(1) || '0.0'} ({course.total_reviews || 0})
           </span>
         </div>
         <div className="flex items-center justify-between">

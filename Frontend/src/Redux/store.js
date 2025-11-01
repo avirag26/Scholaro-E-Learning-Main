@@ -8,6 +8,9 @@ import categoryReducer from './categorySlice';
 import courseReducer from './courseSlice';
 import lessonReducer from './lessonSlice';
 import userCourseReducer from './userCourseSlice';
+import cartReducer from './cartSlice';
+import wishlistReducer from './wishlistSlice';
+
 export const store = configureStore({
   reducer: {
     users: userReducer,
@@ -19,5 +22,7 @@ export const store = configureStore({
     courses: courseReducer,
     lessons: lessonReducer,
     userCourses: userCourseReducer,
+    cart: cartReducer,
+    wishlist: wishlistReducer,
   },
 });
