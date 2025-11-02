@@ -1,8 +1,8 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import Order from '../Model/OrderModel.js';
-import Cart from '../Model/CartModel.js';
-import User from '../Model/usermodel.js';
+import Order from '../../Model/OrderModel.js';
+import Cart from '../../Model/CartModel.js';
+import User from '../../Model/usermodel.js';
 import { v4 as uuidv4 } from 'uuid';
 
 // Initialize Razorpay

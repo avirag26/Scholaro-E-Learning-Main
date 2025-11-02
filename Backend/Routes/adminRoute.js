@@ -3,30 +3,42 @@ import {
   adminLogin,
   refreshAdminToken,
   createAdmin,
+  forgotPassword,
+  resetPassword,
+  checkAdminStatus
+} from '../Controllers/admin/authController.js';
+import {
+  getAdminProfile,
+  updateAdminProfile,
+  uploadAdminProfilePhoto
+} from '../Controllers/admin/profileController.js';
+import {
   getAllUsers,
   blockUser,
-  unblockUser,
+  unblockUser
+} from '../Controllers/admin/userManagementController.js';
+import {
   getAllTutors,
   blockTutor,
   unblockTutor,
-  getDashboardStats,
-  forgotPassword,
-  resetPassword,
-  checkAdminStatus,
-  getAdminProfile,
-  updateAdminProfile,
-  uploadAdminProfilePhoto,
+  getTutorDetails
+} from '../Controllers/admin/tutorManagementController.js';
+import {
   toggleCategoryVisibility,
   updateCategory,
   deleteCategory,
   getAllCategories,
-  addcategory,
+  addcategory
+} from '../Controllers/admin/categoryManagementController.js';
+import {
   getCoursesByCategory,
-  getTutorDetails,
   getAllCourses,
   getCourseDetails,
   toggleCourseListing
-} from '../Controllers/adminController.js';
+} from '../Controllers/admin/courseManagementController.js';
+import {
+  getDashboardStats
+} from '../Controllers/admin/dashboardController.js';
 import { protectAdmin } from '../Middleware/adminMiddleware.js';
 
 const router = express.Router();

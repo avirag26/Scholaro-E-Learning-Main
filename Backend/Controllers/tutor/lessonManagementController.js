@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
-import Lesson from "../Model/LessonModel.js";
-import { Course } from "../Model/CourseModel.js";
+import Lesson from "../../Model/LessonModel.js";
+import { Course } from "../../Model/CourseModel.js";
+
 const createLesson = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -72,6 +73,7 @@ const createLesson = async (req, res) => {
     res.status(500).json({ message: "Failed to create lesson" });
   }
 };
+
 const getCourseLessons = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -108,6 +110,7 @@ const getCourseLessons = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch lessons" });
   }
 };
+
 const updateLesson = async (req, res) => {
   try {
     const { lessonId } = req.params;
@@ -160,6 +163,7 @@ const updateLesson = async (req, res) => {
     res.status(500).json({ message: "Failed to update lesson" });
   }
 };
+
 const deleteLesson = async (req, res) => {
   try {
     const { lessonId } = req.params;
@@ -179,6 +183,7 @@ const deleteLesson = async (req, res) => {
     res.status(500).json({ message: "Failed to delete lesson" });
   }
 };
+
 const toggleLessonPublish = async (req, res) => {
   try {
     const { lessonId } = req.params;
@@ -198,6 +203,7 @@ const toggleLessonPublish = async (req, res) => {
     res.status(500).json({ message: "Failed to update lesson status" });
   }
 };
+
 const getLessonDetails = async (req, res) => {
   try {
     const { lessonId } = req.params;
@@ -213,6 +219,7 @@ const getLessonDetails = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch lesson details" });
   }
 };
+
 export {
   createLesson,
   getCourseLessons,

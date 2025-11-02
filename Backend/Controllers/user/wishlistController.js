@@ -1,6 +1,6 @@
-import Wishlist from '../Model/WishlistModel.js';
-import { Course } from '../Model/CourseModel.js';
-import User from '../Model/usermodel.js';
+import Wishlist from '../../Model/WishlistModel.js';
+import { Course } from '../../Model/CourseModel.js';
+import User from '../../Model/usermodel.js';
 
 // Get user's wishlist
 export const getWishlist = async (req, res) => {
@@ -60,7 +60,7 @@ export const addToWishlist = async (req, res) => {
     }
 
     // Check if course is already in cart
-    const Cart = (await import('../Model/CartModel.js')).default;
+    const Cart = (await import('../../Model/CartModel.js')).default;
     const cart = await Cart.findOne({ user: userId });
     if (cart) {
       const isInCart = cart.items.some(item => item.course.toString() === courseId);
@@ -166,7 +166,7 @@ export const moveToCart = async (req, res) => {
     }
 
     // Add to cart (import Cart model)
-    const Cart = (await import('../Model/CartModel.js')).default;
+    const Cart = (await import('../../Model/CartModel.js')).default;
     let cart = await Cart.findOne({ user: userId });
     if (!cart) {
       cart = new Cart({ user: userId, items: [] });

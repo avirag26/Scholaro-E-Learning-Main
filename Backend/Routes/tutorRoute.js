@@ -9,15 +9,17 @@ import {
   refreshTutorToken,
   forgotPassword,
   resetPassword,
-  checkTutorStatus,
+  checkTutorStatus
+} from "../Controllers/tutor/authController.js";
+import {
   uploadTutorProfilePhoto,
   updateTutorProfile,
   getTutorProfile,
   sendTutorPasswordChangeOtp,
   changeTutorPasswordWithOtp,
   sendTutorEmailChangeOtp,
-  verifyTutorEmailChangeOtp,
-} from "../Controllers/tutorController.js";
+  verifyTutorEmailChangeOtp
+} from "../Controllers/tutor/profileController.js";
 import {
   addCourse,
   getTutorCourses,
@@ -27,8 +29,8 @@ import {
   getCategories,
   deleteCourse,
   submitCourse,
-  getCourseByCategory,
-} from "../Controllers/courseController.js";
+  getCourseByCategory
+} from "../Controllers/tutor/courseManagementController.js";
 import {
   createLesson,
   getCourseLessons,
@@ -36,7 +38,7 @@ import {
   deleteLesson,
   toggleLessonPublish,
   getLessonDetails
-} from "../Controllers/lessonController.js";
+} from "../Controllers/tutor/lessonManagementController.js";
 import { protectTutor } from "../Middleware/tutorMiddleware.js";
 router.post("/", registerTutor);
 router.post("/verify-otp", verifyTutorOtp);

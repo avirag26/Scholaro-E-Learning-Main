@@ -1,11 +1,12 @@
-﻿import mongoose from "mongoose";
-import { Course } from "../Model/CourseModel.js";
-import Category from "../Model/CategoryModel.js";
-import Tutor from "../Model/TutorModel.js";
-import Lesson from "../Model/LessonModel.js";
-const addCourse = async (req,res)=>{
-    try{
-        const{
+import mongoose from "mongoose";
+import { Course } from "../../Model/CourseModel.js";
+import Category from "../../Model/CategoryModel.js";
+import Tutor from "../../Model/TutorModel.js";
+import Lesson from "../../Model/LessonModel.js";
+
+const addCourse = async (req, res) => {
+  try {
+    const {
       title,
       category,
       description,
@@ -16,9 +17,9 @@ const addCourse = async (req,res)=>{
       quiz,
       course_thumbnail,
       level,
-        } = req.body;
-        const tutor = req.tutor._id;
-        if (
+    } = req.body;
+    const tutor = req.tutor._id;
+    if (
       !title ||
       !category ||
       !description ||
@@ -88,7 +89,7 @@ const addCourse = async (req,res)=>{
         return res.status(400).json({ message: "Some lessons are invalid." });
       }
     }
-     const newCourse = new Course({
+    const newCourse = new Course({
       title,
       category: categoryData._id,
       description,
@@ -102,7 +103,7 @@ const addCourse = async (req,res)=>{
       level,
       listed: true,
     });
-     await newCourse.save();
+    await newCourse.save();
     await Category.findByIdAndUpdate(categoryData._id, {
       $addToSet: { courses: newCourse._id },
     });
@@ -113,10 +114,11 @@ const addCourse = async (req,res)=>{
       message: "Course added successfully.",
       course: newCourse,
     });
-    } catch (error) {
+  } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
-}
+};
+
 const getTutorCourses = async (req, res) => {
   try {
     const tutorId = req.tutor._id;
@@ -181,6 +183,7 @@ const getTutorCourses = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch courses", error: error.message });
   }
 };
+
 const updateCourse = async (req, res) => {
   try {
     const { id } = req.params;
@@ -212,6 +215,7 @@ const updateCourse = async (req, res) => {
     res.status(500).json({ message: "Failed to update course" });
   }
 };
+
 const toggleCourseListing = async (req, res) => {
   try {
     const { id } = req.params;
@@ -226,19 +230,19 @@ const toggleCourseListing = async (req, res) => {
 
     // Check if course was unlisted by admin
     if (course.unlistedByAdmin && !course.listed) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: "This course has been unlisted by admin and cannot be listed by tutor",
         unlistedByAdmin: true
       });
     }
 
     course.listed = !course.listed;
-    
+
     // If tutor is listing the course, ensure it's not marked as unlisted by admin
     if (course.listed) {
       course.unlistedByAdmin = false;
     }
-    
+
     await course.save();
     const action = course.listed ? "listed" : "unlisted";
     res.status(200).json({
@@ -249,6 +253,7 @@ const toggleCourseListing = async (req, res) => {
     res.status(500).json({ message: "Failed to update course listing" });
   }
 };
+
 const getCourseDetails = async (req, res) => {
   try {
     const { id } = req.params;
@@ -267,6 +272,7 @@ const getCourseDetails = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch course details" });
   }
 };
+
 const getCategories = async (req, res) => {
   try {
     const categories = await Category.find({ isVisible: true })
@@ -282,6 +288,7 @@ const getCategories = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch categories" });
   }
 };
+
 const deleteCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -308,6 +315,7 @@ const deleteCourse = async (req, res) => {
     });
   }
 };
+
 const submitCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -340,6 +348,7 @@ const submitCourse = async (req, res) => {
     });
   }
 };
+
 const getCourseByCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
@@ -398,6 +407,7 @@ const getCourseByCategory = async (req, res) => {
     });
   }
 };
+
 export {
   addCourse,
   getTutorCourses,

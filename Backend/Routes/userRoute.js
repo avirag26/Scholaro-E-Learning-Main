@@ -11,42 +11,46 @@ import {
   logoutUser,
   forgotPassword,
   resetPassword,
-  checkUserStatus,
+  checkUserStatus
+} from "../Controllers/user/authController.js";
+import {
   getUserProfile,
   updateUserProfile,
   uploadProfilePhoto,
   sendPasswordChangeOtp,
   changePasswordWithOtp,
   sendEmailChangeOtp,
-  verifyEmailChangeOtp,
-  getPublicCategories,
-  getPublicCourses,
-  getCoursesByCategory,
-  getCourseDetails,
-  getPublicTutors,
-  getTutorDetails
-} from "../Controllers/userController.js";
+  verifyEmailChangeOtp
+} from "../Controllers/user/profileController.js";
 import {
   getCart,
   addToCart,
   removeFromCart,
   clearCart,
   moveToWishlist
-} from "../Controllers/cartController.js";
+} from "../Controllers/user/cartController.js";
 import {
   getWishlist,
   addToWishlist,
   removeFromWishlist,
   moveToCart,
   clearWishlist
-} from "../Controllers/wishlistController.js";
+} from "../Controllers/user/wishlistController.js";
+import {
+  getPublicCategories,
+  getPublicCourses,
+  getCoursesByCategory,
+  getCourseDetails,
+  getPublicTutors,
+  getTutorDetails
+} from "../Controllers/common/publicController.js";
 import {
   createOrder,
   verifyPayment,
   getOrder,
   getUserOrders,
   generateInvoice
-} from "../Controllers/paymentController.js";
+} from "../Controllers/common/paymentController.js";
 import { protectUser } from "../Middleware/userMiddleware.js";
 router.route("/").post(registerUser);
 router.post("/verify-otp", verifyOtp);

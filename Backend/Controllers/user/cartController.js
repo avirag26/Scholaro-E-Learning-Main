@@ -1,6 +1,6 @@
-import Cart from '../Model/CartModel.js';
-import { Course } from '../Model/CourseModel.js';
-import User from '../Model/usermodel.js';
+import Cart from '../../Model/CartModel.js';
+import { Course } from '../../Model/CourseModel.js';
+import User from '../../Model/usermodel.js';
 
 // Get user's cart
 export const getCart = async (req, res) => {
@@ -185,7 +185,7 @@ export const moveToWishlist = async (req, res) => {
     }
 
     // Add to wishlist (import Wishlist model)
-    const Wishlist = (await import('../Model/WishlistModel.js')).default;
+    const Wishlist = (await import('../../Model/WishlistModel.js')).default;
     let wishlist = await Wishlist.findOne({ user: userId });
     if (!wishlist) {
       wishlist = new Wishlist({ user: userId, items: [] });
