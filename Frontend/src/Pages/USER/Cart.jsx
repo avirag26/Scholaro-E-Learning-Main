@@ -6,12 +6,12 @@ import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
 import UserSidebar from '../../components/UserSidebar';
-import { getCart, removeFromCart, clearCart, moveToWishlist } from '../../Redux/cartSlice';
+import { getCart, removeFromCart, clearCart, moveToWishlist, removeUnavailableFromCart } from '../../Redux/cartSlice';
 
 export default function Cart() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { items, totalAmount, totalItems, loading, error } = useSelector(state => state.cart);
+  const { items, totalItems, loading, error } = useSelector(state => state.cart);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -53,6 +53,19 @@ export default function Cart() {
     }
   };
 
+  const handleRemoveUnavailable = async () => {
+    try {
+      const result = await dispatch(removeUnavailableFromCart()).unwrap();
+      if (result.removedCount > 0) {
+        toast.success(result.message);
+      } else {
+        toast.info('No unavailable courses found in cart');
+      }
+    } catch (error) {
+      toast.error(error.message || 'Failed to remove unavailable courses');
+    }
+  };
+
   const calculateDiscountedPrice = (price, offerPercentage) => {
     if (!offerPercentage) return price;
     return price - (price * offerPercentage / 100);
@@ -60,9 +73,27 @@ export default function Cart() {
 
   const calculateTotalSavings = () => {
     return items.reduce((total, item) => {
-      const originalPrice = item.course.price;
-      const discountedPrice = calculateDiscountedPrice(originalPrice, item.course.offer_percentage);
+      const course = item.course;
+      const isUnavailable = !course.listed || !course.isActive || course.isBanned;
+      if (isUnavailable) return total;
+      
+      const originalPrice = course.price;
+      const discountedPrice = calculateDiscountedPrice(originalPrice, course.offer_percentage);
       return total + (originalPrice - discountedPrice);
+    }, 0);
+  };
+
+  const getAvailableItems = () => {
+    return items.filter(item => {
+      const course = item.course;
+      return course.listed && course.isActive && !course.isBanned;
+    });
+  };
+
+  const calculateAvailableTotal = () => {
+    return getAvailableItems().reduce((total, item) => {
+      const discountedPrice = calculateDiscountedPrice(item.course.price, item.course.offer_percentage);
+      return total + discountedPrice;
     }, 0);
   };
 
@@ -124,6 +155,26 @@ export default function Cart() {
                     )}
                   </div>
                 </div>
+                
+                {/* Unavailable courses notification */}
+                {items.length > 0 && getAvailableItems().length < items.length && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <p className="text-sm text-red-800">
+                          <strong>{items.length - getAvailableItems().length}</strong> course{items.length - getAvailableItems().length > 1 ? 's are' : ' is'} no longer available and cannot be purchased.
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleRemoveUnavailable}
+                        className="text-sm bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors"
+                      >
+                        Remove Unavailable
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {items.length === 0 ? (
@@ -143,23 +194,38 @@ export default function Cart() {
                   {items.map((item) => {
                     const course = item.course;
                     const discountedPrice = calculateDiscountedPrice(course.price, course.offer_percentage);
+                    const isUnavailable = !course.listed || !course.isActive || course.isBanned;
                     
                     return (
-                      <div key={item._id} className="p-6">
+                      <div key={item._id} className={`p-6 ${isUnavailable ? 'bg-red-50 border-l-4 border-red-400' : ''}`}>
                         <div className="flex flex-col md:flex-row gap-4">
-                          <div className="md:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden">
+                          <div className="md:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden relative">
                             <img
                               src={course.course_thumbnail}
                               alt={course.title}
-                              className="w-full h-full object-cover"
+                              className={`w-full h-full object-cover ${isUnavailable ? 'opacity-50 grayscale' : ''}`}
                             />
+                            {isUnavailable && (
+                              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                                <span className="text-white text-sm font-medium">Unavailable</span>
+                              </div>
+                            )}
                           </div>
                           
                           <div className="flex-1">
                             <div className="flex justify-between items-start mb-2">
-                              <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-                                {course.title}
-                              </h3>
+                              <div>
+                                <h3 className={`text-lg font-semibold line-clamp-2 ${isUnavailable ? 'text-gray-500' : 'text-gray-900'}`}>
+                                  {course.title}
+                                </h3>
+                                {isUnavailable && (
+                                  <div className="mt-1">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                      Course no longer available
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                               <button
                                 onClick={() => handleRemoveItem(course._id)}
                                 className="text-gray-400 hover:text-red-500 p-1"
@@ -168,39 +234,53 @@ export default function Cart() {
                               </button>
                             </div>
                             
-                            <p className="text-gray-600 mb-2">By {course.tutor?.full_name}</p>
+                            <p className={`mb-2 ${isUnavailable ? 'text-gray-400' : 'text-gray-600'}`}>
+                              By {course.tutor?.full_name}
+                            </p>
                             
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="flex items-center">
-                                <span className="text-yellow-400">★</span>
-                                <span className="text-sm text-gray-600 ml-1">
-                                  {course.average_rating?.toFixed(1) || 'No rating'} ({course.total_reviews || 0} reviews)
-                                </span>
+                            {!isUnavailable && (
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="flex items-center">
+                                  <span className="text-yellow-400">★</span>
+                                  <span className="text-sm text-gray-600 ml-1">
+                                    {course.average_rating?.toFixed(1) || 'No rating'} ({course.total_reviews || 0} reviews)
+                                  </span>
+                                </div>
+                                <span className="text-gray-400">•</span>
+                                <span className="text-sm text-gray-600">{course.lessons?.length || 0} lessons</span>
                               </div>
-                              <span className="text-gray-400">•</span>
-                              <span className="text-sm text-gray-600">{course.lessons?.length || 0} lessons</span>
-                            </div>
+                            )}
                             
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                <span className="text-xl font-bold text-gray-900">
-                                  ₹{discountedPrice.toFixed(2)}
-                                </span>
-                                {course.offer_percentage > 0 && (
-                                  <span className="text-sm text-gray-500 line-through">
-                                    ₹{course.price.toFixed(2)}
+                                {isUnavailable ? (
+                                  <span className="text-lg font-bold text-gray-400">
+                                    Not Available
                                   </span>
+                                ) : (
+                                  <>
+                                    <span className="text-xl font-bold text-gray-900">
+                                      ₹{discountedPrice.toFixed(2)}
+                                    </span>
+                                    {course.offer_percentage > 0 && (
+                                      <span className="text-sm text-gray-500 line-through">
+                                        ₹{course.price.toFixed(2)}
+                                      </span>
+                                    )}
+                                  </>
                                 )}
                               </div>
                               
                               <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => handleMoveToWishlist(course._id)}
-                                  className="flex items-center gap-1 px-3 py-1 text-sm text-sky-600 hover:text-sky-700 border border-sky-200 rounded-md hover:bg-sky-50"
-                                >
-                                  <Heart className="h-4 w-4" />
-                                  Save for later
-                                </button>
+                                {!isUnavailable && (
+                                  <button
+                                    onClick={() => handleMoveToWishlist(course._id)}
+                                    className="flex items-center gap-1 px-3 py-1 text-sm text-sky-600 hover:text-sky-700 border border-sky-200 rounded-md hover:bg-sky-50"
+                                  >
+                                    <Heart className="h-4 w-4" />
+                                    Save for later
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -219,38 +299,52 @@ export default function Cart() {
               <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Order Details</h2>
                 
-                <div className="space-y-3 mb-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Price</span>
-                    <span className="font-medium">₹{(totalAmount + calculateTotalSavings()).toFixed(2)}</span>
+                {getAvailableItems().length === 0 ? (
+                  <div className="text-center py-6">
+                    <p className="text-gray-500 mb-4">No available courses in cart</p>
+                    <Link
+                      to="/user/courses"
+                      className="inline-flex items-center px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600"
+                    >
+                      Browse Courses
+                    </Link>
                   </div>
-                  
-                  {calculateTotalSavings() > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount</span>
-                      <span>-₹{calculateTotalSavings().toFixed(2)}</span>
+                ) : (
+                  <>
+                    <div className="space-y-3 mb-4">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Price ({getAvailableItems().length} items)</span>
+                        <span className="font-medium">₹{(calculateAvailableTotal() + calculateTotalSavings()).toFixed(2)}</span>
+                      </div>
+                      
+                      {calculateTotalSavings() > 0 && (
+                        <div className="flex justify-between text-green-600">
+                          <span>Discount</span>
+                          <span>-₹{calculateTotalSavings().toFixed(2)}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tax (3%)</span>
+                        <span className="font-medium">₹{(calculateAvailableTotal() * 0.03).toFixed(2)}</span>
+                      </div>
+                      
+                      <div className="border-t pt-3">
+                        <div className="flex justify-between text-lg font-bold">
+                          <span>Total</span>
+                          <span>₹{(calculateAvailableTotal() + (calculateAvailableTotal() * 0.03)).toFixed(2)}</span>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tax (3%)</span>
-                    <span className="font-medium">₹{(totalAmount * 0.03).toFixed(2)}</span>
-                  </div>
-                  
-                  <div className="border-t pt-3">
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total</span>
-                      <span>₹{(totalAmount + (totalAmount * 0.03)).toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => navigate('/user/checkout')}
-                  className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors mb-3"
-                >
-                  Proceed to Checkout
-                </button>
+                    
+                    <button
+                      onClick={() => navigate('/user/checkout')}
+                      className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors mb-3"
+                    >
+                      Proceed to Checkout
+                    </button>
+                  </>
+                )}
                 
                 <Link
                   to="/user/courses"

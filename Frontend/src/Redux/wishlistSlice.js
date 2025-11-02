@@ -130,7 +130,9 @@ const wishlistSlice = createSlice({
       // Move to cart
       .addCase(moveToCart.fulfilled, (state, action) => {
         state.items = state.items.filter(item => item.course._id !== action.payload);
-      });
+      })
+      
+
   }
 });
 

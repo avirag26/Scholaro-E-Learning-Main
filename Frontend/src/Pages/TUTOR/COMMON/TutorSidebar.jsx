@@ -1,5 +1,5 @@
 import React from "react";
-import { FaPlus, FaUser, FaBook, FaChartBar, FaComments, FaSignOutAlt } from "react-icons/fa";
+import { FaPlus, FaUser, FaBook, FaChartBar, FaComments, FaSignOutAlt, FaShoppingBag } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCurrentTutor } from "../../../hooks/useCurrentTutor";
 import { useLogout } from "../../../hooks/useLogout";
@@ -16,6 +16,7 @@ const TutorSidebar = () => {
     { path: '/tutor/home', icon: FaChartBar, label: 'Dashboard' },
     { path: '/tutor/profile', icon: FaUser, label: 'Profile' },
     { path: '/tutor/courses', icon: FaBook, label: 'Courses' },
+    { path: '/tutor/orders', icon: FaShoppingBag, label: 'Orders' },
     { path: '/tutor/revenues', icon: FaChartBar, label: 'Revenues' },
     { path: '/tutor/chat', icon: FaComments, label: 'Chat & video' },
   ];

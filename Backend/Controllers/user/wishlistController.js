@@ -10,6 +10,7 @@ export const getWishlist = async (req, res) => {
     let wishlist = await Wishlist.findOne({ user: userId })
       .populate({
         path: 'items.course',
+        select: 'title description price offer_percentage course_thumbnail average_rating total_reviews lessons listed isActive isBanned unlistedByAdmin',
         populate: {
           path: 'tutor',
           select: 'full_name'

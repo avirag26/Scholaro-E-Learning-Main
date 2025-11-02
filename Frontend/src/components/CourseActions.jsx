@@ -39,6 +39,12 @@ const CourseActions = ({ courseId, className = "" }) => {
       } else if (!isInCart) {
         // Add to cart on other pages
         await dispatch(addToCart(courseId)).unwrap();
+        
+        // If course was in wishlist, remove it
+        if (isInWishlist) {
+          await dispatch(removeFromWishlist(courseId)).unwrap();
+        }
+        
         toast.success('Course added to cart');
       }
     } catch (error) {
@@ -51,7 +57,7 @@ const CourseActions = ({ courseId, className = "" }) => {
   const handleWishlistAction = async () => {
     // Don't allow adding to wishlist if course is in cart (except on cart page)
     if (isInCart && !isCartPage && !isInWishlist) {
-      toast.info('Course is already in your cart');
+      toast.info('Course is already in your cart. Remove from cart to add to wishlist.');
       return;
     }
 
@@ -73,7 +79,7 @@ const CourseActions = ({ courseId, className = "" }) => {
         // Remove from wishlist on other pages
         await dispatch(removeFromWishlist(courseId)).unwrap();
         toast.success('Course removed from wishlist');
-      } else {
+      } else if (!isInCart) {
         // Add to wishlist on other pages (only if not in cart)
         await dispatch(addToWishlist(courseId)).unwrap();
         toast.success('Course added to wishlist');

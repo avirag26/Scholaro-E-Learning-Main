@@ -10,7 +10,7 @@ import { createOrder, verifyPayment } from '../../Redux/paymentSlice';
 function Checkout() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { items, totalAmount, loading: cartLoading } = useSelector(state => state.cart);
+    const { items, loading: cartLoading } = useSelector(state => state.cart);
     const { loading: paymentLoading } = useSelector(state => state.payment);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -32,10 +32,35 @@ function Checkout() {
         }, 0);
     };
 
+    const getAvailableItems = () => {
+        return items.filter(item => {
+            const course = item.course;
+            return course.listed && course.isActive && !course.isBanned;
+        });
+    };
+
+    const calculateAvailableTotal = () => {
+        return getAvailableItems().reduce((total, item) => {
+            const discountedPrice = calculateDiscountedPrice(item.course.price, item.course.offer_percentage);
+            return total + discountedPrice;
+        }, 0);
+    };
+
     const handleProceedToCheckout = async () => {
         if (items.length === 0) {
             toast.error('Your cart is empty');
             return;
+        }
+
+        // Check for unavailable courses
+        const availableItems = getAvailableItems();
+        if (availableItems.length === 0) {
+            toast.error('No available courses in cart. Please remove unavailable courses and add new ones.');
+            return;
+        }
+
+        if (availableItems.length < items.length) {
+            toast.warning(`${items.length - availableItems.length} unavailable course(s) will be excluded from checkout.`);
         }
 
         // Check if Razorpay is loaded
@@ -177,9 +202,9 @@ function Checkout() {
                         <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
                             <h2 className="text-xl font-bold text-gray-900 mb-6">Order Details</h2>
 
-                            {/* Course Items */}
+                            {/* Course Items - Only show available courses */}
                             <div className="space-y-4 mb-6">
-                                {items.map((item) => {
+                                {getAvailableItems().map((item) => {
                                     const course = item.course;
                                     const discountedPrice = calculateDiscountedPrice(course.price, course.offer_percentage);
 
@@ -200,6 +225,15 @@ function Checkout() {
                                         </div>
                                     );
                                 })}
+                                
+                                {/* Show unavailable courses notification */}
+                                {items.length > getAvailableItems().length && (
+                                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                        <p className="text-sm text-red-800">
+                                            {items.length - getAvailableItems().length} unavailable course{items.length - getAvailableItems().length > 1 ? 's' : ''} excluded from checkout
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Coupon Code */}
@@ -215,8 +249,8 @@ function Checkout() {
                             {/* Price Breakdown */}
                             <div className="space-y-3 mb-6 pb-6 border-b border-gray-200">
                                 <div className="flex justify-between">
-                                    <span className="text-gray-600">Price</span>
-                                    <span className="font-medium">₹{(totalAmount + calculateTotalSavings()).toFixed(2)}</span>
+                                    <span className="text-gray-600">Price ({getAvailableItems().length} available items)</span>
+                                    <span className="font-medium">₹{(calculateAvailableTotal() + calculateTotalSavings()).toFixed(2)}</span>
                                 </div>
 
                                 {calculateTotalSavings() > 0 && (
@@ -228,14 +262,14 @@ function Checkout() {
 
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Tax (3%)</span>
-                                    <span className="font-medium">₹{(totalAmount * 0.03).toFixed(2)}</span>
+                                    <span className="font-medium">₹{(calculateAvailableTotal() * 0.03).toFixed(2)}</span>
                                 </div>
                             </div>
 
                             {/* Total */}
                             <div className="flex justify-between text-xl font-bold mb-6">
                                 <span>Total</span>
-                                <span>₹{(totalAmount + (totalAmount * 0.03)).toFixed(2)}</span>
+                                <span>₹{(calculateAvailableTotal() + (calculateAvailableTotal() * 0.03)).toFixed(2)}</span>
                             </div>
 
                             {/* Proceed Button */}

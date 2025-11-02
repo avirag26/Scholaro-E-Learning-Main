@@ -25,17 +25,25 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Validate cart items have valid courses
-    const invalidItems = cart.items.filter(item => !item.course);
-    if (invalidItems.length > 0) {
+    // Filter available courses only
+    const availableItems = cart.items.filter(item => {
+      const course = item.course;
+      return course && course.listed && course.isActive && !course.isBanned;
+    });
+
+    if (availableItems.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Some courses in cart are no longer available'
+        message: 'No available courses in cart. Please remove unavailable courses and try again.'
       });
     }
 
-    // Calculate amounts
-    const totalAmount = cart.totalAmount || 0;
+    // Calculate amounts for available items only
+    const totalAmount = availableItems.reduce((total, item) => {
+      const course = item.course;
+      const discountedPrice = course.price - (course.price * (course.offer_percentage || 0) / 100);
+      return total + discountedPrice;
+    }, 0);
     if (totalAmount <= 0) {
       return res.status(400).json({
         success: false,
@@ -65,12 +73,12 @@ export const createOrder = async (req, res) => {
       receipt: `ord_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`, // Max 40 chars
     });
 
-    // Create order in database
+    // Create order in database with available items only
     const order = new Order({
       user: userId,
       orderId: `ORD_${uuidv4()}`,
       razorpayOrderId: razorpayOrder.id,
-      items: cart.items.map(item => ({
+      items: availableItems.map(item => ({
         course: item.course._id,
         price: item.course.price,
         discountedPrice: item.course.price - (item.course.price * (item.course.offer_percentage || 0) / 100)

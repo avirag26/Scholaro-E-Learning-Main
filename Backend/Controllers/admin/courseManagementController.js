@@ -1,5 +1,7 @@
 import { Course } from "../../Model/CourseModel.js";
 import Category from "../../Model/CategoryModel.js";
+import Cart from "../../Model/CartModel.js";
+import Wishlist from "../../Model/WishlistModel.js";
 import mongoose from "mongoose";
 
 const getCoursesByCategory = async (req, res) => {
@@ -450,6 +452,47 @@ const toggleCourseListing = async (req, res) => {
     }
 
     await course.save();
+
+    // If course is being unlisted, remove it from all carts and wishlists
+    if (!course.listed) {
+      try {
+        // Remove from all carts
+        await Cart.updateMany(
+          { 'items.course': courseId },
+          { $pull: { items: { course: courseId } } }
+        );
+
+        // Remove from all wishlists
+        await Wishlist.updateMany(
+          { 'items.course': courseId },
+          { $pull: { items: { course: courseId } } }
+        );
+
+        // Recalculate cart totals for affected carts
+        const affectedCarts = await Cart.find({ 'items.0': { $exists: true } })
+          .populate('items.course');
+
+        for (const cart of affectedCarts) {
+          const availableItems = cart.items.filter(item => {
+            const course = item.course;
+            return course && course.listed && course.isActive && !course.isBanned;
+          });
+
+          const totalAmount = availableItems.reduce((total, item) => {
+            const course = item.course;
+            const discountedPrice = course.price - (course.price * (course.offer_percentage || 0) / 100);
+            return total + discountedPrice;
+          }, 0);
+
+          cart.totalAmount = totalAmount;
+          cart.totalItems = availableItems.length;
+          await cart.save();
+        }
+      } catch (cleanupError) {
+        console.error('Error cleaning up carts/wishlists:', cleanupError);
+        // Don't fail the main operation if cleanup fails
+      }
+    }
 
     const action = course.listed ? "listed" : "unlisted";
     res.status(200).json({

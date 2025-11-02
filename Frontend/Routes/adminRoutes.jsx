@@ -12,6 +12,8 @@ import CategoryCourses from "../src/Pages/ADMIN/CategoryCourses";
 import TutorDetail from "../src/Pages/ADMIN/TutorDetail";
 import Courses from "../src/Pages/ADMIN/Courses";
 import CourseDetail from "../src/Pages/ADMIN/CourseDetail";
+import Orders from "../src/Pages/ADMIN/Orders";
+import OrderDetail from "../src/Pages/ADMIN/OrderDetail";
 
 const AdminRoutes = () => {
     return (
@@ -72,6 +74,18 @@ const AdminRoutes = () => {
             <Route path="courses/:courseId/details" element={
                 <ProtectedRoute userType="admin">
                     <CourseDetail />
+                </ProtectedRoute>
+            } />
+
+            <Route path="orders" element={
+                <ProtectedRoute userType="admin">
+                    <Orders />
+                </ProtectedRoute>
+            } />
+
+            <Route path="orders/:orderId" element={
+                <ProtectedRoute userType="admin">
+                    <OrderDetail />
                 </ProtectedRoute>
             } />
 

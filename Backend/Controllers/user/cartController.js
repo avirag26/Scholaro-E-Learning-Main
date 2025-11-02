@@ -1,4 +1,5 @@
 import Cart from '../../Model/CartModel.js';
+import Wishlist from '../../Model/WishlistModel.js';
 import { Course } from '../../Model/CourseModel.js';
 import User from '../../Model/usermodel.js';
 
@@ -10,6 +11,7 @@ export const getCart = async (req, res) => {
     let cart = await Cart.findOne({ user: userId })
       .populate({
         path: 'items.course',
+        select: 'title description price offer_percentage course_thumbnail average_rating total_reviews lessons listed isActive isBanned unlistedByAdmin',
         populate: {
           path: 'tutor',
           select: 'full_name'
@@ -20,6 +22,24 @@ export const getCart = async (req, res) => {
       cart = new Cart({ user: userId, items: [] });
       await cart.save();
     }
+
+    // Calculate totals for available items only
+    const availableItems = cart.items.filter(item => {
+      const course = item.course;
+      return course && course.listed && course.isActive && !course.isBanned;
+    });
+
+    const totalAmount = availableItems.reduce((total, item) => {
+      const course = item.course;
+      const discountedPrice = course.price - (course.price * (course.offer_percentage || 0) / 100);
+      return total + discountedPrice;
+    }, 0);
+
+    const totalItems = availableItems.length;
+
+    // Update cart with calculated values
+    cart.totalAmount = totalAmount;
+    cart.totalItems = totalItems;
 
     res.status(200).json({
       success: true,
@@ -71,6 +91,13 @@ export const addToCart = async (req, res) => {
         success: false,
         message: 'Course already in cart'
       });
+    }
+
+    // Remove from wishlist if it exists there
+    const wishlist = await Wishlist.findOne({ user: userId });
+    if (wishlist) {
+      wishlist.items = wishlist.items.filter(item => item.course.toString() !== courseId);
+      await wishlist.save();
     }
 
     // Add item to cart
@@ -205,6 +232,104 @@ export const moveToWishlist = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error moving to wishlist',
+      error: error.message
+    });
+  }
+};
+// Clean up unavailable courses from all carts
+export const cleanupUnavailableCourses = async (req, res) => {
+  try {
+    // Find all carts with items
+    const carts = await Cart.find({ 'items.0': { $exists: true } })
+      .populate('items.course');
+
+    let totalCleaned = 0;
+
+    for (const cart of carts) {
+      const originalLength = cart.items.length;
+      
+      // Filter out unavailable courses
+      cart.items = cart.items.filter(item => {
+        const course = item.course;
+        return course && course.listed && course.isActive && !course.isBanned;
+      });
+
+      if (cart.items.length !== originalLength) {
+        // Recalculate totals
+        const totalAmount = cart.items.reduce((total, item) => {
+          const course = item.course;
+          const discountedPrice = course.price - (course.price * (course.offer_percentage || 0) / 100);
+          return total + discountedPrice;
+        }, 0);
+
+        cart.totalAmount = totalAmount;
+        cart.totalItems = cart.items.length;
+        
+        await cart.save();
+        totalCleaned += (originalLength - cart.items.length);
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Cleaned up ${totalCleaned} unavailable courses from carts`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error cleaning up carts',
+      error: error.message
+    });
+  }
+};
+
+// Remove unavailable courses from user's cart
+export const removeUnavailableFromCart = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const cart = await Cart.findOne({ user: userId })
+      .populate('items.course');
+
+    if (!cart) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cart not found'
+      });
+    }
+
+    const originalLength = cart.items.length;
+    
+    // Filter out unavailable courses
+    cart.items = cart.items.filter(item => {
+      const course = item.course;
+      return course && course.listed && course.isActive && !course.isBanned;
+    });
+
+    // Recalculate totals
+    const totalAmount = cart.items.reduce((total, item) => {
+      const course = item.course;
+      const discountedPrice = course.price - (course.price * (course.offer_percentage || 0) / 100);
+      return total + discountedPrice;
+    }, 0);
+
+    cart.totalAmount = totalAmount;
+    cart.totalItems = cart.items.length;
+    
+    await cart.save();
+
+    const removedCount = originalLength - cart.items.length;
+
+    res.status(200).json({
+      success: true,
+      message: removedCount > 0 ? `Removed ${removedCount} unavailable course${removedCount > 1 ? 's' : ''} from cart` : 'No unavailable courses found',
+      cart,
+      removedCount
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error removing unavailable courses',
       error: error.message
     });
   }

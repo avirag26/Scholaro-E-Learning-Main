@@ -27,7 +27,8 @@ import {
   addToCart,
   removeFromCart,
   clearCart,
-  moveToWishlist
+  moveToWishlist,
+  removeUnavailableFromCart
 } from "../Controllers/user/cartController.js";
 import {
   getWishlist,
@@ -82,6 +83,7 @@ router.post("/cart/add", protectUser, addToCart);
 router.delete("/cart/remove/:courseId", protectUser, removeFromCart);
 router.delete("/cart/clear", protectUser, clearCart);
 router.post("/cart/move-to-wishlist", protectUser, moveToWishlist);
+router.delete("/cart/cleanup-unavailable", protectUser, removeUnavailableFromCart);
 
 // Wishlist routes
 router.get("/wishlist", protectUser, getWishlist);

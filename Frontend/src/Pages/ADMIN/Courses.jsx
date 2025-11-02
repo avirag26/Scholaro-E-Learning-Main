@@ -61,14 +61,22 @@ const Courses = () => {
       });
 
       if (response.data.success) {
-        setCoursesByCategory(response.data.coursesByCategory);
+        const coursesByCategory = response.data.data || [];
+        setCoursesByCategory(coursesByCategory);
         const initialPages = {};
-        response.data.coursesByCategory.forEach(category => {
-          initialPages[category.id] = 0;
+        coursesByCategory.forEach(categoryData => {
+          if (categoryData && categoryData.category && categoryData.category.id) {
+            initialPages[categoryData.category.id] = 0;
+          }
         });
         setCurrentPages(initialPages);
+      } else {
+        setCoursesByCategory([]);
+        setCurrentPages({});
       }
     } catch (error) {
+      setCoursesByCategory([]);
+      setCurrentPages({});
       toast.error(error.response?.data?.message || "Failed to fetch courses");
     } finally {
       setLoading(false);
@@ -171,9 +179,9 @@ const Courses = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                       >
                         <option value="all">All Categories</option>
-                        {coursesByCategory.map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.title}
+                        {coursesByCategory.map((categoryData) => (
+                          <option key={categoryData.category.id} value={categoryData.category.id}>
+                            {categoryData.category.title}
                           </option>
                         ))}
                       </select>
@@ -251,26 +259,26 @@ const Courses = () => {
 
       {/* Courses by Category */}
       <div className="space-y-8">
-        {coursesByCategory.length > 0 ? (
-          coursesByCategory.map((category) => (
-            <div key={category.id} className="bg-white rounded-lg shadow p-8">
+        {coursesByCategory && coursesByCategory.length > 0 ? (
+          coursesByCategory.filter(categoryData => categoryData && categoryData.category && categoryData.category.id).map((categoryData) => (
+            <div key={categoryData.category.id} className="bg-white rounded-lg shadow p-8">
               {/* Category Header */}
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{category.title}</h2>
-                  <p className="text-gray-600">{category.description}</p>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{categoryData.category.title}</h2>
+                  <p className="text-gray-600">{categoryData.category.description}</p>
                 </div>
                 
-                {category.courses.length > coursesPerPage && (
+                {categoryData.courses.length > coursesPerPage && (
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handlePrevPage(category.id, category.courses.length)}
+                      onClick={() => handlePrevPage(categoryData.category.id, categoryData.courses.length)}
                       className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleNextPage(category.id, category.courses.length)}
+                      onClick={() => handleNextPage(categoryData.category.id, categoryData.courses.length)}
                       className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -280,10 +288,11 @@ const Courses = () => {
               </div>
 
               {/* Courses Grid */}
-              {category.courses.length > 0 ? (
+              {categoryData.courses && categoryData.courses.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {category.courses
-                    .slice(currentPages[category.id] || 0, (currentPages[category.id] || 0) + coursesPerPage)
+                  {categoryData.courses
+                    .slice(currentPages[categoryData.category.id] || 0, (currentPages[categoryData.category.id] || 0) + coursesPerPage)
+                    .filter(course => course && course.id)
                     .map((course) => (
                       <div
                         key={course.id}
@@ -297,7 +306,7 @@ const Courses = () => {
                           />
                           <div className="absolute top-3 left-3">
                             <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
-                              {category.title}
+                              {categoryData.category.title}
                             </span>
                           </div>
                           <div className="absolute top-3 right-3">
@@ -315,12 +324,12 @@ const Courses = () => {
                           <div className="flex items-center gap-2 mb-3">
                             <img
                               src={course.tutor?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"}
-                              alt={course.tutor?.full_name}
+                              alt={course.tutor?.full_name || 'Instructor'}
                               className="w-8 h-8 rounded-full border-2 border-gray-100"
                             />
                             <div>
                               <p className="text-sm font-medium text-gray-900">
-                                {course.tutor?.full_name}
+                                {course.tutor?.full_name || 'Unknown Instructor'}
                               </p>
                               <p className="text-xs text-gray-500">Instructor</p>
                             </div>
@@ -332,13 +341,13 @@ const Courses = () => {
 
                           <div className="flex items-center gap-2 mb-4">
                             <div className="flex">
-                              {renderStars(course.average_rating)}
+                              {renderStars(course.average_rating || 0)}
                             </div>
                             <span className="text-sm text-gray-600 font-medium">
-                              {course.average_rating.toFixed(1)}
+                              {(course.average_rating || 0).toFixed(1)}
                             </span>
                             <span className="text-xs text-gray-400">
-                              ({course.total_reviews} reviews)
+                              ({course.total_reviews || 0} reviews)
                             </span>
                           </div>
 
@@ -346,7 +355,7 @@ const Courses = () => {
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-1 text-sm text-gray-500">
                                 <Users className="w-4 h-4" />
-                                <span>{course.enrolled_count}</span>
+                                <span>{course.enrolled_count || 0}</span>
                               </div>
                               <div className="flex items-center gap-1 text-sm text-gray-500">
                                 <BookOpen className="w-4 h-4" />
@@ -383,16 +392,16 @@ const Courses = () => {
               )}
 
               {/* Pagination Dots */}
-              {category.courses.length > coursesPerPage && (
+              {categoryData.courses.length > coursesPerPage && (
                 <div className="flex justify-center mt-8">
                   <div className="flex items-center gap-2">
-                    {Array.from({ length: Math.ceil(category.courses.length / coursesPerPage) }, (_, i) => {
+                    {Array.from({ length: Math.ceil(categoryData.courses.length / coursesPerPage) }, (_, i) => {
                       const pageIndex = i * coursesPerPage;
-                      const isActive = (currentPages[category.id] || 0) === pageIndex;
+                      const isActive = (currentPages[categoryData.category.id] || 0) === pageIndex;
                       return (
                         <button
                           key={i}
-                          onClick={() => setCurrentPages(prev => ({ ...prev, [category.id]: pageIndex }))}
+                          onClick={() => setCurrentPages(prev => ({ ...prev, [categoryData.category.id]: pageIndex }))}
                           className={`w-3 h-3 rounded-full transition-colors ${
                             isActive ? 'bg-teal-500' : 'bg-gray-300 hover:bg-gray-400'
                           }`}

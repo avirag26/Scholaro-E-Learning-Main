@@ -199,23 +199,38 @@ export default function Wishlist() {
                   {filteredAndSortedItems.map((item) => {
                     const course = item.course;
                     const discountedPrice = calculateDiscountedPrice(course.price, course.offer_percentage);
+                    const isUnavailable = !course.listed || !course.isActive || course.isBanned;
                     
                     return (
-                      <div key={item._id} className="p-6">
+                      <div key={item._id} className={`p-6 ${isUnavailable ? 'bg-red-50 border-l-4 border-red-400' : ''}`}>
                         <div className="flex flex-col md:flex-row gap-4">
-                          <div className="md:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden">
+                          <div className="md:w-48 h-32 bg-gray-200 rounded-lg overflow-hidden relative">
                             <img
                               src={course.course_thumbnail}
                               alt={course.title}
-                              className="w-full h-full object-cover"
+                              className={`w-full h-full object-cover ${isUnavailable ? 'opacity-50 grayscale' : ''}`}
                             />
+                            {isUnavailable && (
+                              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                                <span className="text-white text-sm font-medium">Unavailable</span>
+                              </div>
+                            )}
                           </div>
                           
                           <div className="flex-1">
                             <div className="flex justify-between items-start mb-2">
-                              <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-                                {course.title}
-                              </h3>
+                              <div>
+                                <h3 className={`text-lg font-semibold line-clamp-2 ${isUnavailable ? 'text-gray-500' : 'text-gray-900'}`}>
+                                  {course.title}
+                                </h3>
+                                {isUnavailable && (
+                                  <div className="mt-1">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                      Course no longer available
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                               <button
                                 onClick={() => handleRemoveItem(course._id)}
                                 className="text-gray-400 hover:text-red-500 p-1"
@@ -224,40 +239,61 @@ export default function Wishlist() {
                               </button>
                             </div>
                             
-                            <p className="text-gray-600 mb-2">By {course.tutor?.full_name}</p>
+                            <p className={`mb-2 ${isUnavailable ? 'text-gray-400' : 'text-gray-600'}`}>
+                              By {course.tutor?.full_name}
+                            </p>
                             
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="flex items-center">
-                                <span className="text-yellow-400">★</span>
-                                <span className="text-sm text-gray-600 ml-1">
-                                  {course.average_rating?.toFixed(1) || 'No rating'} ({course.total_reviews || 0} reviews)
-                                </span>
+                            {!isUnavailable && (
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="flex items-center">
+                                  <span className="text-yellow-400">★</span>
+                                  <span className="text-sm text-gray-600 ml-1">
+                                    {course.average_rating?.toFixed(1) || 'No rating'} ({course.total_reviews || 0} reviews)
+                                  </span>
+                                </div>
+                                <span className="text-gray-400">•</span>
+                                <span className="text-sm text-gray-600">{course.lessons?.length || 0} lessons</span>
                               </div>
-                              <span className="text-gray-400">•</span>
-                              <span className="text-sm text-gray-600">{course.lessons?.length || 0} lessons</span>
-                            </div>
+                            )}
                             
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                <span className="text-xl font-bold text-gray-900">
-                                  ₹{discountedPrice.toFixed(2)}
-                                </span>
-                                {course.offer_percentage > 0 && (
-                                  <span className="text-sm text-gray-500 line-through">
-                                    ₹{course.price.toFixed(2)}
+                                {isUnavailable ? (
+                                  <span className="text-lg font-bold text-gray-400">
+                                    Not Available
                                   </span>
+                                ) : (
+                                  <>
+                                    <span className="text-xl font-bold text-gray-900">
+                                      ₹{discountedPrice.toFixed(2)}
+                                    </span>
+                                    {course.offer_percentage > 0 && (
+                                      <span className="text-sm text-gray-500 line-through">
+                                        ₹{course.price.toFixed(2)}
+                                      </span>
+                                    )}
+                                  </>
                                 )}
                               </div>
                               
                               <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => handleMoveToCart(course._id)}
-                                  className="flex items-center gap-2 px-4 py-2 bg-sky-500 text-white font-medium rounded-lg hover:bg-sky-600 transition-colors"
-                                >
-                                  <ShoppingCart className="h-4 w-4" />
-                                  Add To Cart
-                                </button>
-                                
+                                {!isUnavailable ? (
+                                  <button
+                                    onClick={() => handleMoveToCart(course._id)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-sky-500 text-white font-medium rounded-lg hover:bg-sky-600 transition-colors"
+                                  >
+                                    <ShoppingCart className="h-4 w-4" />
+                                    Add To Cart
+                                  </button>
+                                ) : (
+                                  <button
+                                    disabled
+                                    className="flex items-center gap-2 px-4 py-2 bg-gray-300 text-gray-500 font-medium rounded-lg cursor-not-allowed"
+                                  >
+                                    <ShoppingCart className="h-4 w-4" />
+                                    Unavailable
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>

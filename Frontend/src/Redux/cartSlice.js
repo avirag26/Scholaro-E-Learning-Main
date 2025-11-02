@@ -66,6 +66,19 @@ export const moveToWishlist = createAsyncThunk(
   }
 );
 
+// Remove unavailable courses from cart
+export const removeUnavailableFromCart = createAsyncThunk(
+  'cart/removeUnavailableFromCart',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await userAPI.delete('/api/users/cart/cleanup-unavailable');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to cleanup cart');
+    }
+  }
+);
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState: {
@@ -147,7 +160,25 @@ const cartSlice = createSlice({
           const finalPrice = price - (price * discount / 100);
           return total + finalPrice;
         }, 0);
-      });
+      })
+      
+      // Remove unavailable courses
+      .addCase(removeUnavailableFromCart.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(removeUnavailableFromCart.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload.cart.items || [];
+        state.totalAmount = action.payload.cart.totalAmount || 0;
+        state.totalItems = action.payload.cart.totalItems || 0;
+      })
+      .addCase(removeUnavailableFromCart.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+
   }
 });
 

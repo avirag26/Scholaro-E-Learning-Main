@@ -39,6 +39,11 @@ import {
   toggleLessonPublish,
   getLessonDetails
 } from "../Controllers/tutor/lessonManagementController.js";
+import {
+  getTutorOrders,
+  getTutorOrderDetails,
+  getTutorOrderStats
+} from "../Controllers/tutor/orderManagementController.js";
 import { protectTutor } from "../Middleware/tutorMiddleware.js";
 router.post("/", registerTutor);
 router.post("/verify-otp", verifyTutorOtp);
@@ -72,4 +77,10 @@ router.delete("/lessons/:lessonId", protectTutor, deleteLesson);
 router.patch("/lessons/:lessonId/toggle-publish", protectTutor, toggleLessonPublish);
 router.post("/submit-course/:courseId", submitCourse);
 router.get("/courses/category/:categoryId", getCourseByCategory);
+
+// Order management routes
+router.get("/orders", protectTutor, getTutorOrders);
+router.get("/orders/stats", protectTutor, getTutorOrderStats);
+router.get("/orders/:orderId", protectTutor, getTutorOrderDetails);
+
 export default router;
