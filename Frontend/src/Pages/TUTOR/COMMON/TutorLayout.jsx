@@ -1,13 +1,14 @@
 import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Header from "./Header";
 import Footer from "../../../components/Common/Footer";
 import TutorSidebar from "./TutorSidebar";
 import { tutorAPI } from "../../../api/axiosConfig";
-import { toast } from "sonner";
+
 import { useCurrentTutor } from "../../../hooks/useCurrentTutor";
 import { useLogout } from "../../../hooks/useLogout";
 const TutorLayout = ({ children }) => {
+  const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated } = useCurrentTutor();
   const { forceLogout } = useLogout('tutor');
@@ -32,6 +33,19 @@ const TutorLayout = ({ children }) => {
         }
       });
   }, [navigate, isAuthenticated, forceLogout]);
+  // Check if current page is chat to apply different layout
+  const isChatPage = location.pathname.includes('/chat');
+
+  if (isChatPage) {
+    // Full height layout for chat page - use consistent chat header
+    return (
+      <div className="h-screen bg-gray-50 w-full flex flex-col">
+        {children}
+      </div>
+    );
+  }
+
+  // Normal layout for other pages
   return (
     <div className="min-h-screen bg-[#f2fbf6] w-full flex flex-col">
       <Header />

@@ -192,7 +192,8 @@ export const getOrder = async (req, res) => {
     const order = await Order.findOne({
       orderId,
       user: userId
-    }).populate('items.course', 'title course_thumbnail');
+    }).populate('items.course', 'title course_thumbnail')
+      .populate('user', 'full_name email phone profileImage');
 
     if (!order) {
       return res.status(404).json({
@@ -292,6 +293,7 @@ export const getUserOrders = async (req, res) => {
 
     const orders = await Order.find(query)
       .populate('items.course', 'title course_thumbnail')
+      .populate('user', 'full_name email phone profileImage')
       .sort(sortOptions)
       .limit(limit * 1)
       .skip((page - 1) * limit);

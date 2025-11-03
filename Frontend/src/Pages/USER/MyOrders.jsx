@@ -41,15 +41,12 @@ export default function MyOrders() {
         sort: sortBy
       });
 
-
-
       const response = await userAPI.get(`/api/users/payment/orders?${params}`);
       if (response.data.success) {
         setOrders(response.data.orders);
         setPagination(response.data.pagination);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
       toast.error('Failed to load orders');
     } finally {
       setLoading(false);
@@ -102,7 +99,6 @@ Thank you for choosing Scholaro!
         toast.success('Invoice downloaded successfully!');
       }
     } catch (error) {
-      console.error('Error downloading invoice:', error);
       toast.error('Failed to download invoice');
     }
   };

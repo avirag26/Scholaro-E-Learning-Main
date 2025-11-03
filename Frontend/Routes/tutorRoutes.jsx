@@ -13,6 +13,7 @@ import EditCourse from "../src/Pages/TUTOR/EditCourse";
 import EditLesson from "../src/Pages/TUTOR/EditLesson";
 import TutorOrders from "../src/Pages/TUTOR/Orders";
 import TutorOrderDetail from "../src/Pages/TUTOR/OrderDetail";
+import TutorChat from "../src/Pages/TUTOR/Chat";
 import ProtectedRoute from "../src/components/RouteProtection/ProtectedRoute";
 import GuestRoute from "../src/components/RouteProtection/GuestRoute";
 
@@ -85,6 +86,11 @@ const TutorRoutes = () => {
       <Route path="orders/:orderId" element={
         <ProtectedRoute userType="tutor">
           <TutorOrderDetail />
+        </ProtectedRoute>
+      } />
+      <Route path="chat" element={
+        <ProtectedRoute userType="tutor">
+          <TutorChat />
         </ProtectedRoute>
       } />
 

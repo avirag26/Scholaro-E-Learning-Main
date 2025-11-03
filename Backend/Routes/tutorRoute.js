@@ -44,7 +44,15 @@ import {
   getTutorOrderDetails,
   getTutorOrderStats
 } from "../Controllers/tutor/orderManagementController.js";
+import {
+  getUserChats,
+  getChatMessages,
+  markChatAsRead,
+  getTutorStudents,
+  clearChatMessages
+} from "../Controllers/common/chatController.js";
 import { protectTutor } from "../Middleware/tutorMiddleware.js";
+
 router.post("/", registerTutor);
 router.post("/verify-otp", verifyTutorOtp);
 router.post("/login", loginTutor);
@@ -82,5 +90,13 @@ router.get("/courses/category/:categoryId", getCourseByCategory);
 router.get("/orders", protectTutor, getTutorOrders);
 router.get("/orders/stats", protectTutor, getTutorOrderStats);
 router.get("/orders/:orderId", protectTutor, getTutorOrderDetails);
+
+// Chat routes
+router.get("/chats", protectTutor, getUserChats);
+router.get("/chats/:chatId/messages", protectTutor, getChatMessages);
+router.put("/chats/:chatId/read", protectTutor, markChatAsRead);
+router.delete("/chats/:chatId/clear", protectTutor, clearChatMessages);
+
+router.get("/students", protectTutor, getTutorStudents);
 
 export default router;

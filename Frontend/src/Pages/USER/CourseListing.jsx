@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, Filter, Star, Users, ChevronDown, X } from 'lucide-react';
+import { Search, Filter, Star, Users, ChevronDown, X, MessageCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
 import PriceDisplay from '../../components/PriceDisplay';
 import Loading from '../../ui/Loading';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { createOrGetChat } from '../../Redux/chatSlice';
 import {
   fetchPublicCategories,
   fetchPublicCourses,
@@ -50,7 +51,7 @@ const CourseListing = () => {
     const maxPrice = searchParams.get('maxPrice') || '';
     const rating = searchParams.get('rating') || '';
     const page = parseInt(searchParams.get('page')) || 1;
-    
+
     setLocalFilters(prev => ({
       ...prev,
       search,
@@ -60,7 +61,7 @@ const CourseListing = () => {
       maxPrice,
       rating
     }));
-    
+
     dispatch(setFilters({
       search,
       category: categoryId || '',
@@ -69,12 +70,12 @@ const CourseListing = () => {
       maxPrice: maxPrice || null,
       rating: rating || null
     }));
-    
+
     if (categoryId) {
       dispatch(fetchCoursesByCategory({
         categoryId,
-        params: { 
-          page, 
+        params: {
+          page,
           sort,
           search: search || undefined,
           minPrice: minPrice || undefined,
@@ -171,6 +172,15 @@ const CourseListing = () => {
   };
   const handleCourseClick = (courseId) => {
     navigate(`/user/course/${courseId}`);
+  };
+
+  const handleChatClick = async (tutorId) => {
+    try {
+      await dispatch(createOrGetChat({ tutorId })).unwrap();
+      navigate('/user/chat');
+    } catch (error) {
+      toast.error(error || 'Failed to start chat');
+    }
   };
   const sortOptions = [
     { value: 'newest', label: 'Newest First' },
@@ -281,7 +291,7 @@ const CourseListing = () => {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   />
                 </div>
-                
+
               </div>
               <div className="flex gap-4 mt-4">
                 <button
@@ -378,6 +388,9 @@ const CourseListing = () => {
                 key={course.id}
                 course={course}
                 onClick={() => handleCourseClick(course.id)}
+                onChatClick={handleChatClick}
+                user={user}
+
               />
             ))}
           </div>
@@ -423,7 +436,7 @@ const CourseListing = () => {
     </div>
   );
 };
-const CourseCard = ({ course, onClick }) => {
+const CourseCard = ({ course, onClick, onChatClick, user }) => {
   const renderStars = (rating) => {
     return [...Array(5)].map((_, i) => (
       <Star
@@ -436,49 +449,75 @@ const CourseCard = ({ course, onClick }) => {
     ));
   };
 
+  // Check if user has purchased this course
+  const hasPurchased = user?.courses?.some(enrollment => 
+    enrollment.course === course.id
+  );
+
+  const handleChatClick = (e) => {
+    e.stopPropagation();
+    if (hasPurchased && course.tutor?._id) {
+      onChatClick(course.tutor._id);
+    } else {
+      toast.info('Purchase this course to chat with the tutor');
+    }
+  };
+
   return (
-    <div
-      onClick={onClick}
-      className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
-    >
-      <img
-        src={course.course_thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop"}
-        alt={course.title}
-        className="w-full h-48 object-cover"
-      />
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-          {course.title}
-        </h3>
-        <div className="flex items-center gap-2 mb-2">
-          <img
-            src={course.tutor?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"}
-            alt={course.tutor?.full_name}
-            className="w-6 h-6 rounded-full"
-          />
-          <span className="text-sm text-gray-600">
-            {course.tutor?.full_name}
-          </span>
-        </div>
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex">
-            {renderStars(course.average_rating)}
+    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+      <div onClick={onClick} className="cursor-pointer">
+        <img
+          src={course.course_thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop"}
+          alt={course.title}
+          className="w-full h-48 object-cover"
+        />
+        <div className="p-4">
+          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+            {course.title}
+          </h3>
+          <div className="flex items-center gap-2 mb-2">
+            <img
+              src={course.tutor?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"}
+              alt={course.tutor?.full_name}
+              className="w-6 h-6 rounded-full"
+            />
+            <span className="text-sm text-gray-600">
+              {course.tutor?.full_name}
+            </span>
           </div>
-          <span className="text-sm text-gray-600">
-            {course.average_rating?.toFixed(1) || '0.0'} ({course.total_reviews || 0})
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Users className="w-4 h-4" />
-            {course.enrolled_count}
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex">
+              {renderStars(course.average_rating)}
+            </div>
+            <span className="text-sm text-gray-600">
+              {course.average_rating?.toFixed(1) || '0.0'} ({course.total_reviews || 0})
+            </span>
           </div>
-          <PriceDisplay
-            price={course.price}
-            offerPercentage={course.offer_percentage}
-          />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Users className="w-4 h-4" />
+              {course.enrolled_count}
+            </div>
+            <PriceDisplay
+              price={course.price}
+              offerPercentage={course.offer_percentage}
+            />
+          </div>
         </div>
       </div>
+      
+      {/* Chat button - only show if user has purchased the course */}
+      {hasPurchased && (
+        <div className="px-4 pb-4">
+          <button
+            onClick={handleChatClick}
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-colors bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+          >
+            <MessageCircle className="w-4 h-4" />
+            Chat with Tutor
+          </button>
+        </div>
+      )}
     </div>
   );
 };

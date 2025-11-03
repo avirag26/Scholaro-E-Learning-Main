@@ -108,6 +108,13 @@ export const logoutUser = (navigate) => async (dispatch) => {
   } catch (error) {
     console.error('Logout API error:', error);
   }
+  
+  // Disconnect socket and clear chat state
+  const { clearChatState } = await import('./chatSlice');
+  const socketService = (await import('../services/socketService')).default;
+  
+  socketService.disconnect();
+  dispatch(clearChatState());
   dispatch(logout());
   navigate('/user/login', { replace: true });
 };

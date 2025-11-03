@@ -3,12 +3,6 @@ import mongoose from "mongoose";
 
 const getAllOrders = async (req, res) => {
   try {
-    console.log('Admin getAllOrders called with query:', req.query);
-
-    // First, let's check if there are any orders at all
-    const orderCount = await Order.countDocuments();
-    console.log('Total orders in database:', orderCount);
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -33,15 +27,13 @@ const getAllOrders = async (req, res) => {
       query.status = status;
     }
 
-    console.log('Query:', query);
-
     // Build sort options
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
-    // If no orders exist, return empty result
+    // Check if any orders exist
+    const orderCount = await Order.countDocuments();
     if (orderCount === 0) {
-      console.log('No orders found in database');
       return res.status(200).json({
         success: true,
         orders: [],
@@ -78,8 +70,6 @@ const getAllOrders = async (req, res) => {
       .sort(sortOptions)
       .skip(skip)
       .limit(limit);
-
-    console.log('Found orders:', orders.length);
 
     const totalOrders = await Order.countDocuments(query);
 
@@ -159,12 +149,10 @@ const getAllOrders = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error in getAllOrders:', error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch orders",
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      error: error.message
     });
   }
 };

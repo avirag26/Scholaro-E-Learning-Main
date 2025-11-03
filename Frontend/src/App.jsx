@@ -12,6 +12,7 @@ import LoadingPage from "./ui/Loading";
 import { useCurrentUser } from "./hooks/useCurrentUser";
 import { useCurrentTutor } from "./hooks/useCurrentTutor";
 import { useCurrentAdmin } from "./hooks/useCurrentAdmin";
+import useSocket from "./hooks/useSocket";
 import { restoreFromStorage as restoreUser } from './Redux/currentUserSlice';
 import { restoreFromStorage as restoreTutor } from './Redux/currentTutorSlice';
 import { restoreFromStorage as restoreAdmin } from './Redux/currentAdminSlice';
@@ -42,6 +43,9 @@ const GlobalGuard = ({ children }) => {
 function App() {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Initialize socket service globally
+  useSocket();
   
   // Restore auth state from localStorage on app start
   useEffect(() => {

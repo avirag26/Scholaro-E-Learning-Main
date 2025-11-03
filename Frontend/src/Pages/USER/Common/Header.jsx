@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Menu, Search, ShoppingCart, Bell, MoreVertical, Heart } from "lucide-react";
+import { Menu, Search, ShoppingCart, Bell, MoreVertical, Heart, MessageCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../../../ui/Button";
 import avatar from "../../../assets/avt.webp";
@@ -14,6 +14,7 @@ export default function Header({ onMenuClick }) {
   const navigate = useNavigate();
   const { totalItems: cartItemCount } = useSelector(state => state.cart);
   const { items: wishlistItems } = useSelector(state => state.wishlist);
+  const { totalUnreadCount = 0 } = useSelector(state => state.chat || {});
   const notificationCount = 0;
 
   useEffect(() => {
@@ -124,6 +125,23 @@ export default function Header({ onMenuClick }) {
               {cartItemCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-sky-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                   {cartItemCount}
+                </span>
+              )}
+            </Button>
+          </div>
+
+          {/* Chat */}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative hover:bg-gray-100"
+              onClick={() => navigate("/user/chat")}
+            >
+              <MessageCircle className="h-5 w-5" />
+              {totalUnreadCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                  {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
                 </span>
               )}
             </Button>

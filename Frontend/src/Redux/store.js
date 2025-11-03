@@ -11,6 +11,7 @@ import userCourseReducer from './userCourseSlice';
 import cartReducer from './cartSlice';
 import wishlistReducer from './wishlistSlice';
 import paymentReducer from './paymentSlice';
+import chatReducer from './chatSlice';
 
 export const store = configureStore({
   reducer: {
@@ -26,5 +27,6 @@ export const store = configureStore({
     cart: cartReducer,
     wishlist: wishlistReducer,
     payment: paymentReducer,
+    chat: chatReducer,
   },
 });

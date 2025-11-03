@@ -118,7 +118,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-gray-400 text-sm">
-              © 2024 Scholaro. All rights reserved.
+               2024 Scholaro. All rights reserved.
             </div>
             <div className="flex space-x-6">
               <Link to="/privacy" className="text-gray-400 hover:text-teal-400 transition-colors text-sm">

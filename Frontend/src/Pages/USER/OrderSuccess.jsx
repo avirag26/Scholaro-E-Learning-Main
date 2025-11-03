@@ -52,7 +52,6 @@ export default function OrderSuccess() {
       }
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching order:', error);
       toast.error('Failed to load order details');
       navigate('/user/courses');
       setLoading(false);
@@ -110,7 +109,6 @@ Start learning and advance your career.
         toast.error('Failed to generate invoice');
       }
     } catch (error) {
-      console.error('Error downloading invoice:', error);
       toast.error('Failed to download invoice');
     }
   };

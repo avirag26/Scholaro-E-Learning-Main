@@ -217,7 +217,11 @@ const CourseDetail = () => {
                                 </button>
                                 
                                 {/* Cart and Wishlist Actions */}
-                                <CourseDetailActions courseId={selectedCourse.id || selectedCourse._id} className="mb-6" />
+                                <CourseDetailActions 
+                                    courseId={selectedCourse.id || selectedCourse._id} 
+                                    course={selectedCourse}
+                                    className="mb-6" 
+                                />
                                 <div className="text-center mb-8">
                                     <p className="text-sm text-gray-600 mb-2">
                                         💰 30-Day Money-Back Guarantee

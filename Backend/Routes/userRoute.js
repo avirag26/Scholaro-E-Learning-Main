@@ -52,7 +52,16 @@ import {
   getUserOrders,
   generateInvoice
 } from "../Controllers/common/paymentController.js";
+import {
+  getUserChats,
+  createOrGetChat,
+  getChatMessages,
+  markChatAsRead,
+  getAvailableTutors,
+  clearChatMessages
+} from "../Controllers/common/chatController.js";
 import { protectUser } from "../Middleware/userMiddleware.js";
+
 router.route("/").post(registerUser);
 router.post("/verify-otp", verifyOtp);
 router.post("/login", loginUser);
@@ -98,5 +107,14 @@ router.post("/payment/verify", protectUser, verifyPayment);
 router.get("/payment/order/:orderId", protectUser, getOrder);
 router.get("/payment/orders", protectUser, getUserOrders);
 router.get("/payment/invoice/:orderId", protectUser, generateInvoice);
+
+// Chat routes
+router.get("/chats", protectUser, getUserChats);
+router.post("/chats", protectUser, createOrGetChat);
+router.get("/chats/:chatId/messages", protectUser, getChatMessages);
+router.put("/chats/:chatId/read", protectUser, markChatAsRead);
+router.delete("/chats/:chatId/clear", protectUser, clearChatMessages);
+
+router.get("/available-tutors", protectUser, getAvailableTutors);
 
 export default router;

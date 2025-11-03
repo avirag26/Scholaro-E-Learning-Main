@@ -237,15 +237,7 @@ const Teachers = () => {
                 >
                   View Profile
                 </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSendMessage();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 border border-teal-600 text-teal-600 py-2 px-4 rounded-lg hover:bg-teal-50 transition-colors font-medium"
-                >
-                  Send Message
-                </button>
+                
               </div>
             </div>
           ))}
