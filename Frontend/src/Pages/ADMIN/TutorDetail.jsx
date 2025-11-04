@@ -19,11 +19,14 @@ import AdminLayout from './common/AdminLayout';
 import PriceDisplay from '../../components/PriceDisplay';
 import StarRating from '../../components/StarRating';
 import { adminAPI } from '../../api/axiosConfig';
+import { tutorService } from '../../services/tutorService';
+import TutorStatsCard from '../../components/TutorStatsCard';
 
 const TutorDetail = () => {
   const { tutorId } = useParams();
   const navigate = useNavigate();
   const [tutor, setTutor] = useState(null);
+  const [tutorStats, setTutorStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentCourseIndex, setCurrentCourseIndex] = useState(0);
   const coursesPerPage = 4;
@@ -32,14 +35,26 @@ const TutorDetail = () => {
     const fetchTutorDetails = async () => {
       try {
         setLoading(true);
-        const response = await adminAPI.get(`/api/admin/tutors/${tutorId}/details`);
-        if (response.data.success) {
-          setTutor(response.data.tutor);
+        
+        // Fetch tutor details and stats in parallel
+        const [tutorResponse, statsData] = await Promise.all([
+          adminAPI.get(`/api/admin/tutors/${tutorId}/details`),
+          tutorService.getTutorStats(tutorId)
+        ]);
+        
+        if (tutorResponse.data.success) {
+          setTutor(tutorResponse.data.tutor);
         } else {
           toast.error('Failed to load tutor details');
           navigate('/admin/tutors');
         }
+        
+        if (statsData.success) {
+          setTutorStats(statsData.stats);
+        }
+        
       } catch (error) {
+        console.error('Error fetching tutor data:', error);
         toast.error(error.response?.data?.message || 'Failed to load tutor details');
         navigate('/admin/tutors');
       } finally {
@@ -198,38 +213,7 @@ const TutorDetail = () => {
           <div className="lg:w-80">
             <div className="bg-gray-50 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Statistics</h3>
-              <div className="space-y-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-sky-600 mb-1">
-                    {tutor.statistics?.totalCourses || 0}
-                  </div>
-                  <div className="text-sm text-gray-600">Total Courses</div>
-                </div>
-                
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-1">
-                    {tutor.statistics?.totalStudents || 0}
-                  </div>
-                  <div className="text-sm text-gray-600">Total Students</div>
-                </div>
-                
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600 mb-1">
-                    {tutor.statistics?.totalReviews || 0}
-                  </div>
-                  <div className="text-sm text-gray-600">Total Reviews</div>
-                </div>
-                
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-1">
-                    <Star className="w-6 h-6 text-yellow-400 fill-current" />
-                    <span className="text-3xl font-bold text-yellow-600">
-                      {tutor.statistics?.averageRating || '0.0'}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-600">Average Rating</div>
-                </div>
-              </div>
+              <TutorStatsCard stats={tutorStats} loading={loading} />
             </div>
           </div>
         </div>

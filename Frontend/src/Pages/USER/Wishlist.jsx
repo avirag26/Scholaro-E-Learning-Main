@@ -61,7 +61,7 @@ export default function Wishlist() {
 
   // Filter and sort items
   const filteredAndSortedItems = items
-    .filter(item => 
+    .filter(item =>
       item.course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.course.tutor?.full_name.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -70,11 +70,11 @@ export default function Wishlist() {
         case 'newest':
           return new Date(b.addedAt) - new Date(a.addedAt);
         case 'price-low':
-          return calculateDiscountedPrice(a.course.price, a.course.offer_percentage) - 
-                 calculateDiscountedPrice(b.course.price, b.course.offer_percentage);
+          return calculateDiscountedPrice(a.course.price, a.course.offer_percentage) -
+            calculateDiscountedPrice(b.course.price, b.course.offer_percentage);
         case 'price-high':
-          return calculateDiscountedPrice(b.course.price, b.course.offer_percentage) - 
-                 calculateDiscountedPrice(a.course.price, a.course.offer_percentage);
+          return calculateDiscountedPrice(b.course.price, b.course.offer_percentage) -
+            calculateDiscountedPrice(a.course.price, a.course.offer_percentage);
         case 'rating':
           return (b.course.average_rating || 0) - (a.course.average_rating || 0);
         default:
@@ -97,7 +97,7 @@ export default function Wishlist() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <nav className="flex mb-6" aria-label="Breadcrumb">
@@ -156,7 +156,7 @@ export default function Wishlist() {
                         </svg>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       <Filter className="h-5 w-5 text-gray-400" />
                       <select
@@ -182,8 +182,8 @@ export default function Wishlist() {
                     {items.length === 0 ? 'Your wishlist is empty' : 'No courses found'}
                   </h3>
                   <p className="text-gray-600 mb-6">
-                    {items.length === 0 
-                      ? 'Save courses you\'re interested in to your wishlist.' 
+                    {items.length === 0
+                      ? 'Save courses you\'re interested in to your wishlist.'
                       : 'Try adjusting your search or filter criteria.'
                     }
                   </p>
@@ -200,7 +200,7 @@ export default function Wishlist() {
                     const course = item.course;
                     const discountedPrice = calculateDiscountedPrice(course.price, course.offer_percentage);
                     const isUnavailable = !course.listed || !course.isActive || course.isBanned;
-                    
+
                     return (
                       <div key={item._id} className={`p-6 ${isUnavailable ? 'bg-red-50 border-l-4 border-red-400' : ''}`}>
                         <div className="flex flex-col md:flex-row gap-4">
@@ -216,7 +216,7 @@ export default function Wishlist() {
                               </div>
                             )}
                           </div>
-                          
+
                           <div className="flex-1">
                             <div className="flex justify-between items-start mb-2">
                               <div>
@@ -238,11 +238,11 @@ export default function Wishlist() {
                                 <Trash2 className="h-5 w-5" />
                               </button>
                             </div>
-                            
+
                             <p className={`mb-2 ${isUnavailable ? 'text-gray-400' : 'text-gray-600'}`}>
                               By {course.tutor?.full_name}
                             </p>
-                            
+
                             {!isUnavailable && (
                               <div className="flex items-center gap-2 mb-3">
                                 <div className="flex items-center">
@@ -255,7 +255,7 @@ export default function Wishlist() {
                                 <span className="text-sm text-gray-600">{course.lessons?.length || 0} lessons</span>
                               </div>
                             )}
-                            
+
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
                                 {isUnavailable ? (
@@ -275,7 +275,7 @@ export default function Wishlist() {
                                   </>
                                 )}
                               </div>
-                              
+
                               <div className="flex items-center gap-2">
                                 {!isUnavailable ? (
                                   <button
@@ -307,7 +307,7 @@ export default function Wishlist() {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

@@ -3,7 +3,7 @@ import { tutorAPI } from '../api/axiosConfig';
 export const tutorOrderService = {
   // Get all orders for tutor's courses
   async getAllOrders(params = {}) {
-    try {
+    
       const queryParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -13,9 +13,7 @@ export const tutorOrderService = {
       
       const response = await tutorAPI.get(`/api/tutors/orders?${queryParams}`);
       return response.data;
-    } catch (error) {
-      throw error;
-    }
+    
   },
 
   // Get order details by ID

@@ -43,7 +43,8 @@ import {
   getCoursesByCategory,
   getCourseDetails,
   getPublicTutors,
-  getTutorDetails
+  getTutorDetails,
+  getTutorStats
 } from "../Controllers/common/publicController.js";
 import {
   createOrder,
@@ -85,6 +86,7 @@ router.get("/courses/category/:categoryId", getCoursesByCategory);
 router.get("/courses/:courseId", getCourseDetails);
 router.get("/tutors", getPublicTutors);
 router.get("/tutors/:tutorId", getTutorDetails);
+router.get("/tutors/:tutorId/stats", getTutorStats);
 
 // Cart routes
 router.get("/cart", protectUser, getCart);

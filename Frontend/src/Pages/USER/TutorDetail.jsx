@@ -22,10 +22,12 @@ import useUserInfo from '../../hooks/useUserInfo';
 import { tutorService } from '../../services/tutorService';
 import { DEFAULT_IMAGES, DEFAULT_TEXTS, PAGINATION } from '../../constants/defaults';
 import { ROUTES, safeNavigate } from '../../utils/navigationUtils';
+import TutorStatsCard from '../../components/TutorStatsCard';
 const TutorDetail = () => {
   const { tutorId } = useParams();
   const navigate = useNavigate();
   const [tutor, setTutor] = useState(null);
+  const [tutorStats, setTutorStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentCourseIndex, setCurrentCourseIndex] = useState(0);
   const userInfo = useUserInfo();
@@ -33,14 +35,34 @@ const TutorDetail = () => {
     const fetchTutorDetails = async () => {
       try {
         setLoading(true);
-        const data = await tutorService.getTutorDetails(tutorId);
-        if (data.success) {
-          setTutor(data.tutor);
+        
+        // Fetch tutor details and stats in parallel
+        const [tutorData, statsData] = await Promise.all([
+          tutorService.getTutorDetails(tutorId),
+          tutorService.getTutorStats(tutorId)
+        ]);
+        
+        if (tutorData.success) {
+          setTutor(tutorData.tutor);
         } else {
           toast.error('Failed to load tutor details');
           safeNavigate(navigate, ROUTES.USER.TEACHERS);
         }
+        
+        if (statsData && statsData.success) {
+          setTutorStats(statsData.stats);
+        } else {
+          // Set default stats if API fails
+          setTutorStats({
+            studentCount: 0,
+            totalCourses: 0,
+            totalEnrollments: 0,
+            averageRating: 0.0
+          });
+        }
+        
       } catch (error) {
+        console.error('Error fetching tutor data:', error);
         toast.error(error.response?.data?.message || 'Failed to load tutor details');
         safeNavigate(navigate, ROUTES.USER.TEACHERS);
       } finally {
@@ -108,16 +130,8 @@ const TutorDetail = () => {
                 <p className="text-lg text-gray-600 mb-6">{tutor.subjects}</p>
               </div>
               {}
-              <div className="grid grid-cols-2 gap-8 mb-8">
-                <div>
-                  <p className="text-sm text-gray-500 uppercase tracking-wide mb-1">TOTAL STUDENTS</p>
-                  <p className="text-3xl font-bold text-gray-900">{tutor.statistics.totalStudents}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 uppercase tracking-wide mb-1">REVIEWS</p>
-                  <p className="text-3xl font-bold text-gray-900">{tutor.statistics.totalReviews}</p>
-                </div>
-              </div>
+              {/* Stats */}
+              <TutorStatsCard stats={tutorStats} loading={loading} className="mb-8" />
               {}
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">About {tutor.name.split(' ')[0]}</h2>

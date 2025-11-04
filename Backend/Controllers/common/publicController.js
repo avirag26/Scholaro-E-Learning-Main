@@ -197,7 +197,7 @@ const getCoursesByCategory = async (req, res) => {
     const maxPrice = req.query.maxPrice ? parseFloat(req.query.maxPrice) : null;
     const rating = req.query.rating ? parseFloat(req.query.rating) : null;
     const sort = req.query.sort || 'newest';
-    
+
     const category = await Category.findOne({
       _id: categoryId,
       isVisible: true
@@ -208,27 +208,27 @@ const getCoursesByCategory = async (req, res) => {
         message: "Category not found or not available"
       });
     }
-    
+
     let matchStage = {
       category: new mongoose.Types.ObjectId(categoryId),
       listed: true,
       isActive: true,
       isBanned: false
     };
-    
+
     if (search) {
       matchStage.$or = [
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } }
       ];
     }
-    
+
     if (minPrice !== null || maxPrice !== null) {
       matchStage.price = {};
       if (minPrice !== null) matchStage.price.$gte = minPrice;
       if (maxPrice !== null) matchStage.price.$lte = maxPrice;
     }
-    
+
     if (rating !== null) {
       matchStage.average_rating = { $gte: rating };
     }
@@ -429,31 +429,31 @@ const getCourseDetails = async (req, res) => {
 const getPublicTutors = async (req, res) => {
   try {
     const { page = 1, limit = 12, search = '', subject = '' } = req.query;
-    
+
     let query = {
       is_verified: true,
       is_blocked: false
     };
-    
+
     if (search) {
       query.$or = [
         { full_name: { $regex: search, $options: 'i' } },
         { bio: { $regex: search, $options: 'i' } }
       ];
     }
-    
+
     if (subject) {
       query.subjects = { $regex: subject, $options: 'i' };
     }
-    
+
     const tutors = await Tutor.find(query)
       .select('full_name profileImage bio subjects')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });
-    
+
     const totalTutors = await Tutor.countDocuments(query);
-    
+
     res.status(200).json({
       success: true,
       tutors,
@@ -475,27 +475,27 @@ const getPublicTutors = async (req, res) => {
 const getTutorDetails = async (req, res) => {
   try {
     const { tutorId } = req.params;
-    
+
     if (!mongoose.Types.ObjectId.isValid(tutorId)) {
       return res.status(400).json({
         success: false,
         message: "Invalid tutor ID"
       });
     }
-    
+
     const tutor = await Tutor.findOne({
       _id: tutorId,
       is_verified: true,
       is_blocked: false
     }).select('full_name profileImage bio subjects email');
-    
+
     if (!tutor) {
       return res.status(404).json({
         success: false,
         message: "Tutor not found or not available"
       });
     }
-    
+
     // Get tutor's public courses
     const courses = await Course.find({
       tutor: tutorId,
@@ -506,7 +506,7 @@ const getTutorDetails = async (req, res) => {
       .populate('category', 'title')
       .select('title description price offer_percentage course_thumbnail average_rating total_reviews enrolled_count createdAt')
       .sort({ createdAt: -1 });
-    
+
     const formattedCourses = courses.map(course => ({
       id: course._id,
       title: course.title,
@@ -520,7 +520,7 @@ const getTutorDetails = async (req, res) => {
       category: course.category,
       createdAt: course.createdAt
     }));
-    
+
     const tutorData = {
       _id: tutor._id,
       name: tutor.full_name,  // Add name field for frontend compatibility
@@ -533,13 +533,13 @@ const getTutorDetails = async (req, res) => {
       statistics: {
         totalCourses: courses.length,
         totalStudents: courses.reduce((sum, course) => sum + (course.enrolled_count || 0), 0),
-        averageRating: courses.length > 0 
-          ? courses.reduce((sum, course) => sum + (course.average_rating || 0), 0) / courses.length 
+        averageRating: courses.length > 0
+          ? courses.reduce((sum, course) => sum + (course.average_rating || 0), 0) / courses.length
           : 0,
         totalReviews: courses.reduce((sum, course) => sum + (course.total_reviews || 0), 0)
       }
     };
-    
+
     res.status(200).json({
       success: true,
       tutor: tutorData
@@ -553,11 +553,89 @@ const getTutorDetails = async (req, res) => {
   }
 };
 
+
+
+const getTutorStats = async (req, res) => {
+  try {
+    const { tutorId } = req.params;
+
+    const tutor = await Tutor.findById(tutorId)
+      .populate('courses', 'enrolled_count average_rating _id')
+      .select('courses full_name bio profileImage subjects');
+
+    if (!tutor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tutor not found'
+      });
+    }
+
+    // Get course IDs for this tutor
+    const courseIds = tutor.courses.map(course => course._id);
+
+    // Calculate both student count and total enrollments from User model
+    const User = (await import('../../Model/usermodel.js')).default;
+    
+    // Get unique students count
+    const uniqueStudents = await User.aggregate([
+      { $match: { 'courses.course': { $in: courseIds } } },
+      { $group: { _id: '$_id' } },
+      { $count: 'total' }
+    ]);
+    const studentCount = uniqueStudents[0]?.total || 0;
+
+    // Calculate total enrollments (count all course enrollments, not unique students)
+    const totalEnrollments = await User.aggregate([
+      { $match: { 'courses.course': { $in: courseIds } } },
+      { $unwind: '$courses' },
+      { $match: { 'courses.course': { $in: courseIds } } },
+      { $count: 'total' }
+    ]);
+    const enrollmentCount = totalEnrollments[0]?.total || 0;
+
+    // Calculate average rating across all courses
+    const totalRating = tutor.courses.reduce((sum, course) => sum + (course.average_rating || 0), 0);
+    const averageRating = tutor.courses.length > 0 ? totalRating / tutor.courses.length : 0;
+
+    const stats = {
+      studentCount,
+      totalCourses: tutor.courses.length,
+      totalEnrollments: enrollmentCount,
+      averageRating: parseFloat(averageRating.toFixed(1))
+    };
+
+
+
+
+
+    res.json({
+      success: true,
+      tutor: {
+        _id: tutor._id,
+        full_name: tutor.full_name,
+        bio: tutor.bio,
+        profileImage: tutor.profileImage,
+        subjects: tutor.subjects
+      },
+      stats
+    });
+
+  } catch (error) {
+    console.error('Error fetching tutor stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching tutor stats',
+      error: error.message
+    });
+  }
+};
+
 export {
   getPublicCategories,
   getPublicCourses,
   getCoursesByCategory,
   getCourseDetails,
   getPublicTutors,
-  getTutorDetails
+  getTutorDetails,
+  getTutorStats
 };

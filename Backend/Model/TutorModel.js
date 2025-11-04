@@ -33,12 +33,12 @@ const tutorSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: function() { return !this.googleId; },
+      required: function () { return !this.googleId; },
       sparse: true
     },
     password: {
       type: String,
-      required: function() { return !this.googleId; },
+      required: function () { return !this.googleId; },
     },
     googleId: {
       type: String,
@@ -83,6 +83,14 @@ const tutorSchema = new mongoose.Schema(
         ref: "courses"
       }
     ],
+    student_count: {
+      type: Number,
+      default: 0
+    },
+    total_enrollments: {
+      type: Number,
+      default: 0
+    },
     is_verified: {
       type: Boolean,
       default: false,

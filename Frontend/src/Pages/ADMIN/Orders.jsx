@@ -21,6 +21,8 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
   const [pagination, setPagination] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     page: 1,
     limit: 10,
@@ -29,6 +31,23 @@ const Orders = () => {
     sortBy: 'createdAt',
     sortOrder: 'desc'
   });
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Update filters when debounced search term changes
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      search: debouncedSearchTerm,
+      page: 1 // Reset to first page when search changes
+    }));
+  }, [debouncedSearchTerm]);
 
   useEffect(() => {
     fetchOrders();
@@ -82,20 +101,10 @@ const Orders = () => {
   };
 
   const handleSearch = (e) => {
-    setFilters(prev => ({
-      ...prev,
-      search: e.target.value,
-      page: 1
-    }));
+    setSearchTerm(e.target.value);
   };
 
-  const handleStatusFilter = (status) => {
-    setFilters(prev => ({
-      ...prev,
-      status,
-      page: 1
-    }));
-  };
+
 
   const handleSort = (sortBy) => {
     setFilters(prev => ({
@@ -218,27 +227,14 @@ const Orders = () => {
                 <input
                   type="text"
                   placeholder="Search orders..."
-                  value={filters.search}
+                  value={searchTerm}
                   onChange={handleSearch}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
               </div>
 
               {/* Status Filters */}
-              <div className="flex gap-2">
-                {['all', 'paid'].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => handleStatusFilter(status)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filters.status === status
-                      ? 'bg-teal-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                  >
-                    {status === 'all' ? 'All Orders' : 'Completed'}
-                  </button>
-                ))}
-              </div>
+
             </div>
           </div>
         </div>
@@ -431,7 +427,7 @@ const Orders = () => {
             <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No orders found</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {filters.search || filters.status !== 'all'
+              {debouncedSearchTerm || filters.status !== 'all'
                 ? 'Try adjusting your search or filter criteria.'
                 : 'Orders will appear here once students start purchasing courses.'
               }
