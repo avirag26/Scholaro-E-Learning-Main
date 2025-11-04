@@ -318,7 +318,6 @@ const resetPassword = async (req, res) => {
     await tutor.save();
     res.status(200).json({ message: "Password reset successful" });
   } catch (error) {
-    console.error("Tutor reset password error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

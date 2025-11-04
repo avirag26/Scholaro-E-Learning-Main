@@ -237,7 +237,6 @@ const getTutorOrders = async (req, res) => {
       paidOrders: 0,
       pendingOrders: 0
     };
-    console.log(stats)
 
     res.status(200).json({
       success: true,

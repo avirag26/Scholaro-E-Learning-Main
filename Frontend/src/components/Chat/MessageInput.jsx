@@ -102,7 +102,6 @@ const MessageInput = ({ chatId }) => {
             }
             setMessage('');
         } catch (error) {
-            console.error('Error sending message:', error);
             toast.error(error.message || 'Failed to send message. Please try again.');
             // Restore message on error
             setMessage(messageContent);

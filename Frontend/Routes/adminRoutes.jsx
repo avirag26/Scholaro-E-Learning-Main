@@ -14,6 +14,7 @@ import Courses from "../src/Pages/ADMIN/Courses";
 import CourseDetail from "../src/Pages/ADMIN/CourseDetail";
 import Orders from "../src/Pages/ADMIN/Orders";
 import OrderDetail from "../src/Pages/ADMIN/OrderDetail";
+import AdminWallet from "../src/Pages/ADMIN/AdminWallet";
 
 const AdminRoutes = () => {
     return (
@@ -86,6 +87,12 @@ const AdminRoutes = () => {
             <Route path="orders/:orderId" element={
                 <ProtectedRoute userType="admin">
                     <OrderDetail />
+                </ProtectedRoute>
+            } />
+
+            <Route path="wallet" element={
+                <ProtectedRoute userType="admin">
+                    <AdminWallet />
                 </ProtectedRoute>
             } />
 

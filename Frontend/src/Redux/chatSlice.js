@@ -20,12 +20,25 @@ export const getChats = createAsyncThunk(
   }
 );
 
-// Create or get chat
+// Create or get chat (for users)
 export const createOrGetChat = createAsyncThunk(
   'chat/createOrGetChat',
   async ({ tutorId }, { rejectWithValue }) => {
     try {
       const response = await userAPI.post('/api/users/chats', { tutorId });
+      return response.data.chat;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to create chat');
+    }
+  }
+);
+
+// Create or get chat (for tutors)
+export const createOrGetChatByTutor = createAsyncThunk(
+  'chat/createOrGetChatByTutor',
+  async ({ studentId }, { rejectWithValue }) => {
+    try {
+      const response = await tutorAPI.post('/api/tutors/chats', { studentId });
       return response.data.chat;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create chat');
@@ -350,7 +363,7 @@ const chatSlice = createSlice({
         state.error = action.payload;
       })
       
-      // Create or get chat
+      // Create or get chat (for users)
       .addCase(createOrGetChat.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -369,6 +382,29 @@ const chatSlice = createSlice({
         state.activeChat = newChat._id;
       })
       .addCase(createOrGetChat.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // Create or get chat (for tutors)
+      .addCase(createOrGetChatByTutor.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createOrGetChatByTutor.fulfilled, (state, action) => {
+        state.loading = false;
+        const newChat = action.payload;
+        
+        // Add chat if it doesn't exist
+        const existingChat = state.chats.find(c => c._id === newChat._id);
+        if (!existingChat) {
+          state.chats.unshift(newChat);
+        }
+        
+        // Set as active chat
+        state.activeChat = newChat._id;
+      })
+      .addCase(createOrGetChatByTutor.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

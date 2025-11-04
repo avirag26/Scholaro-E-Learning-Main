@@ -73,6 +73,5 @@ adminSchema.pre('save', async function (next) {
 adminSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
-adminSchema.index({ email: 1 });
 const Admin = mongoose.model('Admin', adminSchema);
 export default Admin;

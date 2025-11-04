@@ -69,7 +69,7 @@ export const logoutTutor = (navigate) => async (dispatch) => {
   try {
     await tutorAPI.post('/api/tutors/logout');
   } catch (error) {
-    console.error('Logout API error:', error);
+    // Handle logout error silently
   }
   dispatch(logout());
   navigate('/tutor/login', { replace: true });

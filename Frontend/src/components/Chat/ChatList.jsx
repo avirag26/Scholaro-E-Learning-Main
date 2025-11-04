@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Search, MessageCircle, BookOpen } from 'lucide-react';
-import { getChats, setActiveChat, getAvailableTutors, getTutorStudents, createOrGetChat } from '../../Redux/chatSlice';
+import { Search, MessageCircle } from 'lucide-react';
+import { getChats, setActiveChat, getAvailableTutors, getTutorStudents, createOrGetChat, createOrGetChatByTutor } from '../../Redux/chatSlice';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 const ChatList = () => {
@@ -148,14 +148,20 @@ const ChatList = () => {
             tutorId: contact.participant._id
           })).unwrap();
         } catch (error) {
-          console.error('Error creating chat:', error);
+      console.log(error)
         }
       } else {
-        // Tutors can't initiate new chats - do nothing
-        return;
+        
+        try {
+          await dispatch(createOrGetChatByTutor({ 
+            studentId: contact.participant._id
+          })).unwrap();
+        } catch (error) {
+          console.log(error)
+        }
       }
     } else {
-      // This is an existing chat - both users and tutors can select it
+    
       dispatch(setActiveChat(contact._id));
     }
   };
@@ -226,7 +232,7 @@ const ChatList = () => {
                 onClick={() => handleContactSelect(contact)}
                 className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
                   !contact.isContact && activeChat === contact._id ? 'bg-sky-50 border-r-2 border-sky-500' : ''
-                } ${contact.isContact && userType === 'tutor' ? 'opacity-60 cursor-not-allowed' : ''} ${contact.isContact && userType === 'user' ? 'bg-gray-25' : ''}`}
+                } ${contact.isContact ? 'bg-gray-25' : ''}`}
               >
                 <div className="flex items-start space-x-3">
                   {/* Avatar */}
@@ -264,7 +270,7 @@ const ChatList = () => {
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-gray-600 truncate">
                         {contact.isContact 
-                          ? (userType === 'user' ? 'Click to start chat' : 'Waiting for student to message')
+                          ? (userType === 'user' ? 'Click to start chat' : 'Click to start chat')
                           : (contact.lastMessage?.content || 'No messages yet')
                         }
                       </p>

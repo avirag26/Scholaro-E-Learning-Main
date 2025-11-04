@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Search, Users, BookOpen, GraduationCap, DollarSign, TrendingUp, LogOut, User } from 'lucide-react';
+import { Bell, Search, Users, BookOpen, GraduationCap, DollarSign, TrendingUp, LogOut, User, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLogout } from '../../../hooks/useLogout';
 import Footer from '../../../components/Common/Footer';
@@ -152,6 +152,13 @@ export default function AdminLayout({ children, title, subtitle }) {
                             >
                                 <DollarSign className="w-5 h-5 mr-3" />
                                 Orders
+                            </button>
+                            <button
+                                onClick={() => navigate('/admin/wallet')}
+                                className={getButtonClasses('/admin/wallet')}
+                            >
+                                <Wallet className="w-5 h-5 mr-3" />
+                                Wallet
                             </button>
                             <button
                                 onClick={() => navigate('/admin/coupon')}

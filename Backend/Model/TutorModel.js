@@ -115,7 +115,6 @@ const tutorSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-tutorSchema.index({ email: 1 });
 tutorSchema.index({ googleId: 1 });
 const Tutor = mongoose.model("Tutor", tutorSchema);
 export default Tutor;

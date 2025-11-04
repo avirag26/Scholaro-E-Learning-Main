@@ -70,10 +70,10 @@ function Checkout() {
         }
 
         try {
-            // Create Razorpay order
+         
             const orderData = await dispatch(createOrder()).unwrap();
 
-            // Initialize Razorpay payment
+       
             const options = {
                 key: orderData.key,
                 amount: orderData.order.amount,
@@ -100,6 +100,7 @@ function Checkout() {
                         toast.success('Payment successful! You are now enrolled in the courses.');
                         navigate(`/user/order-success/${orderData.order.orderId}`);
                     } catch (error) {
+                        console.log(error)
                         toast.error('Payment verification failed');
                     }
                 },
@@ -236,16 +237,7 @@ function Checkout() {
                                 )}
                             </div>
 
-                            {/* Coupon Code */}
-                            <div className="mb-6 p-3 bg-gray-50 rounded-lg">
-                                <button className="flex items-center text-sm text-gray-600 hover:text-sky-500">
-                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
-                                    APPLY COUPON CODE
-                                </button>
-                            </div>
-
+                           
                             {/* Price Breakdown */}
                             <div className="space-y-3 mb-6 pb-6 border-b border-gray-200">
                                 <div className="flex justify-between">

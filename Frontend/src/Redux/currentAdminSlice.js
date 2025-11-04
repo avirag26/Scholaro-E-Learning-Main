@@ -69,7 +69,7 @@ export const logoutAdmin = (navigate) => async (dispatch) => {
   try {
     await adminAPI.post('/api/admins/logout');
   } catch (error) {
-    console.error('Logout API error:', error);
+    // Handle logout error silently
   }
   dispatch(logout());
   navigate('/admin/login', { replace: true });

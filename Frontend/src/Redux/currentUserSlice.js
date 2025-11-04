@@ -106,7 +106,7 @@ export const logoutUser = (navigate) => async (dispatch) => {
   try {
     await userAPI.post('/api/users/logout');
   } catch (error) {
-    console.error('Logout API error:', error);
+    // Handle logout error silently
   }
   
   // Disconnect socket and clear chat state

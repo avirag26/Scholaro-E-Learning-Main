@@ -3,6 +3,8 @@ import crypto from 'crypto';
 import Order from '../../Model/OrderModel.js';
 import Cart from '../../Model/CartModel.js';
 import User from '../../Model/usermodel.js';
+import PaymentDistribution from '../../Model/PaymentDistributionModel.js';
+import { Course } from '../../Model/CourseModel.js';
 import { v4 as uuidv4 } from 'uuid';
 
 // Initialize Razorpay
@@ -62,18 +64,18 @@ export const createOrder = async (req, res) => {
     // Create Razorpay order
     const amountInPaise = Math.round(finalAmount * 100);
 
-    // Validate amount (Razorpay minimum is 100 paise = 1 INR)
+ 
     if (amountInPaise < 100) {
       throw new Error('Amount too small for Razorpay (minimum 1 INR)');
     }
 
     const razorpayOrder = await razorpay.orders.create({
-      amount: amountInPaise, // Amount in paise
+      amount: amountInPaise, 
       currency: 'INR',
       receipt: `ord_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`, // Max 40 chars
     });
 
-    // Create order in database with available items only
+
     const order = new Order({
       user: userId,
       orderId: `ORD_${uuidv4()}`,
@@ -157,6 +159,9 @@ export const verifyPayment = async (req, res) => {
     }
     await user.save();
 
+    // Create payment distribution record for wallet system
+    await createPaymentDistribution(order);
+
     // Clear user's cart
     await Cart.findOneAndUpdate(
       { user: order.user },
@@ -180,6 +185,62 @@ export const verifyPayment = async (req, res) => {
       message: 'Error verifying payment',
       error: error.message
     });
+  }
+};
+
+// Helper function to create payment distribution
+const createPaymentDistribution = async (order) => {
+  try {
+    // Get course details with tutor information
+    const orderWithCourses = await Order.findById(order._id).populate({
+      path: 'items.course',
+      select: 'title tutor',
+      populate: {
+        path: 'tutor',
+        select: '_id full_name email'
+      }
+    });
+
+    // Group courses by tutor (in case multiple tutors)
+    const tutorGroups = {};
+    
+    for (const item of orderWithCourses.items) {
+      const tutorId = item.course.tutor._id.toString();
+      
+      if (!tutorGroups[tutorId]) {
+        tutorGroups[tutorId] = {
+          tutor: item.course.tutor,
+          courses: [],
+          totalAmount: 0
+        };
+      }
+      
+      tutorGroups[tutorId].courses.push({
+        courseId: item.course._id,
+        amount: item.discountedPrice
+      });
+      tutorGroups[tutorId].totalAmount += item.discountedPrice;
+    }
+
+    // Create distribution record for each tutor
+    for (const tutorId in tutorGroups) {
+      const tutorGroup = tutorGroups[tutorId];
+      
+      const distributionData = {
+        orderId: order.orderId,
+        razorpayOrderId: order.razorpayOrderId,
+        razorpayPaymentId: order.razorpayPaymentId,
+        totalAmount: tutorGroup.totalAmount,
+        tutor: tutorId,
+        user: order.user,
+        courses: tutorGroup.courses
+      };
+
+      await PaymentDistribution.createDistribution(distributionData);
+    }
+  } catch (error) {
+    console.error('Error creating payment distribution:', error);
+    // Don't throw error to avoid breaking the payment flow
   }
 };
 

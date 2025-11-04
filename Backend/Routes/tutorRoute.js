@@ -49,8 +49,15 @@ import {
   getChatMessages,
   markChatAsRead,
   getTutorStudents,
-  clearChatMessages
+  clearChatMessages,
+  createOrGetChatByTutor
 } from "../Controllers/common/chatController.js";
+import {
+  getWallet,
+  getWalletTransactions,
+  updateBankDetails,
+  requestWithdrawal
+} from "../Controllers/common/walletController.js";
 import { protectTutor } from "../Middleware/tutorMiddleware.js";
 
 router.post("/", registerTutor);
@@ -93,10 +100,17 @@ router.get("/orders/:orderId", protectTutor, getTutorOrderDetails);
 
 // Chat routes
 router.get("/chats", protectTutor, getUserChats);
+router.post("/chats", protectTutor, createOrGetChatByTutor);
 router.get("/chats/:chatId/messages", protectTutor, getChatMessages);
 router.put("/chats/:chatId/read", protectTutor, markChatAsRead);
 router.delete("/chats/:chatId/clear", protectTutor, clearChatMessages);
 
 router.get("/students", protectTutor, getTutorStudents);
+
+// Wallet routes
+router.get("/wallet", protectTutor, getWallet);
+router.get("/wallet/transactions", protectTutor, getWalletTransactions);
+router.put("/wallet/bank-details", protectTutor, updateBankDetails);
+router.post("/wallet/withdraw", protectTutor, requestWithdrawal);
 
 export default router;

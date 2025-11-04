@@ -1,4 +1,4 @@
-﻿import express from 'express';
+import express from 'express';
 import {
   adminLogin,
   refreshAdminToken,
@@ -42,6 +42,11 @@ import {
 import {
   cleanupUnavailableCourses
 } from '../Controllers/user/cartController.js';
+import {
+  getWallet,
+  getWalletTransactions,
+  getWalletStatistics
+} from '../Controllers/common/walletController.js';
 import {
   getAllOrders,
   getOrderDetails,
@@ -110,5 +115,10 @@ router.patch('/orders/:orderId/status', protectAdmin, updateOrderStatus);
 
 // Cart cleanup route
 router.delete('/carts/cleanup-unavailable', protectAdmin, cleanupUnavailableCourses);
+
+// Wallet routes
+router.get('/wallet', protectAdmin, getWallet);
+router.get('/wallet/transactions', protectAdmin, getWalletTransactions);
+router.get('/wallet/statistics', protectAdmin, getWalletStatistics);
 
 export default router;

@@ -621,7 +621,6 @@ const getTutorStats = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching tutor stats:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching tutor stats',

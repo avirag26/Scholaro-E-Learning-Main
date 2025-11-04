@@ -32,7 +32,6 @@ const CategorySchema = new mongoose.Schema(
     timestamps: true, 
   }
 );
-CategorySchema.index({ title: 1 }, { unique: true, collation: { locale: 'en', strength: 2 } }); 
 CategorySchema.index({ isVisible: 1 }); 
 CategorySchema.index({ createdAt: -1 }); 
 const Category = mongoose.model('categories', CategorySchema);

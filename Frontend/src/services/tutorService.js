@@ -23,7 +23,6 @@ export const tutorService = {
       const response = await userAPI.get(`/api/users/tutors/${tutorId}/stats`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching tutor stats:', error);
       return {
         success: false,
         error: error.message

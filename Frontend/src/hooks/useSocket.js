@@ -16,13 +16,11 @@ export const useSocket = () => {
       if (isAuthenticated && accessToken) {
         // Initialize socket if not already connected
         if (!socketService.isConnected()) {
-          console.log('🔌 Initializing socket connection...');
           socketService.initialize(store);
         }
       } else {
         // Disconnect socket if not authenticated
         if (socketService.isConnected()) {
-          console.log('🔌 Disconnecting socket...');
           socketService.disconnect();
         }
       }

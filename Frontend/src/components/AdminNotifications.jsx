@@ -40,7 +40,7 @@ export default function AdminNotifications() {
                 setUnreadCount(recentCount);
             }
         } catch (error) {
-            console.error('Error fetching notifications:', error);
+            // Handle error silently
         }
     };
 

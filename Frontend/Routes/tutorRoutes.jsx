@@ -1,4 +1,4 @@
-﻿import TutorRegister from "../src/Pages/TUTOR/TutorRegister";
+import TutorRegister from "../src/Pages/TUTOR/TutorRegister";
 import { Routes, Route } from "react-router-dom";
 import TutorLogin from "../src/Pages/TUTOR/TutorLogin";
 import TutorForgotPassword from "../src/Pages/TUTOR/TutorForgotPassword";
@@ -14,6 +14,7 @@ import EditLesson from "../src/Pages/TUTOR/EditLesson";
 import TutorOrders from "../src/Pages/TUTOR/Orders";
 import TutorOrderDetail from "../src/Pages/TUTOR/OrderDetail";
 import TutorChat from "../src/Pages/TUTOR/Chat";
+import TutorWallet from "../src/Pages/TUTOR/TutorWallet";
 import ProtectedRoute from "../src/components/RouteProtection/ProtectedRoute";
 import GuestRoute from "../src/components/RouteProtection/GuestRoute";
 
@@ -91,6 +92,11 @@ const TutorRoutes = () => {
       <Route path="chat" element={
         <ProtectedRoute userType="tutor">
           <TutorChat />
+        </ProtectedRoute>
+      } />
+      <Route path="wallet" element={
+        <ProtectedRoute userType="tutor">
+          <TutorWallet />
         </ProtectedRoute>
       } />
 

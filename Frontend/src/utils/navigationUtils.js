@@ -36,7 +36,6 @@ export const safeNavigate = (navigate, path, options = {}) => {
   try {
     navigate(path, options);
   } catch (error) {
-    console.error('Navigation error:', error);
     navigate('/user/home');
   }
 };

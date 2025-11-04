@@ -96,7 +96,6 @@ const courseSlice = createSlice({
         const storedData = localStorage.getItem("publicCourses");
         return storedData ? JSON.parse(storedData) : [];
       } catch (error) {
-        console.log(error)
         localStorage.removeItem("publicCourses");
         return [];
       }
@@ -111,7 +110,6 @@ const courseSlice = createSlice({
         const storedProgress = localStorage.getItem("userProgress");
         return storedProgress ? JSON.parse(storedProgress) : {};
       } catch (error) {
-        console.log(error)
         localStorage.removeItem("userProgress");
         return {};
       }

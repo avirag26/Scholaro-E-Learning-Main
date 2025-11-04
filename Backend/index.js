@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors'; 
 import connectDB from './Config/db.js';
 import { initializeSocket } from './Config/socket.js';
+import paymentDistributionService from './services/paymentDistributionService.js';
 dotenv.config();
 import UserRoutes from './Routes/userRoute.js';
 import TutorRoutes from './Routes/tutorRoute.js';
@@ -52,4 +53,8 @@ app.use('/api/admin', AdminRoutes);
 server.listen(port, () => {
   console.log(` Server running on http://localhost:${port}`);
   console.log(` Socket.IO server initialized`);
+  
+  // Start payment distribution cron job
+  paymentDistributionService.startCronJob();
+  console.log(` Payment distribution cron job started`);
 });

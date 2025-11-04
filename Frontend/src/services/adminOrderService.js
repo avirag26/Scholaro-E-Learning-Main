@@ -4,7 +4,6 @@ export const adminOrderService = {
   // Get all orders with filters and pagination
   async getAllOrders(params = {}) {
     try {
-      console.log('Calling getAllOrders with params:', params);
       const queryParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -12,14 +11,9 @@ export const adminOrderService = {
         }
       });
       
-      console.log('Making request to:', `/api/admin/orders?${queryParams}`);
       const response = await adminAPI.get(`/api/admin/orders?${queryParams}`);
-      console.log('Response received:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error in getAllOrders:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
       throw error;
     }
   },

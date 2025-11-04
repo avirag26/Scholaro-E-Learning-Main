@@ -13,7 +13,6 @@ const protectAdmin = async (req, res, next) => {
       if (req.admin.is_blocked) {
         return res.status(403).json({ message: 'Account has been blocked. Please contact support.' });
       }
-      req.user = req.admin;
       next();
     } catch (error) {
       if (error.name === 'TokenExpiredError') {

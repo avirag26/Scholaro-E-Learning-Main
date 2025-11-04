@@ -489,7 +489,6 @@ const toggleCourseListing = async (req, res) => {
           await cart.save();
         }
       } catch (cleanupError) {
-        console.error('Error cleaning up carts/wishlists:', cleanupError);
         // Don't fail the main operation if cleanup fails
       }
     }

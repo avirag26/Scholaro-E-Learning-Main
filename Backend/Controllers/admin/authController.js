@@ -149,7 +149,6 @@ const resetPassword = async (req, res) => {
     await admin.save();
     res.status(200).json({ message: "Password reset successful" });
   } catch (error) {
-    console.error("Admin reset password error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

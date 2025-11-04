@@ -108,7 +108,7 @@ export const getUserChats = async (req, res) => {
   }
 };
 
-// Create or get existing chat
+// Create or get existing chat (for users)
 export const createOrGetChat = async (req, res) => {
   try {
     const { tutorId } = req.body;
@@ -213,6 +213,124 @@ export const createOrGetChat = async (req, res) => {
         participant: participantInfo,
         lastMessage: chat.lastMessage,
         unreadCount: chat.unreadCount.user,
+        createdAt: chat.createdAt,
+        updatedAt: chat.updatedAt
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error creating chat',
+      error: error.message
+    });
+  }
+};
+
+// Create or get existing chat (for tutors)
+export const createOrGetChatByTutor = async (req, res) => {
+  try {
+    const { studentId } = req.body;
+    const tutorId = req.tutor._id;
+
+    if (!studentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Student ID is required'
+      });
+    }
+
+    // Prevent tutor from chatting with themselves
+    if (studentId === tutorId.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot create chat with yourself'
+      });
+    }
+
+    // Verify student exists
+    const student = await User.findById(studentId).populate('courses.course');
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+
+    // Check if student has purchased any course from this tutor
+    const tutorCourses = student.courses.filter(enrollment => 
+      enrollment.course && enrollment.course.tutor.toString() === tutorId.toString()
+    );
+    
+    if (tutorCourses.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Student has not purchased any of your courses'
+      });
+    }
+
+    // Use the first course for the chat
+    const firstCourse = tutorCourses[0].course;
+
+    // Check if chat already exists between tutor and student
+    let chat = await Chat.findOne({
+      'participants.user': { $all: [tutorId, studentId] }
+    });
+
+    if (!chat) {
+      // Create new chat
+      chat = new Chat({
+        participants: [
+          {
+            user: studentId,
+            userType: 'User'
+          },
+          {
+            user: tutorId,
+            userType: 'Tutor'
+          }
+        ],
+        course: firstCourse._id
+      });
+
+      await chat.save();
+    }
+
+    // Populate chat details
+    await chat.populate('course', 'title course_thumbnail');
+    await chat.populate('participants.user', 'full_name email profileImage');
+
+    // Format the response to match getUserChats format
+    const otherParticipant = chat.getOtherParticipant(tutorId);
+    let participantInfo = null;
+    
+    if (otherParticipant && otherParticipant.user) {
+      participantInfo = {
+        _id: otherParticipant.user._id,
+        name: otherParticipant.user.full_name,
+        email: otherParticipant.user.email,
+        profileImage: otherParticipant.user.profileImage,
+        type: otherParticipant.userType.toLowerCase(),
+        courses: tutorCourses.map(enrollment => ({
+          _id: enrollment.course._id,
+          title: enrollment.course.title,
+          thumbnail: enrollment.course.course_thumbnail
+        }))
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      chat: {
+        _id: chat._id,
+        course: {
+          _id: chat.course._id,
+          title: chat.course.title,
+          thumbnail: chat.course.course_thumbnail
+        },
+        participant: participantInfo,
+        lastMessage: chat.lastMessage,
+        unreadCount: chat.unreadCount.tutor,
         createdAt: chat.createdAt,
         updatedAt: chat.updatedAt
       }
