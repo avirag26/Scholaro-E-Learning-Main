@@ -1,0 +1,104 @@
+/* Video Protection Styles */
+
+/* Disable text selection globally on video page */
+.video-protection {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Disable drag and drop */
+.video-protection * {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
+/* Hide video controls download button */
+video::-webkit-media-controls-download-button {
+  display: none !important;
+}
+
+video::-webkit-media-controls-fullscreen-button {
+  display: none !important;
+}
+
+/* Disable picture-in-picture */
+video::-webkit-media-controls-picture-in-picture-button {
+  display: none !important;
+}
+
+/* Screen recording detection overlay */
+@media screen and (min-resolution: 2dppx) {
+  .video-container::before {
+    content: "⚠️ Screen recording detected";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 0, 0, 0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    z-index: 1000;
+    font-weight: bold;
+    display: none;
+  }
+}
+
+/* Blur effect when dev tools are open */
+@media (max-height: 500px) and (min-width: 800px) {
+  .video-container {
+    filter: blur(5px);
+  }
+  
+  .video-container::after {
+    content: "⚠️ Developer tools detected. Please close to continue.";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 1001;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+  }
+}
+
+/* Disable print styles */
+@media print {
+  .video-container {
+    display: none !important;
+  }
+  
+  body::before {
+    content: "Video content cannot be printed for copyright protection.";
+    display: block;
+    text-align: center;
+    font-size: 24px;
+    margin: 50px;
+    color: red;
+  }
+}
+
+/* Watermark animation */
+.watermark-overlay {
+  animation: watermarkFloat 10s infinite linear;
+}
+
+@keyframes watermarkFloat {
+  0% { transform: translateX(-100px) translateY(-50px); }
+  25% { transform: translateX(calc(100vw - 200px)) translateY(-50px); }
+  50% { transform: translateX(calc(100vw - 200px)) translateY(calc(100vh - 100px)); }
+  75% { transform: translateX(-100px) translateY(calc(100vh - 100px)); }
+  100% { transform: translateX(-100px) translateY(-50px); }
+}

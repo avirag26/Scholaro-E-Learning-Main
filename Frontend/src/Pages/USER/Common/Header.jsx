@@ -83,6 +83,7 @@ export default function Header({ onMenuClick }) {
           >
             Courses
           </Link>
+          
           <Link
             to="/user/teachers"
             className="text-sm font-medium pr-4 hover:text-sky-500 text-gray-900"

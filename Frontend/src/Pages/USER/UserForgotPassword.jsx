@@ -24,7 +24,6 @@ export default function UserForgotPassword() {
       const response = await authAPI.post('/api/users/forgot-password', { email });
       toast.success(response.data.message);
     } catch (err) {
-      console.log(err)
       toast.success('If an account with that email exists, a password reset link has been sent.');
     } finally {
       setIsSubmitting(false);

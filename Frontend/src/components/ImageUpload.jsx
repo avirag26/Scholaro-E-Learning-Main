@@ -42,7 +42,6 @@ const ImageUpload = ({
                 setPreview(currentImage);
             }
         } catch (error) {
-            console.error('Upload error:', error);
             toast.error("Failed to upload image");
             setPreview(currentImage);
         } finally {
@@ -72,11 +71,9 @@ const ImageUpload = ({
                                 : 'h-48 rounded-lg'
                         } ${uploading ? 'opacity-70' : ''}`}
                         onError={(e) => {
-                            console.error('Image failed to load:', preview);
                             e.target.style.display = 'none';
                         }}
                         onLoad={() => {
-                            console.log('Image loaded successfully:', preview);
                         }}
                     />
                     {}

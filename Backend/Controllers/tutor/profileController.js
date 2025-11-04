@@ -54,14 +54,25 @@ const updateTutorProfile = async (req, res) => {
 
     // Validate subjects if provided
     if (subjects) {
-      if (subjects.length > 200) {
-        return res.status(400).json({ message: "Subjects cannot exceed 200 characters" });
+      if (!Array.isArray(subjects)) {
+        return res.status(400).json({ message: "Subjects must be an array" });
       }
-      if (subjects.includes('_')) {
-        return res.status(400).json({ message: "Subjects cannot contain underscores" });
+      if (subjects.length > 10) {
+        return res.status(400).json({ message: "Cannot have more than 10 subjects" });
       }
-      if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)]+$/.test(subjects)) {
-        return res.status(400).json({ message: "Subjects can only contain letters, numbers, spaces, and basic punctuation (- . , : ( ))" });
+      for (const subject of subjects) {
+        if (typeof subject !== 'string') {
+          return res.status(400).json({ message: "Each subject must be a string" });
+        }
+        if (subject.length > 50) {
+          return res.status(400).json({ message: "Each subject cannot exceed 50 characters" });
+        }
+        if (subject.includes('_')) {
+          return res.status(400).json({ message: "Subjects cannot contain underscores" });
+        }
+        if (!/^[a-zA-Z0-9\s\-\.\:\(\)]+$/.test(subject)) {
+          return res.status(400).json({ message: "Subjects can only contain letters, numbers, spaces, and basic punctuation (- . : ( ))" });
+        }
       }
     }
 
@@ -81,7 +92,7 @@ const updateTutorProfile = async (req, res) => {
     }
     if (name) tutor.full_name = name.trim();
     if (phone) tutor.phone = phone;
-    if (subjects) tutor.subjects = subjects.trim();
+    if (subjects) tutor.subjects = subjects.map(subject => subject.trim()).filter(subject => subject.length > 0);
     if (bio) tutor.bio = bio.trim();
     await tutor.save();
     res.status(200).json({

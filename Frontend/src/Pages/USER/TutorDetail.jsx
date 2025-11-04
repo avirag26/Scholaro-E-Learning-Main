@@ -62,7 +62,6 @@ const TutorDetail = () => {
         }
         
       } catch (error) {
-        console.error('Error fetching tutor data:', error);
         toast.error(error.response?.data?.message || 'Failed to load tutor details');
         safeNavigate(navigate, ROUTES.USER.TEACHERS);
       } finally {
@@ -192,12 +191,7 @@ const TutorDetail = () => {
                 </button>
               </div>
               {}
-              <button
-                onClick={handleSendMessage}
-                className="w-full mt-6 flex items-center justify-center gap-3 bg-teal-600 text-white py-3 px-4 rounded-lg hover:bg-teal-700 transition-colors font-medium"
-              >
-                Send Message
-              </button>
+             
             </div>
           </div>
         </div>

@@ -17,6 +17,8 @@ import Wishlist from '../src/Pages/USER/Wishlist';
 import Checkout from '../src/Pages/USER/Checkout';
 import OrderSuccess from '../src/Pages/USER/OrderSuccess';
 import MyOrders from '../src/Pages/USER/MyOrders';
+import MyCourses from '../src/Pages/USER/MyCourses';
+import CourseLearning from '../src/Pages/USER/CourseLearningSimple';
 import Chat from '../src/Pages/USER/Chat';
 import ProtectedRoute from '../src/components/RouteProtection/ProtectedRoute';
 import GuestRoute from '../src/components/RouteProtection/GuestRoute';
@@ -116,6 +118,16 @@ const UserRoutes = () => {
             <Route path='orders' element={
                 <ProtectedRoute userType="user">
                     <MyOrders />
+                </ProtectedRoute>
+            } />
+            <Route path='my-courses' element={
+                <ProtectedRoute userType="user">
+                    <MyCourses />
+                </ProtectedRoute>
+            } />
+            <Route path='learn/:courseId' element={
+                <ProtectedRoute userType="user">
+                    <CourseLearning />
                 </ProtectedRoute>
             } />
             <Route path='chat' element={

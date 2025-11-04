@@ -69,11 +69,7 @@ const Orders = () => {
         return;
       }
 
-      console.log('Admin token exists:', !!adminToken);
-      console.log('Admin info:', adminInfo);
-
       const response = await adminOrderService.getAllOrders(filters);
-      console.log('Orders response:', response);
 
       if (response.success) {
         setOrders(response.orders);
@@ -83,7 +79,6 @@ const Orders = () => {
         toast.error('Failed to fetch orders: ' + (response.message || 'Unknown error'));
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
 
       if (error.response?.status === 401) {
         toast.error('Authentication failed. Please login again.');

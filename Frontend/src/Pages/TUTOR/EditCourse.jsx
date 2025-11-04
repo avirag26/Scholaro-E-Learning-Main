@@ -32,7 +32,6 @@ const EditCourse = () => {
     }, [dispatch, courseId]);
     useEffect(() => {
         if (selectedCourse) {
-            console.log("Selected course data:", selectedCourse);
             setFormData({
                 title: selectedCourse.title || "",
                 category: selectedCourse.category?._id || selectedCourse.category || "",
@@ -95,21 +94,16 @@ const EditCourse = () => {
                 offer_percentage: parseFloat(formData.offer_percentage) || 0,
                 course_thumbnail: formData.course_thumbnail
             };
-            console.log("Updating course with data:", courseData);
-            console.log("Course ID:", courseId);
             const result = await dispatch(updateCourse({ id: courseId, courseData }));
-            console.log("Update result:", result);
             if (updateCourse.fulfilled.match(result)) {
                 toast.success("Course updated successfully!");
                 setTimeout(() => {
                     navigate("/tutor/courses");
                 }, 1000);
             } else {
-                console.error("Update failed:", result);
                 toast.error(result.payload || "Failed to update course");
             }
         } catch (error) {
-            console.error("Course update error:", error);
             toast.error("Failed to update course");
         } finally {
             setIsSubmitting(false);

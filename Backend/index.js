@@ -51,10 +51,6 @@ app.use('/api/admin', AdminRoutes);
 
 // Start server
 server.listen(port, () => {
-  console.log(` Server running on http://localhost:${port}`);
-  console.log(` Socket.IO server initialized`);
-  
-  // Start payment distribution cron job
+  console.log(`server is running on ${port}`)
   paymentDistributionService.startCronJob();
-  console.log(` Payment distribution cron job started`);
 });

@@ -1,4 +1,5 @@
 import User from "../../Model/usermodel.js";
+import Order from "../../Model/OrderModel.js";
 import { sendOtpToEmail, verifyEmailOtp, sendOtpWithData, verifyOtpWithData } from '../../utils/otpService.js';
 
 const getUserProfile = async (req, res) => {
@@ -227,6 +228,162 @@ const verifyEmailChangeOtp = async (req, res) => {
   }
 };
 
+const getMyCourses = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Get orders with payment completed
+    const orders = await Order.find({
+      user: userId,
+      $or: [
+        { status: 'completed' },
+        { status: 'paid' },
+        { status: 'success' },
+        { razorpayPaymentId: { $exists: true, $ne: null } }
+      ]
+    }).populate({
+      path: 'items.course',
+      populate: {
+        path: 'tutor',
+        select: 'full_name'
+      }
+    });
+
+    // Extract all courses from orders - all purchased courses are considered enrolled
+    const enrolledCourses = [];
+
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        if (item.course) {
+          const courseData = {
+            _id: item.course._id,
+            title: item.course.title,
+            course_thumbnail: item.course.course_thumbnail,
+            tutor: item.course.tutor,
+            average_rating: item.course.average_rating || 0,
+            total_ratings: item.course.total_ratings || 0,
+            lessons: item.course.lessons || [],
+            duration: item.course.duration
+          };
+
+          enrolledCourses.push(courseData);
+        }
+      });
+    });
+
+    res.status(200).json({
+      success: true,
+      enrolledCourses,
+      completedCourses: [] // For now, no completed courses logic
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching courses"
+    });
+  }
+};
+
+const getCourseForLearning = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { courseId } = req.params;
+
+    // Check if user has purchased this course
+    const order = await Order.findOne({
+      user: userId,
+      'items.course': courseId,
+      $or: [
+        { status: 'completed' },
+        { status: 'paid' },
+        { status: 'success' },
+        { razorpayPaymentId: { $exists: true, $ne: null } }
+      ]
+    }).populate({
+      path: 'items.course',
+      populate: [
+        {
+          path: 'tutor',
+          select: 'full_name'
+        },
+        {
+          path: 'lessons'
+        }
+      ]
+    });
+
+    if (!order) {
+      return res.status(403).json({
+        success: false,
+        message: "You don't have access to this course. Please purchase it first."
+      });
+    }
+
+    // Find the specific course from the order
+    const courseItem = order.items.find(item => item.course._id.toString() === courseId);
+
+    if (!courseItem) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found in your purchases"
+      });
+    }
+
+    const course = courseItem.course;
+
+    // Get real lessons from the course, sorted by order
+    let lessons = course.lessons || [];
+
+    // Sort lessons by order field
+    lessons = lessons.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    // If no lessons exist, return empty array with message
+    if (lessons.length === 0) {
+      return res.status(200).json({
+        success: true,
+        course: {
+          _id: course._id,
+          title: course.title,
+          description: course.description,
+          tutor: course.tutor,
+          course_thumbnail: course.course_thumbnail
+        },
+        lessons: [],
+        message: 'No lessons available for this course yet. Please contact the instructor.'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      course: {
+        _id: course._id,
+        title: course.title,
+        description: course.description,
+        tutor: course.tutor,
+        course_thumbnail: course.course_thumbnail
+      },
+      lessons: lessons.map(lesson => ({
+        _id: lesson._id,
+        title: lesson.title,
+        description: lesson.description,
+        duration: lesson.duration,
+        videoUrl: lesson.videoUrl,
+        thumbnailUrl: lesson.thumbnailUrl,
+        pdfUrl: lesson.pdfUrl,
+        order: lesson.order,
+        isPublished: lesson.isPublished
+      }))
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching course data"
+    });
+  }
+};
+
 export {
   getUserProfile,
   updateUserProfile,
@@ -234,5 +391,7 @@ export {
   sendPasswordChangeOtp,
   changePasswordWithOtp,
   sendEmailChangeOtp,
-  verifyEmailChangeOtp
+  verifyEmailChangeOtp,
+  getMyCourses,
+  getCourseForLearning
 };

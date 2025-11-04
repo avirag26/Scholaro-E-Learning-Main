@@ -242,7 +242,6 @@ const AddLesson = () => {
         toast.success("Lesson added successfully!");
       }
     } catch (error) {
-     console.log(error)
     }
   };
   const handleDeleteLesson = async (lessonId) => {
@@ -263,7 +262,6 @@ const AddLesson = () => {
         toast.success("Lesson deleted successfully!");
       }
     } catch (error) {
-      console.log(error)
     }
   };
   return (

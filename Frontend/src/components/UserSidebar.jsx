@@ -38,7 +38,7 @@ const UserSidebar = ({
 
   const sidebarItems = [
     { id: 'profile', icon: User, label: 'Profile', path: '/user/profile' },
-    { id: 'courses', icon: BookOpen, label: 'My Courses', path: '/user/courses' },
+    { id: 'courses', icon: BookOpen, label: 'My Courses', path: '/user/my-courses' },
     { id: 'orders', icon: BookOpen, label: 'My Orders', path: '/user/orders' },
     { id: 'cart', icon: ShoppingCart, label: 'Shopping Cart', path: '/user/cart' },
     { id: 'wishlist', icon: Heart, label: 'Wishlist', path: '/user/wishlist' },

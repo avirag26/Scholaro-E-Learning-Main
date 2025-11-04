@@ -127,7 +127,6 @@ const AddCourse = () => {
                 toast.error(result.payload || "Failed to create course");
             }
         } catch (error) {
-            console.log(error)
             toast.error("Failed to create course");
         }
     };

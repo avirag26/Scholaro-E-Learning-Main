@@ -239,7 +239,6 @@ const createPaymentDistribution = async (order) => {
       await PaymentDistribution.createDistribution(distributionData);
     }
   } catch (error) {
-    console.error('Error creating payment distribution:', error);
     // Don't throw error to avoid breaking the payment flow
   }
 };

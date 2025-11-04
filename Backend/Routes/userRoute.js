@@ -20,7 +20,9 @@ import {
   sendPasswordChangeOtp,
   changePasswordWithOtp,
   sendEmailChangeOtp,
-  verifyEmailChangeOtp
+  verifyEmailChangeOtp,
+  getMyCourses,
+  getCourseForLearning
 } from "../Controllers/user/profileController.js";
 import {
   getCart,
@@ -42,6 +44,7 @@ import {
   getPublicCourses,
   getCoursesByCategory,
   getCourseDetails,
+  getAllSubjects,
   getPublicTutors,
   getTutorDetails,
   getTutorStats
@@ -80,7 +83,10 @@ router.post("/change-password/send-otp", protectUser, sendPasswordChangeOtp);
 router.post("/change-password/verify", protectUser, changePasswordWithOtp);
 router.post("/change-email/send-otp", protectUser, sendEmailChangeOtp);
 router.post("/change-email/verify", protectUser, verifyEmailChangeOtp);
+router.get("/my-courses", protectUser, getMyCourses);
+router.get("/course/:courseId/learn", protectUser, getCourseForLearning);
 router.get("/categories", getPublicCategories);
+router.get("/subjects", getAllSubjects);
 router.get("/courses", getPublicCourses);
 router.get("/courses/category/:categoryId", getCoursesByCategory);
 router.get("/courses/:courseId", getCourseDetails);

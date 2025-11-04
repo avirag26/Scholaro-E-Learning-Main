@@ -61,8 +61,9 @@ const tutorSchema = new mongoose.Schema(
       default: null,
     },
     subjects: {
-      type: String,
-      default: "",
+      type: [String],
+      default: [],
+      index: true
     },
     status: {
       type: Boolean,

@@ -13,15 +13,11 @@ class PaymentDistributionService {
     // Run every hour at minute 0
     cron.schedule('0 * * * *', async () => {
       if (this.isRunning) {
-        console.log('Payment distribution already running, skipping...');
         return;
       }
 
-      console.log('Starting payment distribution cron job...');
       await this.processPaymentDistributions();
     });
-
-    console.log('Payment distribution cron job scheduled to run every hour');
   }
 
   // Process all pending payment distributions
@@ -30,21 +26,15 @@ class PaymentDistributionService {
     
     try {
       const pendingDistributions = await PaymentDistribution.getPendingDistributions();
-      
-      console.log(`Found ${pendingDistributions.length} pending distributions`);
 
       for (const distribution of pendingDistributions) {
         try {
           await this.processDistribution(distribution);
         } catch (error) {
-          console.error(`Error processing distribution ${distribution.orderId}:`, error);
           await distribution.markAsFailed(error.message);
         }
       }
-
-      console.log('Payment distribution cron job completed');
     } catch (error) {
-      console.error('Error in payment distribution cron job:', error);
     } finally {
       this.isRunning = false;
     }
@@ -52,7 +42,6 @@ class PaymentDistributionService {
 
   // Process a single payment distribution
   async processDistribution(distribution) {
-    console.log(`Processing distribution for order: ${distribution.orderId}`);
 
     // Update distribution status to processing
     distribution.status = 'processing';
@@ -93,7 +82,6 @@ class PaymentDistributionService {
 
       await adminWallet.addTransaction(adminTransaction);
       distribution.adminWalletUpdated = true;
-      console.log(`Added ₹${distribution.adminCommission} commission to admin wallet`);
     }
 
     // Add payment to tutor wallet
@@ -116,17 +104,14 @@ class PaymentDistributionService {
 
       await tutorWallet.addTransaction(tutorTransaction);
       distribution.tutorWalletUpdated = true;
-      console.log(`Added ₹${distribution.tutorAmount} to tutor ${distribution.tutor.full_name} wallet`);
     }
 
     // Mark distribution as completed
     await distribution.markAsCompleted();
-    console.log(`Distribution completed for order: ${distribution.orderId}`);
   }
 
   // Manual trigger for testing or immediate processing
   async processImmediately() {
-    console.log('Processing payment distributions immediately...');
     await this.processPaymentDistributions();
   }
 
@@ -158,7 +143,6 @@ class PaymentDistributionService {
         }, { totalAmount: 0, totalAdminCommission: 0, totalTutorAmount: 0 })
       };
     } catch (error) {
-      console.error('Error getting distribution stats:', error);
       throw error;
     }
   }
@@ -171,8 +155,6 @@ class PaymentDistributionService {
         retryCount: { $lt: 5 }
       });
 
-      console.log(`Retrying ${failedDistributions.length} failed distributions`);
-
       for (const distribution of failedDistributions) {
         try {
           // Reset status to pending for retry
@@ -182,12 +164,10 @@ class PaymentDistributionService {
           
           await this.processDistribution(distribution);
         } catch (error) {
-          console.error(`Retry failed for distribution ${distribution.orderId}:`, error);
           await distribution.markAsFailed(error.message);
         }
       }
     } catch (error) {
-      console.error('Error retrying failed distributions:', error);
       throw error;
     }
   }

@@ -426,6 +426,51 @@ const getCourseDetails = async (req, res) => {
   }
 };
 
+const getAllSubjects = async (req, res) => {
+  try {
+    // Get all unique subjects from verified tutors
+    const subjects = await Tutor.aggregate([
+      {
+        $match: {
+          is_verified: true,
+          is_blocked: false,
+          subjects: { $exists: true, $ne: [] }
+        }
+      },
+      {
+        $unwind: "$subjects"
+      },
+      {
+        $group: {
+          _id: "$subjects",
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1, _id: 1 }
+      },
+      {
+        $project: {
+          subject: "$_id",
+          tutorCount: "$count",
+          _id: 0
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      subjects
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch subjects",
+      error: error.message
+    });
+  }
+};
+
 const getPublicTutors = async (req, res) => {
   try {
     const { page = 1, limit = 12, search = '', subject = '' } = req.query;
@@ -443,7 +488,7 @@ const getPublicTutors = async (req, res) => {
     }
 
     if (subject) {
-      query.subjects = { $regex: subject, $options: 'i' };
+      query.subjects = { $in: [new RegExp(subject, 'i')] };
     }
 
     const tutors = await Tutor.find(query)
@@ -575,7 +620,7 @@ const getTutorStats = async (req, res) => {
 
     // Calculate both student count and total enrollments from User model
     const User = (await import('../../Model/usermodel.js')).default;
-    
+
     // Get unique students count
     const uniqueStudents = await User.aggregate([
       { $match: { 'courses.course': { $in: courseIds } } },
@@ -634,6 +679,7 @@ export {
   getPublicCourses,
   getCoursesByCategory,
   getCourseDetails,
+  getAllSubjects,
   getPublicTutors,
   getTutorDetails,
   getTutorStats

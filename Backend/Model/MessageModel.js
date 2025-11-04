@@ -194,7 +194,6 @@ messageSchema.post('save', async function(doc) {
       await chat.updateLastMessage(doc);
     }
   } catch (error) {
-    console.error('Error updating chat last message:', error);
   }
 });
 

@@ -100,7 +100,6 @@ function Checkout() {
                         toast.success('Payment successful! You are now enrolled in the courses.');
                         navigate(`/user/order-success/${orderData.order.orderId}`);
                     } catch (error) {
-                        console.log(error)
                         toast.error('Payment verification failed');
                     }
                 },

@@ -10,17 +10,17 @@ const activeConnections = new Map();
 const authenticateSocket = async (socket, next) => {
   try {
     const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
-    
+
     if (!token) {
       return next(new Error('Authentication token required'));
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     let user;
     let userType;
-    
-    // Try to find user first
+
+
     user = await User.findById(decoded.id).select('full_name email profileImage');
     if (user) {
       userType = 'user';
@@ -34,11 +34,11 @@ const authenticateSocket = async (socket, next) => {
       }
     }
 
-    // Attach user info to socket
+
     socket.userId = decoded.id;
     socket.userType = userType;
     socket.user = user;
-    
+
     next();
   } catch (error) {
     next(new Error('Invalid authentication token'));
@@ -60,8 +60,14 @@ export const initializeSocket = (server) => {
   io.use(authenticateSocket);
 
   io.on('connection', (socket) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(` ${socket.user.full_name} (${socket.userType}) connected`);
+
+
+    // Specific tutor connection logging
+    if (socket.userType === 'tutor') {
+      console.log(` TUTOR CONNECTED: ${socket.user.full_name} - ID: ${socket.userId}`);
+    }
+    if(socket.userType === 'user'){
+       console.log(` TUTOR CONNECTED: ${socket.user.full_name} - ID: ${socket.userId}`);
     }
 
     // Store connection
@@ -83,7 +89,7 @@ export const initializeSocket = (server) => {
         // We don't have user details stored, but the client will handle this
       };
     });
-    
+
     socket.emit('online_users_list', currentOnlineUsers);
 
     // Notify others that user is online
@@ -97,7 +103,7 @@ export const initializeSocket = (server) => {
     socket.on('join_chat', async (data) => {
       try {
         const { chatId } = data;
-        
+
         if (!chatId) {
           socket.emit('error', { message: 'Chat ID is required' });
           return;
@@ -106,7 +112,7 @@ export const initializeSocket = (server) => {
         // Verify user has access to this chat
         const Chat = (await import('../Model/ChatModel.js')).default;
         const chat = await Chat.findById(chatId);
-        
+
         if (!chat) {
           socket.emit('error', { message: 'Chat not found' });
           return;
@@ -119,7 +125,7 @@ export const initializeSocket = (server) => {
 
         // Join the chat room
         socket.join(`chat_${chatId}`);
-        
+
         // Notify other participants that user joined
         socket.to(`chat_${chatId}`).emit('user_joined_chat', {
           userId: socket.userId,
@@ -129,9 +135,8 @@ export const initializeSocket = (server) => {
         });
 
         socket.emit('chat_joined', { chatId });
-        
+
       } catch (error) {
-        console.error('Error joining chat:', error);
         socket.emit('error', { message: 'Failed to join chat' });
       }
     });
@@ -162,9 +167,9 @@ export const initializeSocket = (server) => {
         // Verify user has access to this chat
         const Chat = (await import('../Model/ChatModel.js')).default;
         const Message = (await import('../Model/MessageModel.js')).default;
-        
+
         const chat = await Chat.findById(chatId);
-        
+
         if (!chat || !chat.isParticipant(socket.userId)) {
           socket.emit('error', { message: 'Unauthorized access to chat' });
           return;
@@ -192,7 +197,7 @@ export const initializeSocket = (server) => {
 
         // Update chat's last message and unread counts
         await chat.updateLastMessage(message);
-        
+
         // Increment unread count for other participant
         const otherParticipant = chat.getOtherParticipant(socket.userId);
         if (otherParticipant) {
@@ -223,7 +228,6 @@ export const initializeSocket = (server) => {
         // This would integrate with a push notification service
 
       } catch (error) {
-        console.error('Error sending message:', error);
         socket.emit('error', { message: 'Failed to send message' });
       }
     });
@@ -267,9 +271,9 @@ export const initializeSocket = (server) => {
 
         const Chat = (await import('../Model/ChatModel.js')).default;
         const Message = (await import('../Model/MessageModel.js')).default;
-        
+
         const chat = await Chat.findById(chatId);
-        
+
         if (!chat || !chat.isParticipant(socket.userId)) {
           socket.emit('error', { message: 'Unauthorized access to chat' });
           return;
@@ -277,8 +281,8 @@ export const initializeSocket = (server) => {
 
         // Mark all unread messages as read
         await Message.markAllAsRead(
-          chatId, 
-          socket.userId, 
+          chatId,
+          socket.userId,
           socket.userType === 'user' ? 'User' : 'Tutor'
         );
 
@@ -294,26 +298,28 @@ export const initializeSocket = (server) => {
         });
 
       } catch (error) {
-        console.error('Error marking messages as read:', error);
         socket.emit('error', { message: 'Failed to mark messages as read' });
       }
     });
 
     // Handle disconnection
     socket.on('disconnect', () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(` ${socket.user.full_name} (${socket.userType}) disconnected`);
+      console.log(`${socket.userType.toUpperCase()} disconnected: ${socket.user.full_name} (${socket.userId})`);
+
+      // Specific tutor disconnection logging
+      if (socket.userType === 'tutor') {
+        console.log(`🎓 TUTOR DISCONNECTED: ${socket.user.full_name} - ID: ${socket.userId}`);
       }
-      
+
       // Remove connection
       const userKey = `${socket.userType}_${socket.userId}`;
       if (activeConnections.has(userKey)) {
         activeConnections.get(userKey).delete(socket.id);
-        
+
         // If no more connections for this user, mark as offline
         if (activeConnections.get(userKey).size === 0) {
           activeConnections.delete(userKey);
-          
+
           // Notify others that user is offline
           socket.broadcast.emit('user_offline', {
             userId: socket.userId,
@@ -326,7 +332,6 @@ export const initializeSocket = (server) => {
 
     // Handle connection errors
     socket.on('error', (error) => {
-      console.error('Socket error:', error);
       socket.emit('error', { message: 'Connection error occurred' });
     });
   });

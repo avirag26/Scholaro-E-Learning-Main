@@ -31,7 +31,6 @@ const WalletDashboard = ({ userType = 'tutor' }) => {
             setWalletData(response);
         } catch (error) {
             toast.error('Failed to fetch wallet data');
-            console.error('Wallet fetch error:', error);
         } finally {
             setLoading(false);
         }
