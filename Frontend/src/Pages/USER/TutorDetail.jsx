@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Users, 
-  BookOpen, 
-  Clock, 
-  Mail, 
-  Globe, 
-  Twitter, 
+import {
+  Users,
+  BookOpen,
+  Clock,
+  Mail,
+  Globe,
+  Twitter,
   Youtube,
   ChevronLeft,
   ChevronRight,
@@ -30,25 +30,27 @@ const TutorDetail = () => {
   const [tutorStats, setTutorStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentCourseIndex, setCurrentCourseIndex] = useState(0);
+  const [error, setError] = useState(null);
   const userInfo = useUserInfo();
+
   useEffect(() => {
     const fetchTutorDetails = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch tutor details and stats in parallel
         const [tutorData, statsData] = await Promise.all([
           tutorService.getTutorDetails(tutorId),
           tutorService.getTutorStats(tutorId)
         ]);
-        
+
         if (tutorData.success) {
           setTutor(tutorData.tutor);
         } else {
           toast.error('Failed to load tutor details');
           safeNavigate(navigate, ROUTES.USER.TEACHERS);
         }
-        
+
         if (statsData && statsData.success) {
           setTutorStats(statsData.stats);
         } else {
@@ -60,10 +62,11 @@ const TutorDetail = () => {
             averageRating: 0.0
           });
         }
-        
+
       } catch (error) {
+        console.error('Error fetching tutor details:', error);
+        setError(error.message);
         toast.error(error.response?.data?.message || 'Failed to load tutor details');
-        safeNavigate(navigate, ROUTES.USER.TEACHERS);
       } finally {
         setLoading(false);
       }
@@ -79,21 +82,57 @@ const TutorDetail = () => {
   };
   const nextCourse = () => {
     if (tutor && tutor.courses.length > 0) {
-      setCurrentCourseIndex((prev) => 
+      setCurrentCourseIndex((prev) =>
         prev === tutor.courses.length - PAGINATION.COURSES_PER_ROW ? 0 : prev + 1
       );
     }
   };
   const prevCourse = () => {
     if (tutor && tutor.courses.length > 0) {
-      setCurrentCourseIndex((prev) => 
+      setCurrentCourseIndex((prev) =>
         prev === 0 ? Math.max(0, tutor.courses.length - PAGINATION.COURSES_PER_ROW) : prev - 1
       );
     }
   };
+
+  // Safety check for userInfo (after all hooks)
+  if (!userInfo && !error && !loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error boundary
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header user={userInfo} />
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={() => safeNavigate(navigate, ROUTES.USER.TEACHERS)}
+              className="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 transition-colors"
+            >
+              Back to Teachers
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   if (loading) {
     return <Loading />;
   }
+
   if (!tutor) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -118,37 +157,49 @@ const TutorDetail = () => {
     <div className="min-h-screen bg-gray-50">
       <Header user={userInfo} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {}
+        { }
         <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
           <div className="flex flex-col lg:flex-row gap-8">
-            {}
+            { }
             <div className="flex-1">
               <div className="mb-6">
                 <p className="text-sm text-gray-500 uppercase tracking-wide mb-2">INSTRUCTOR</p>
                 <h1 className="text-4xl font-bold text-gray-900 mb-4">{tutor.name}</h1>
-                <p className="text-lg text-gray-600 mb-6">{tutor.subjects}</p>
+                <p className="text-lg text-gray-600 mb-6">
+                  {Array.isArray(tutor.subjects) ? tutor.subjects.join(', ') : tutor.subjects}
+                </p>
               </div>
-              {}
+              { }
               {/* Stats */}
               <TutorStatsCard stats={tutorStats} loading={loading} className="mb-8" />
-              {}
+              { }
               <div className="mb-8">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">About {tutor.name.split(' ')[0]}</h2>
                 <p className="text-gray-600 leading-relaxed mb-6">
                   {tutor.bio}
                 </p>
               </div>
-              {}
+              { }
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Areas of Expertise</h3>
                 <ul className="space-y-2">
-                  {tutor.subjects && tutor.subjects.split(',').map((subject, index) => (
-                    <li key={index} className="flex items-center text-gray-600">
-                      <div className="w-2 h-2 bg-teal-500 rounded-full mr-3"></div>
-                      {subject.trim()}
-                    </li>
-                  ))}
-                  {!tutor.subjects && (
+                  {tutor.subjects && tutor.subjects.length > 0 ? (
+                    Array.isArray(tutor.subjects) ? (
+                      tutor.subjects.map((subject, index) => (
+                        <li key={index} className="flex items-center text-gray-600">
+                          <div className="w-2 h-2 bg-teal-500 rounded-full mr-3"></div>
+                          {subject}
+                        </li>
+                      ))
+                    ) : (
+                      tutor.subjects.split(',').map((subject, index) => (
+                        <li key={index} className="flex items-center text-gray-600">
+                          <div className="w-2 h-2 bg-teal-500 rounded-full mr-3"></div>
+                          {subject.trim()}
+                        </li>
+                      ))
+                    )
+                  ) : (
                     <li className="flex items-center text-gray-600">
                       <div className="w-2 h-2 bg-teal-500 rounded-full mr-3"></div>
                       Professional Tutor
@@ -156,17 +207,21 @@ const TutorDetail = () => {
                   )}
                 </ul>
               </div>
-              {}
+              { }
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Professional Experience</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  {tutor.name} has an extensive professional background in {tutor.subjects ? tutor.subjects.toLowerCase() : 'education'}, having worked with renowned 
-                  companies and institutions. Their portfolio includes a diverse range of projects 
+                  {tutor.name} has an extensive professional background in {
+                    tutor.subjects && tutor.subjects.length > 0
+                      ? (Array.isArray(tutor.subjects) ? tutor.subjects.join(', ').toLowerCase() : tutor.subjects.toLowerCase())
+                      : 'education'
+                  }, having worked with renowned
+                  companies and institutions. Their portfolio includes a diverse range of projects
                   spanning various educational domains and helping students achieve their learning goals.
                 </p>
               </div>
             </div>
-            {}
+            { }
             <div className="lg:w-80">
               <div className="text-center mb-6">
                 <img
@@ -175,7 +230,7 @@ const TutorDetail = () => {
                   className="w-48 h-48 rounded-full object-cover mx-auto border-8 border-gray-100 shadow-lg"
                 />
               </div>
-              {}
+              { }
               <div className="space-y-3">
                 <button className="w-full flex items-center justify-center gap-3 bg-blue-50 text-blue-600 py-3 px-4 rounded-lg hover:bg-blue-100 transition-colors">
                   <Globe className="w-5 h-5" />
@@ -190,12 +245,12 @@ const TutorDetail = () => {
                   YouTube
                 </button>
               </div>
-              {}
-             
+              { }
+
             </div>
           </div>
         </div>
-        {}
+        { }
         <div className="bg-white rounded-lg shadow-sm p-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold text-gray-900">
@@ -282,9 +337,9 @@ const CourseCard = ({ course, tutorName, onClick }) => {
           By {tutorName}
         </p>
         <div className="mb-2">
-          <StarRating 
-            rating={course.average_rating} 
-            size="sm" 
+          <StarRating
+            rating={course.average_rating}
+            size="sm"
             showValue={true}
             totalReviews={course.total_reviews}
           />

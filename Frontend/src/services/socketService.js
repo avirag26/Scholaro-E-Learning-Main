@@ -22,24 +22,23 @@ class SocketService {
     this.store = null;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
-    this.isInitializing = false; // Flag to prevent concurrent initializations
+    this.isInitializing = false;
 
     SocketService.instance = this;
   }
 
-  // Initialize socket connection
   initialize(store) {
-    // Prevent concurrent initializations
+
     if (this.isInitializing) {
       return;
     }
 
-    // Prevent multiple initializations - check if socket exists and is connecting/connected
+
     if (this.socket && (this.socket.connected || this.socket.connecting)) {
       return;
     }
 
-    // If socket exists but is disconnected, clean it up first
+
     if (this.socket && !this.socket.connected) {
       this.socket.removeAllListeners();
       this.socket.disconnect();
@@ -70,18 +69,18 @@ class SocketService {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       timeout: 20000,
-      forceNew: false // Changed to false to reuse connections when possible
+      forceNew: false
     });
 
     this.setupEventListeners();
     this.isInitializing = false;
   }
 
-  // Set up all socket event listeners
+
   setupEventListeners() {
     if (!this.socket || !this.store) return;
 
-    // Connection events
+
     this.socket.on('connect', () => {
       this.store.dispatch(setConnected(true));
       this.reconnectAttempts = 0;

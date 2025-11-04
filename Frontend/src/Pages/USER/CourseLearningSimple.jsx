@@ -272,26 +272,12 @@ const CourseLearning = () => {
                                             Your browser does not support the video tag.
                                         </video>
 
-                                        {/* Watermark Overlay */}
-                                        <div
-                                            className="absolute inset-0 pointer-events-none"
-                                            style={{
-                                                background: `
-                                                    repeating-linear-gradient(
-                                                        45deg,
-                                                        transparent,
-                                                        transparent 100px,
-                                                        rgba(255,255,255,0.05) 100px,
-                                                        rgba(255,255,255,0.05) 120px
-                                                    )
-                                                `,
-                                                zIndex: 10
-                                            }}
-                                        >
-                                            <div className="absolute top-4 right-4 text-white text-xs opacity-30">
-                                                © Scholaro - Licensed Content
+                                        {/* Subtle Watermark Overlay */}
+                                        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 10 }}>
+                                            <div className="absolute top-4 right-4 text-white text-xs opacity-20 bg-black bg-opacity-30 px-2 py-1 rounded">
+                                                Scholaro - Licensed Content
                                             </div>
-                                            <div className="absolute bottom-4 left-4 text-white text-xs opacity-30">
+                                            <div className="absolute bottom-4 left-4 text-white text-xs opacity-20 bg-black bg-opacity-30 px-2 py-1 rounded">
                                                 User: {course.title}
                                             </div>
                                         </div>

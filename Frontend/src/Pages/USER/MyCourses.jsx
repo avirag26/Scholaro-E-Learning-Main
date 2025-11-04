@@ -34,11 +34,10 @@ const MyCourses = () => {
         return Array.from({ length: 5 }, (_, index) => (
             <Star
                 key={index}
-                className={`w-4 h-4 ${
-                    index < Math.floor(rating)
+                className={`w-4 h-4 ${index < Math.floor(rating)
                         ? 'text-yellow-400 fill-current'
                         : 'text-gray-300'
-                }`}
+                    }`}
             />
         ));
     };
@@ -63,7 +62,7 @@ const MyCourses = () => {
                     )}
                     {!isCompleted && (
                         <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                            <button 
+                            <button
                                 onClick={() => window.location.href = `/user/learn/${course._id}`}
                                 className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-100"
                             >
@@ -73,16 +72,16 @@ const MyCourses = () => {
                         </div>
                     )}
                 </div>
-                
+
                 <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-2">
                         {course.title}
                     </h3>
-                    
+
                     <p className="text-sm text-gray-600 mb-2">
                         By {course.tutor?.full_name || 'Unknown Instructor'}
                     </p>
-                    
+
                     <div className="flex items-center gap-2 mb-3">
                         <div className="flex items-center gap-1">
                             {renderStars(course.average_rating || 0)}
@@ -128,7 +127,7 @@ const MyCourses = () => {
                     {/* Enrolled Courses */}
                     <div className="mb-12">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">Enrolled Courses</h2>
-                        
+
                         {enrolledCourses.length === 0 ? (
                             <div className="text-center py-12 bg-white rounded-lg border">
                                 <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -154,7 +153,7 @@ const MyCourses = () => {
                         )}
                     </div>
 
-                   
+
                 </div>
             </div>
             <Footer />

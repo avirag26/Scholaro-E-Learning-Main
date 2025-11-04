@@ -66,8 +66,8 @@ export const initializeSocket = (server) => {
     if (socket.userType === 'tutor') {
       console.log(` TUTOR CONNECTED: ${socket.user.full_name} - ID: ${socket.userId}`);
     }
-    if(socket.userType === 'user'){
-       console.log(` TUTOR CONNECTED: ${socket.user.full_name} - ID: ${socket.userId}`);
+    if (socket.userType === 'user') {
+      console.log(`User CONNECTED: ${socket.user.full_name} - ID: ${socket.userId}`);
     }
 
     // Store connection
@@ -308,8 +308,12 @@ export const initializeSocket = (server) => {
 
       // Specific tutor disconnection logging
       if (socket.userType === 'tutor') {
-        console.log(`🎓 TUTOR DISCONNECTED: ${socket.user.full_name} - ID: ${socket.userId}`);
+        console.log(` TUTOR DISCONNECTED: ${socket.user.full_name} - ID: ${socket.userId}`);
       }
+      if (socket.userType === 'user') {
+        console.log(` USER DISCONNECTED: ${socket.user.full_name} - ID: ${socket.userId}`);
+      }
+
 
       // Remove connection
       const userKey = `${socket.userType}_${socket.userId}`;
