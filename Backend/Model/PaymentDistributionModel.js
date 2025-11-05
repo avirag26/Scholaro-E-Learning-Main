@@ -105,14 +105,14 @@ const paymentDistributionSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes
+
 paymentDistributionSchema.index({ razorpayPaymentId: 1 });
 paymentDistributionSchema.index({ status: 1 });
 paymentDistributionSchema.index({ tutor: 1 });
 paymentDistributionSchema.index({ createdAt: -1 });
 paymentDistributionSchema.index({ status: 1, createdAt: 1 }); // For cron job queries
 
-// Methods
+
 paymentDistributionSchema.methods.markAsCompleted = function() {
   this.status = 'completed';
   this.distributedAt = new Date();

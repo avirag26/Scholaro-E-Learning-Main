@@ -153,7 +153,7 @@ const TutorOrders = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm p-6 border">
             <div className="flex items-center justify-between">
               <div>
@@ -178,18 +178,7 @@ const TutorOrders = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 border">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Completed Sales</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.paidOrders || 0}</p>
-              </div>
-              <div className="p-3 bg-teal-100 rounded-full">
-                <TrendingUp className="w-6 h-6 text-teal-600" />
-              </div>
-            </div>
-          </div>
-
+          
           <div className="bg-white rounded-lg shadow-sm p-6 border">
             <div className="flex items-center justify-between">
               <div>

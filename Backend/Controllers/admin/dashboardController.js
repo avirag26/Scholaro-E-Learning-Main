@@ -12,7 +12,7 @@ const getDashboardStats = async (req, res) => {
     const blockedUsers = await User.countDocuments({ is_blocked: true });
     const blockedTutors = await Tutor.countDocuments({ is_blocked: true });
     
-    // Order statistics
+
     const totalOrders = await Order.countDocuments();
     const paidOrders = await Order.countDocuments({ status: 'paid' });
     const pendingOrders = await Order.countDocuments({ status: 'pending' });

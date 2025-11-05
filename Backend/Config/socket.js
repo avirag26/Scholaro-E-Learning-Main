@@ -3,10 +3,8 @@ import jwt from 'jsonwebtoken';
 import User from '../Model/usermodel.js';
 import Tutor from '../Model/TutorModel.js';
 
-// Store active connections
 const activeConnections = new Map();
 
-// Socket.IO authentication middleware
 const authenticateSocket = async (socket, next) => {
   try {
     const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
@@ -25,7 +23,6 @@ const authenticateSocket = async (socket, next) => {
     if (user) {
       userType = 'user';
     } else {
-      // If not found as user, try as tutor
       user = await Tutor.findById(decoded.id).select('full_name email profileImage');
       if (user) {
         userType = 'tutor';
@@ -56,13 +53,11 @@ export const initializeSocket = (server) => {
     transports: ['websocket', 'polling']
   });
 
-  // Apply authentication middleware
   io.use(authenticateSocket);
 
   io.on('connection', (socket) => {
 
 
-    // Specific tutor connection logging
     if (socket.userType === 'tutor') {
       console.log(` TUTOR CONNECTED: ${socket.user.full_name} - ID: ${socket.userId}`);
     }
@@ -70,29 +65,24 @@ export const initializeSocket = (server) => {
       console.log(`User CONNECTED: ${socket.user.full_name} - ID: ${socket.userId}`);
     }
 
-    // Store connection
     const userKey = `${socket.userType}_${socket.userId}`;
     if (!activeConnections.has(userKey)) {
       activeConnections.set(userKey, new Set());
     }
     activeConnections.get(userKey).add(socket.id);
 
-    // Join user to their personal room for multi-device support
     socket.join(userKey);
 
-    // Send current online users to the newly connected user
     const currentOnlineUsers = Array.from(activeConnections.keys()).map(userKey => {
       const [userType, userId] = userKey.split('_');
       return {
         userId,
         userType,
-        // We don't have user details stored, but the client will handle this
       };
     });
 
     socket.emit('online_users_list', currentOnlineUsers);
 
-    // Notify others that user is online
     socket.broadcast.emit('user_online', {
       userId: socket.userId,
       userType: socket.userType,
@@ -126,7 +116,6 @@ export const initializeSocket = (server) => {
         // Join the chat room
         socket.join(`chat_${chatId}`);
 
-        // Notify other participants that user joined
         socket.to(`chat_${chatId}`).emit('user_joined_chat', {
           userId: socket.userId,
           userType: socket.userType,
@@ -141,7 +130,6 @@ export const initializeSocket = (server) => {
       }
     });
 
-    // Handle leaving chat rooms
     socket.on('leave_chat', (data) => {
       const { chatId } = data;
       if (chatId) {
@@ -154,7 +142,6 @@ export const initializeSocket = (server) => {
       }
     });
 
-    // Handle sending messages
     socket.on('send_message', async (data) => {
       try {
         const { chatId, content, messageType = 'text', fileUrl, fileName } = data;
@@ -164,7 +151,6 @@ export const initializeSocket = (server) => {
           return;
         }
 
-        // Verify user has access to this chat
         const Chat = (await import('../Model/ChatModel.js')).default;
         const Message = (await import('../Model/MessageModel.js')).default;
 
@@ -184,7 +170,6 @@ export const initializeSocket = (server) => {
           messageType
         };
 
-        // Add file information for image messages
         if (messageType === 'image' && fileUrl) {
           messageData.fileUrl = fileUrl;
           messageData.fileName = fileName || 'Image';
@@ -195,16 +180,13 @@ export const initializeSocket = (server) => {
         await message.save();
         await message.populate('sender', 'full_name profileImage');
 
-        // Update chat's last message and unread counts
         await chat.updateLastMessage(message);
 
-        // Increment unread count for other participant
         const otherParticipant = chat.getOtherParticipant(socket.userId);
         if (otherParticipant) {
           await chat.incrementUnreadCount(otherParticipant.userType);
         }
 
-        // Broadcast message to all participants in the chat
         const messageResponse = {
           _id: message._id,
           chat: chatId,
@@ -216,7 +198,6 @@ export const initializeSocket = (server) => {
           readBy: message.readBy
         };
 
-        // Add file information for image messages
         if (messageType === 'image') {
           messageResponse.fileUrl = message.fileUrl;
           messageResponse.fileName = message.fileName;
@@ -224,15 +205,12 @@ export const initializeSocket = (server) => {
 
         io.to(`chat_${chatId}`).emit('message_received', messageResponse);
 
-        // Send notification to offline users (if any)
-        // This would integrate with a push notification service
 
       } catch (error) {
         socket.emit('error', { message: 'Failed to send message' });
       }
     });
 
-    // Handle typing indicators
     socket.on('typing_start', (data) => {
       const { chatId } = data;
       if (chatId) {
@@ -259,7 +237,6 @@ export const initializeSocket = (server) => {
       }
     });
 
-    // Handle marking messages as read
     socket.on('mark_read', async (data) => {
       try {
         const { chatId } = data;
@@ -286,10 +263,8 @@ export const initializeSocket = (server) => {
           socket.userType === 'user' ? 'User' : 'Tutor'
         );
 
-        // Reset unread count for this user
         await chat.resetUnreadCount(socket.userType === 'user' ? 'User' : 'Tutor');
 
-        // Notify other participants about read status
         socket.to(`chat_${chatId}`).emit('messages_read', {
           chatId,
           readBy: socket.userId,
@@ -306,7 +281,6 @@ export const initializeSocket = (server) => {
     socket.on('disconnect', () => {
       console.log(`${socket.userType.toUpperCase()} disconnected: ${socket.user.full_name} (${socket.userId})`);
 
-      // Specific tutor disconnection logging
       if (socket.userType === 'tutor') {
         console.log(` TUTOR DISCONNECTED: ${socket.user.full_name} - ID: ${socket.userId}`);
       }
@@ -320,11 +294,9 @@ export const initializeSocket = (server) => {
       if (activeConnections.has(userKey)) {
         activeConnections.get(userKey).delete(socket.id);
 
-        // If no more connections for this user, mark as offline
         if (activeConnections.get(userKey).size === 0) {
           activeConnections.delete(userKey);
 
-          // Notify others that user is offline
           socket.broadcast.emit('user_offline', {
             userId: socket.userId,
             userType: socket.userType,
@@ -334,7 +306,7 @@ export const initializeSocket = (server) => {
       }
     });
 
-    // Handle connection errors
+
     socket.on('error', (error) => {
       socket.emit('error', { message: 'Connection error occurred' });
     });

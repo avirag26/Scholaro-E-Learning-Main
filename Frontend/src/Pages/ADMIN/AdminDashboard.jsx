@@ -68,6 +68,7 @@ export default function AdminDashboard() {
             const response = await adminAPI.get('/api/admin/dashboard-stats');
             setStats(response.data);
         } catch (error) {
+            console.log(error)
         } finally {
             setLoading(false);
         }
@@ -155,7 +156,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-600 text-sm">Total Courses</p>
-                                <p className="text-2xl font-bold text-gray-800">551</p>
+                                <p className="text-2xl font-bold text-gray-800">500</p>
                             </div>
                             <BookOpen className="w-8 h-8 text-purple-500" />
                         </div>

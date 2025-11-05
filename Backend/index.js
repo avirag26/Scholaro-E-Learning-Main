@@ -13,22 +13,20 @@ import AdminRoutes from './Routes/adminRoute.js';
 
 const port = process.env.PORT || 5000;
 
-// Connect to database
+
 connectDB();
 
-// Create Express app
+
 const app = express();
 
-// Create HTTP server
+
 const server = createServer(app);
 
-// Initialize Socket.IO
 const io = initializeSocket(server);
 
-// Make io available to routes
 app.set('io', io);
 
-// Middleware
+
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173', 
   credentials: true
@@ -37,10 +35,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Serve static files for uploads
-app.use('/uploads', express.static('uploads'));
 
-// Routes
+
+
 app.get('/', (req, res) => {
   res.send('API is running with Socket.IO support....');
 });

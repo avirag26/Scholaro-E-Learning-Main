@@ -8,10 +8,9 @@ class PaymentDistributionService {
     this.isRunning = false;
   }
 
-  // Start the cron job - runs every hour
   startCronJob() {
-    // Run every hour at minute 0
-    cron.schedule('0 * * * *', async () => {
+   
+    cron.schedule('* * * * *', async () => {
       if (this.isRunning) {
         return;
       }
@@ -20,7 +19,7 @@ class PaymentDistributionService {
     });
   }
 
-  // Process all pending payment distributions
+
   async processPaymentDistributions() {
     this.isRunning = true;
     
@@ -40,14 +39,13 @@ class PaymentDistributionService {
     }
   }
 
-  // Process a single payment distribution
+ 
   async processDistribution(distribution) {
 
-    // Update distribution status to processing
+   
     distribution.status = 'processing';
     await distribution.save();
 
-    // Get or create admin wallet
     const adminUser = await Admin.findOne({ role: 'super_admin' });
     if (!adminUser) {
       throw new Error('Admin user not found');
@@ -58,13 +56,12 @@ class PaymentDistributionService {
       adminWallet = await Wallet.createWallet(adminUser._id, 'Admin');
     }
 
-    // Get or create tutor wallet
     let tutorWallet = await Wallet.findByOwner(distribution.tutor._id, 'Tutor');
     if (!tutorWallet) {
       tutorWallet = await Wallet.createWallet(distribution.tutor._id, 'Tutor');
     }
 
-    // Add commission to admin wallet
+    
     if (!distribution.adminWalletUpdated) {
       const adminTransaction = {
         type: 'commission',
@@ -84,7 +81,7 @@ class PaymentDistributionService {
       distribution.adminWalletUpdated = true;
     }
 
-    // Add payment to tutor wallet
+   
     if (!distribution.tutorWalletUpdated) {
       const tutorTransaction = {
         type: 'credit',
@@ -106,16 +103,16 @@ class PaymentDistributionService {
       distribution.tutorWalletUpdated = true;
     }
 
-    // Mark distribution as completed
+    
     await distribution.markAsCompleted();
   }
 
-  // Manual trigger for testing or immediate processing
+ 
   async processImmediately() {
     await this.processPaymentDistributions();
   }
 
-  // Get distribution statistics
+
   async getDistributionStats() {
     try {
       const stats = await PaymentDistribution.aggregate([
@@ -147,7 +144,6 @@ class PaymentDistributionService {
     }
   }
 
-  // Retry failed distributions
   async retryFailedDistributions() {
     try {
       const failedDistributions = await PaymentDistribution.find({
@@ -173,7 +169,7 @@ class PaymentDistributionService {
   }
 }
 
-// Create singleton instance
+
 const paymentDistributionService = new PaymentDistributionService();
 
 export default paymentDistributionService;

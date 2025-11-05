@@ -187,17 +187,7 @@ const Orders = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 border">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Completed Orders</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.paid || 0}</p>
-              </div>
-              <div className="p-3 bg-teal-100 rounded-full">
-                <TrendingUp className="w-6 h-6 text-teal-600" />
-              </div>
-            </div>
-          </div>
+          
 
           <div className="bg-white rounded-lg shadow-sm p-6 border">
             <div className="flex items-center justify-between">

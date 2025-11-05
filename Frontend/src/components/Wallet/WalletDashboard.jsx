@@ -189,26 +189,7 @@ const WalletDashboard = ({ userType = 'tutor' }) => {
                         >
                             Overview
                         </button>
-                        <button
-                            onClick={() => setActiveTab('transactions')}
-                            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'transactions'
-                                ? 'border-sky-500 text-sky-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
-                                }`}
-                        >
-                            Transactions
-                        </button>
-                        {userType === 'tutor' && (
-                            <button
-                                onClick={() => setActiveTab('bank')}
-                                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'bank'
-                                    ? 'border-sky-500 text-sky-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                Bank Details
-                            </button>
-                        )}
+                        
                     </nav>
                 </div>
 
@@ -252,32 +233,7 @@ const WalletDashboard = ({ userType = 'tutor' }) => {
                                 </div>
                             </div>
 
-                            {/* Bank Details Summary */}
-                            {userType === 'tutor' && walletData?.bankDetails && (
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Bank Account</h3>
-                                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                        <div className="flex items-center space-x-3">
-                                            <CreditCard className="h-5 w-5 text-gray-500" />
-                                            <div>
-                                                <p className="font-medium text-gray-900">{walletData?.bankDetails?.bankName}</p>
-                                                <p className="text-sm text-gray-500">Account: {walletData?.bankDetails?.accountNumber}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            {walletData?.bankDetails?.isVerified ? (
-                                                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                                                    Verified
-                                                </span>
-                                            ) : (
-                                                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
-                                                    Pending Verification
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                           
                         </div>
                     )}
 

@@ -5,6 +5,8 @@ import App from './App.jsx'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { Provider } from 'react-redux'
 import { store } from './Redux/store.js'
+import { setStoreReference } from './api/axiosConfig.js' 
+setStoreReference(store)
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>

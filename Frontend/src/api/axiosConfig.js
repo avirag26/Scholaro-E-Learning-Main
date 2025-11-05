@@ -1,12 +1,18 @@
 ﻿import axios from "axios";
 import { toast } from "sonner";
-
-
+import { logout as userLogout } from '../Redux/currentUserSlice';
+import { logout as tutorLogout } from '../Redux/currentTutorSlice';
+import { logout as adminLogout } from '../Redux/currentAdminSlice';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 let isRefreshing = false;
 let failedQueue = [];
+let storeInstance = null;
+
+export const setStoreReference = (store) => {
+  storeInstance = store;
+};
 
 const processQueue = (error, newToken = null) => {
   failedQueue.forEach((prom) => {
@@ -20,6 +26,16 @@ const clearUserTokens = (userType) => {
   const prefix = userType === "user" ? "" : userType;
   localStorage.removeItem(`${prefix}AuthToken`);
   localStorage.removeItem(`${prefix}Info`);
+
+  if(storeInstance){
+    if (userType === 'user') {
+      storeInstance.dispatch(userLogout());
+    } else if (userType === 'tutor') {
+      storeInstance.dispatch(tutorLogout());
+    } else if (userType === 'admin') {
+      storeInstance.dispatch(adminLogout());
+    }
+  }
 };
 
 const redirectToLogin = (userType) => {
@@ -84,9 +100,12 @@ const createAxiosInstance = (userType) => {
         originalRequest._retry = true;
 
         try {
-          const { data } = await publicAPI.post(`/api/${userType}s/refresh-token`);
+          const { data } = await publicAPI.post(
+            `/api/${userType}s/refresh-token`
+          );
 
-          const tokenKey = userType === "user" ? "authToken" : `${userType}AuthToken`;
+          const tokenKey =
+            userType === "user" ? "authToken" : `${userType}AuthToken`;
           localStorage.setItem(tokenKey, data.accessToken);
           instance.defaults.headers.Authorization = `Bearer ${data.accessToken}`;
           processQueue(null, data.accessToken);
@@ -103,8 +122,13 @@ const createAxiosInstance = (userType) => {
       }
 
       if (response.status === 403) {
-        if (response.data?.blocked || response.data?.message?.includes('blocked')) {
-          toast.error("Your account has been blocked by the admin. Please contact support.");
+        if (
+          response.data?.blocked ||
+          response.data?.message?.includes("blocked")
+        ) {
+          toast.error(
+            "Your account has been blocked by the admin. Please contact support."
+          );
           clearUserTokens(userType);
           redirectToLogin(userType);
         } else {

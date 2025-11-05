@@ -148,6 +148,7 @@ const ChatList = () => {
             tutorId: contact.participant._id
           })).unwrap();
         } catch (error) {
+          console.log(error)
         }
       } else {
         
@@ -156,6 +157,7 @@ const ChatList = () => {
             studentId: contact.participant._id
           })).unwrap();
         } catch (error) {
+          console.log(error)
         }
       }
     } else {

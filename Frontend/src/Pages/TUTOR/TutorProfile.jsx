@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import ChangePasswordModal from '../../ui/ChangePasswordModal';
 import EmailChangeModal from '../../ui/EmailChangeModal';
 import TutorLayout from './COMMON/TutorLayout';
+import TagInput from '../../components/TagInput';
 import { uploadToCloudinary, validateImageFile } from '../../utils/cloudinary';
 import { tutorAPI } from '../../api/axiosConfig';
 const TutorProfile = () => {
@@ -20,7 +21,7 @@ const TutorProfile = () => {
         name: '',
         email: '',
         phone: '',
-        subjects: '',
+        subjects: [],
         bio: ''
     });
     const fileInputRef = useRef(null);
@@ -63,11 +64,19 @@ const TutorProfile = () => {
     }, []);
     useEffect(() => {
         if (tutorInfo) {
+            // Convert subjects to array if it's a string
+            let subjectsArray = [];
+            if (Array.isArray(tutorInfo.subjects)) {
+                subjectsArray = tutorInfo.subjects;
+            } else if (typeof tutorInfo.subjects === 'string' && tutorInfo.subjects.trim()) {
+                subjectsArray = tutorInfo.subjects.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            }
+
             setFormData({
                 name: tutorInfo.name || tutorInfo.full_name || '',
                 email: tutorInfo.email || '',
                 phone: tutorInfo.phone || '',
-                subjects: tutorInfo.subjects || '',
+                subjects: subjectsArray,
                 bio: tutorInfo.bio || ''
             });
         }
@@ -121,11 +130,19 @@ const TutorProfile = () => {
     const handleCancelEdit = () => {
         setIsEditing(false);
         if (tutorInfo) {
+            // Convert subjects to array if it's a string
+            let subjectsArray = [];
+            if (Array.isArray(tutorInfo.subjects)) {
+                subjectsArray = tutorInfo.subjects;
+            } else if (typeof tutorInfo.subjects === 'string' && tutorInfo.subjects.trim()) {
+                subjectsArray = tutorInfo.subjects.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            }
+
             setFormData({
                 name: tutorInfo.name || tutorInfo.full_name || '',
                 email: tutorInfo.email || '',
                 phone: tutorInfo.phone || '',
-                subjects: tutorInfo.subjects || '',
+                subjects: subjectsArray,
                 bio: tutorInfo.bio || ''
             });
         }
@@ -360,25 +377,19 @@ const TutorProfile = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Subjects Teaching
                         </label>
-                        <div className="relative">
-                            <input
-                                type="text"
-                                value={formData.subjects}
-                                onChange={(e) => handleInputChange('subjects', e.target.value)}
-                                disabled={!isEditing}
-                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'
-                                    }`}
-                                placeholder="e.g., Mathematics, Physics, Chemistry"
-                            />
-                            {isEditing && (
-                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                    <div className="w-6 h-6 bg-sky-100 rounded-full flex items-center justify-center">
-                                        <GraduationCap className="w-3 h-3 text-sky-600" />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1">Separate multiple subjects with commas</p>
+                        <TagInput
+                            tags={formData.subjects}
+                            onChange={(newSubjects) => handleInputChange('subjects', newSubjects)}
+                            placeholder="Type a subject and press Enter (e.g., Mathematics)"
+                            disabled={!isEditing}
+                            maxTags={8}
+                        />
+                        <p className="text-sm text-gray-500 mt-1">
+                            {isEditing 
+                                ? "Type subject name and press Enter or comma to add. Click × to remove." 
+                                : `${formData.subjects.length} subject${formData.subjects.length !== 1 ? 's' : ''} selected`
+                            }
+                        </p>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
