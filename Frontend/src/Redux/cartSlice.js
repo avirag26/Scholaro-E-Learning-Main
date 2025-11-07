@@ -7,7 +7,7 @@ export const getCart = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await userAPI.get('/api/users/cart');
-      return response.data.cart;
+      return response.data; // Return entire data object to get both cart and removedItems
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch cart');
     }
@@ -86,11 +86,15 @@ const cartSlice = createSlice({
     totalAmount: 0,
     totalItems: 0,
     loading: false,
-    error: null
+    error: null,
+    removedItems: []
   },
   reducers: {
     clearError: (state) => {
       state.error = null;
+    },
+    clearRemovedItems: (state) => {
+      state.removedItems = [];
     }
   },
   extraReducers: (builder) => {
@@ -102,9 +106,11 @@ const cartSlice = createSlice({
       })
       .addCase(getCart.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload.items || [];
-        state.totalAmount = action.payload.totalAmount || 0;
-        state.totalItems = action.payload.totalItems || 0;
+        const cart = action.payload.cart || action.payload;
+        state.items = cart.items || [];
+        state.totalAmount = cart.totalAmount || 0;
+        state.totalItems = cart.totalItems || 0;
+        state.removedItems = action.payload.removedItems || [];
       })
       .addCase(getCart.rejected, (state, action) => {
         state.loading = false;
@@ -177,10 +183,9 @@ const cartSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
 
   }
 });
 
-export const { clearError } = cartSlice.actions;
+export const { clearError, clearRemovedItems } = cartSlice.actions;
 export default cartSlice.reducer;

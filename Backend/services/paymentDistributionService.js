@@ -10,7 +10,7 @@ class PaymentDistributionService {
 
   startCronJob() {
    
-    cron.schedule('* * * * *', async () => {
+    cron.schedule('0 * * * *', async () => {
       if (this.isRunning) {
         return;
       }

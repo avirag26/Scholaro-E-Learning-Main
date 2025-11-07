@@ -163,6 +163,26 @@ const CourseSchema = new mongoose.Schema(
         banReportId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Report'
+        },
+        // Exam and Certificate Settings
+        examSettings: {
+            isEnabled: {
+                type: Boolean,
+                default: false
+            },
+            finalLessonId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'lessons'
+            },
+            autoEnableAfterAllLessons: {
+                type: Boolean,
+                default: false
+            }
+        },
+        courseStatus: {
+            type: String,
+            enum: ['draft', 'in-progress', 'complete'],
+            default: 'in-progress'
         }
     },
     {

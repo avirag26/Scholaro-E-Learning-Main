@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { Send, Image, Smile, X } from 'lucide-react';
 import socketService from '../../services/socketService';
 import { uploadToCloudinary, validateImageFile } from '../../utils/cloudinary';
+import { CHAT_IMAGE_CONFIG } from '../../config/cloudinary';
 import { toast } from 'react-toastify';
 
 const MessageInput = ({ chatId }) => {
@@ -71,6 +72,12 @@ const MessageInput = ({ chatId }) => {
 
         const messageContent = message.trim();
         
+        // Check message length limit (50 characters)
+        if (messageContent.length > 50) {
+            toast.error('Message too long! Maximum 50 characters allowed.');
+            return;
+        }
+        
         // Stop typing indicator
         if (isTyping) {
             setIsTyping(false);
@@ -81,7 +88,7 @@ const MessageInput = ({ chatId }) => {
             if (selectedImage) {
                 setUploading(true);
                 
-                // Upload image to Cloudinary first
+                // Upload image to Cloudinary
                 const uploadResult = await uploadToCloudinary(selectedImage);
                 
                 if (!uploadResult.success) {
@@ -96,8 +103,8 @@ const MessageInput = ({ chatId }) => {
                 });
                 
                 handleRemoveImage();
-                toast.success('Image sent successfully');
             } else {
+                // Send message via socket
                 socketService.sendMessage(chatId, messageContent);
             }
             setMessage('');

@@ -42,11 +42,20 @@ const LessonSchema = new mongoose.Schema(
     },
     isPublished: {
       type: Boolean,
-      default: false
+      default: true
     },
     views: {
       type: Number,
       default: 0
+    },
+    // Exam and Certificate Settings
+    isFinalLesson: {
+      type: Boolean,
+      default: false
+    },
+    isRequired: {
+      type: Boolean,
+      default: true
     }
   },
   {

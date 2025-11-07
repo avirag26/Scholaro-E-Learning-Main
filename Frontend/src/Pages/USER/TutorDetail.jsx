@@ -64,7 +64,6 @@ const TutorDetail = () => {
         }
 
       } catch (error) {
-        console.error('Error fetching tutor details:', error);
         setError(error.message);
         toast.error(error.response?.data?.message || 'Failed to load tutor details');
       } finally {

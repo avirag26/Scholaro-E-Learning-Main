@@ -34,7 +34,8 @@ import {
   getCoursesByCategory,
   getAllCourses,
   getCourseDetails,
-  toggleCourseListing
+  toggleCourseListing,
+  refreshEnrollmentCounts
 } from '../Controllers/admin/courseManagementController.js';
 import {
   getDashboardStats
@@ -84,6 +85,7 @@ router.get('/categories/:categoryId/courses', protectAdmin, getCoursesByCategory
 router.get('/courses', protectAdmin, getAllCourses);
 router.get('/courses/:courseId/details', protectAdmin, getCourseDetails);
 router.patch('/courses/:courseId/toggle-listing', protectAdmin, toggleCourseListing);
+router.post('/courses/refresh-enrollment-counts', protectAdmin, refreshEnrollmentCounts);
 router.put('/categories/:id', protectAdmin, updateCategory);
 router.delete('/categories/:id', protectAdmin, deleteCategory);
 router.patch('/categories/:id/toggle-visibility', protectAdmin, toggleCategoryVisibility);
@@ -93,16 +95,16 @@ router.get('/orders/test', protectAdmin, async (req, res) => {
   try {
     const OrderModel = (await import('../../Model/OrderModel.js')).default;
     const orderCount = await OrderModel.countDocuments();
-    res.json({ 
-      success: true, 
-      message: 'Admin orders route is working', 
+    res.json({
+      success: true,
+      message: 'Admin orders route is working',
       admin: req.admin.full_name,
       orderCount: orderCount
     });
   } catch (error) {
-    res.json({ 
-      success: true, 
-      message: 'Admin orders route is working', 
+    res.json({
+      success: true,
+      message: 'Admin orders route is working',
       admin: req.admin.full_name,
       error: error.message
     });

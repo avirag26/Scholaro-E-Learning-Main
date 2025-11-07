@@ -20,6 +20,9 @@ import MyOrders from '../src/Pages/USER/MyOrders';
 import MyCourses from '../src/Pages/USER/MyCourses';
 import CourseLearning from '../src/Pages/USER/CourseLearningSimple';
 import Chat from '../src/Pages/USER/Chat';
+import ExamInterface from '../src/components/Student/Exam/ExamInterface';
+import ExamResults from '../src/components/Student/Exam/ExamResults';
+import Certificates from '../src/Pages/USER/Certificates';
 import ProtectedRoute from '../src/components/RouteProtection/ProtectedRoute';
 import GuestRoute from '../src/components/RouteProtection/GuestRoute';
 
@@ -133,6 +136,30 @@ const UserRoutes = () => {
             <Route path='chat' element={
                 <ProtectedRoute userType="user">
                     <Chat />
+                </ProtectedRoute>
+            } />
+            <Route path='course/:courseId/exam' element={
+                <ProtectedRoute userType="user">
+                    <ExamInterface />
+                </ProtectedRoute>
+            } />
+            <Route path='exam-result/:attemptId' element={
+                <ProtectedRoute userType="user">
+                    <ExamResults />
+                </ProtectedRoute>
+            } />
+            <Route path='test-exam-result' element={
+                <ProtectedRoute userType="user">
+                    <div className="p-8 text-center">
+                        <h1 className="text-2xl font-bold mb-4">Test Exam Results Page</h1>
+                        <p>This is a test page to verify routing works.</p>
+                        <p>The actual exam results page should work at: /user/exam-result/[attemptId]</p>
+                    </div>
+                </ProtectedRoute>
+            } />
+            <Route path='certificates' element={
+                <ProtectedRoute userType="user">
+                    <Certificates />
                 </ProtectedRoute>
             } />
 

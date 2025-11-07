@@ -83,6 +83,12 @@ export default function Header({ onMenuClick }) {
           >
             Courses
           </Link>
+          <Link
+            to="/user/certificates"
+            className="text-sm font-medium hover:text-sky-500 text-gray-900"
+          >
+            Certificates
+          </Link>
           
           <Link
             to="/user/teachers"

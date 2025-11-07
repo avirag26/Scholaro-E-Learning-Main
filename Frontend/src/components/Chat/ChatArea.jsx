@@ -237,12 +237,20 @@ const ChatArea = () => {
                     <div className={`flex items-center justify-between mt-1 text-xs ${isMine ? 'text-sky-100' : 'text-gray-500'
                       }`}>
                       <span>{formatMessageTime(message.createdAt)}</span>
-                      {isMine && message.isRead && (
-                        <span className="ml-2">✓✓</span>
-                      )}
-                      {message.editedAt && (
-                        <span className="ml-2 italic">edited</span>
-                      )}
+                      <div className="flex items-center space-x-1">
+                        {isMine && (
+                          <span className="flex items-center">
+                            {message.readBy?.length > 0 || message.status === 'read' ? (
+                              <span>✓✓</span>
+                            ) : (
+                              <span>✓</span>
+                            )}
+                          </span>
+                        )}
+                        {message.editedAt && (
+                          <span className="italic">edited</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

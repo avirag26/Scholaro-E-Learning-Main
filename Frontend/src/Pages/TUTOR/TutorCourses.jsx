@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Search, Plus, Edit, BookOpen } from "lucide-react";
+import { Search, Plus, Edit, BookOpen, Award, Settings } from "lucide-react";
 import TutorLayout from "./COMMON/TutorLayout";
 import Swal from "sweetalert2";
 import PriceDisplay from "../../components/PriceDisplay";
@@ -229,11 +229,29 @@ const TutorCourses = () => {
                                 </div>
                                 <button
                                     onClick={() => navigate(`/tutor/add-lesson/${course.id}`)}
-                                    className="w-full px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-bold border-2 border-teal-600"
+                                    className="w-full px-4 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-bold border-2 border-teal-600 mb-2"
                                 >
                                     <Plus className="w-4 h-4 inline mr-2" />
                                     MANAGE LESSONS
                                 </button>
+                                
+                                {/* Exam Management Buttons */}
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => navigate(`/tutor/course/${course.id}/exam`)}
+                                        className="flex-1 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
+                                    >
+                                        <Award className="w-4 h-4 inline mr-1" />
+                                        Exam
+                                    </button>
+                                    <button
+                                        onClick={() => navigate(`/tutor/course/${course.id}/final-lesson`)}
+                                        className="flex-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                                    >
+                                        <Settings className="w-4 h-4 inline mr-1" />
+                                        Settings
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))

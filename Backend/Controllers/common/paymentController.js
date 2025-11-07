@@ -13,7 +13,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Create Razorpay order
+// Create temporary Razorpay order (no database order yet)
 export const createOrder = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -64,33 +64,27 @@ export const createOrder = async (req, res) => {
     // Create Razorpay order
     const amountInPaise = Math.round(finalAmount * 100);
 
- 
     if (amountInPaise < 100) {
       throw new Error('Amount too small for Razorpay (minimum 1 INR)');
     }
+
+    // Generate a temporary order ID for tracking
+    const tempOrderId = `ORD_${uuidv4()}`;
 
     const razorpayOrder = await razorpay.orders.create({
       amount: amountInPaise, 
       currency: 'INR',
       receipt: `ord_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`, // Max 40 chars
+      notes: {
+        userId: userId.toString(),
+        tempOrderId: tempOrderId,
+        totalAmount: totalAmount.toString(),
+        taxAmount: taxAmount.toString(),
+        finalAmount: finalAmount.toString()
+      }
     });
 
 
-    const order = new Order({
-      user: userId,
-      orderId: `ORD_${uuidv4()}`,
-      razorpayOrderId: razorpayOrder.id,
-      items: availableItems.map(item => ({
-        course: item.course._id,
-        price: item.course.price,
-        discountedPrice: item.course.price - (item.course.price * (item.course.offer_percentage || 0) / 100)
-      })),
-      totalAmount,
-      taxAmount,
-      finalAmount
-    });
-
-    await order.save();
 
     res.status(200).json({
       success: true,
@@ -98,11 +92,12 @@ export const createOrder = async (req, res) => {
         id: razorpayOrder.id,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
-        orderId: order.orderId
+        orderId: tempOrderId // This will be used for success page navigation
       },
       key: process.env.RAZORPAY_KEY_ID
     });
   } catch (error) {
+    console.error('Error creating Razorpay order:', error);
     res.status(500).json({
       success: false,
       message: 'Error creating order',
@@ -111,10 +106,11 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// Verify payment
+// Verify payment and create actual order
 export const verifyPayment = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const userId = req.user._id;
 
     // Verify signature
     const sign = razorpay_order_id + "|" + razorpay_payment_id;
@@ -130,22 +126,86 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Update order status
-    const order = await Order.findOne({ razorpayOrderId: razorpay_order_id });
-    if (!order) {
+    // Get Razorpay order details to retrieve stored data
+    const razorpayOrderDetails = await razorpay.orders.fetch(razorpay_order_id);
+    if (!razorpayOrderDetails) {
       return res.status(404).json({
         success: false,
-        message: 'Order not found'
+        message: 'Razorpay order not found'
       });
     }
 
-    order.razorpayPaymentId = razorpay_payment_id;
-    order.razorpaySignature = razorpay_signature;
-    order.status = 'paid';
+    // Verify the user matches
+    if (razorpayOrderDetails.notes.userId !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized payment verification'
+      });
+    }
+
+    // Get user's cart at the time of payment verification
+    const cart = await Cart.findOne({ user: userId }).populate('items.course');
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cart is empty - cannot complete order'
+      });
+    }
+
+    // Filter available courses only (re-check availability)
+    const availableItems = cart.items.filter(item => {
+      const course = item.course;
+      return course && course.listed && course.isActive && !course.isBanned;
+    });
+
+    if (availableItems.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No available courses in cart'
+      });
+    }
+
+    // Calculate amounts (re-verify amounts match payment)
+    const totalAmount = availableItems.reduce((total, item) => {
+      const course = item.course;
+      const discountedPrice = course.price - (course.price * (course.offer_percentage || 0) / 100);
+      return total + discountedPrice;
+    }, 0);
+
+    const taxAmount = totalAmount * 0.03;
+    const finalAmount = totalAmount + taxAmount;
+    const amountInPaise = Math.round(finalAmount * 100);
+
+    // Verify payment amount matches
+    if (razorpayOrderDetails.amount !== amountInPaise) {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment amount mismatch'
+      });
+    }
+
+    // NOW create the actual order in database (only after successful payment)
+    const order = new Order({
+      user: userId,
+      orderId: razorpayOrderDetails.notes.tempOrderId || `ORD_${uuidv4()}`,
+      razorpayOrderId: razorpay_order_id,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpaySignature: razorpay_signature,
+      items: availableItems.map(item => ({
+        course: item.course._id,
+        price: item.course.price,
+        discountedPrice: item.course.price - (item.course.price * (item.course.offer_percentage || 0) / 100)
+      })),
+      totalAmount,
+      taxAmount,
+      finalAmount,
+      status: 'paid' // Order is created only after successful payment
+    });
+
     await order.save();
 
     // Enroll user in courses
-    const user = await User.findById(order.user);
+    const user = await User.findById(userId);
     for (const item of order.items) {
       const isAlreadyEnrolled = user.courses.some(c => c.course.toString() === item.course.toString());
       if (!isAlreadyEnrolled) {
@@ -164,7 +224,7 @@ export const verifyPayment = async (req, res) => {
 
     // Clear user's cart
     await Cart.findOneAndUpdate(
-      { user: order.user },
+      { user: userId },
       {
         $set: {
           items: [],
@@ -176,10 +236,11 @@ export const verifyPayment = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Payment verified successfully',
+      message: 'Payment verified successfully and order created',
       orderId: order.orderId
     });
   } catch (error) {
+    console.error('Error verifying payment:', error);
     res.status(500).json({
       success: false,
       message: 'Error verifying payment',
@@ -201,7 +262,7 @@ const createPaymentDistribution = async (order) => {
       }
     });
 
-    // Group courses by tutor (in case multiple tutors)
+
     const tutorGroups = {};
     
     for (const item of orderWithCourses.items) {
@@ -222,7 +283,7 @@ const createPaymentDistribution = async (order) => {
       tutorGroups[tutorId].totalAmount += item.discountedPrice;
     }
 
-    // Create distribution record for each tutor
+  
     for (const tutorId in tutorGroups) {
       const tutorGroup = tutorGroups[tutorId];
       
@@ -239,7 +300,7 @@ const createPaymentDistribution = async (order) => {
       await PaymentDistribution.createDistribution(distributionData);
     }
   } catch (error) {
-    // Don't throw error to avoid breaking the payment flow
+    console.error('Error creating payment distribution:', error);
   }
 };
 
@@ -251,14 +312,15 @@ export const getOrder = async (req, res) => {
 
     const order = await Order.findOne({
       orderId,
-      user: userId
+      user: userId,
+      status: 'paid' // Only return paid orders
     }).populate('items.course', 'title course_thumbnail')
       .populate('user', 'full_name email phone profileImage');
 
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: 'Order not found'
+        message: 'Order not found or payment not completed'
       });
     }
 
@@ -267,6 +329,7 @@ export const getOrder = async (req, res) => {
       order
     });
   } catch (error) {
+    console.error('Error fetching order:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching order',

@@ -151,6 +151,12 @@ export const initializeSocket = (server) => {
           return;
         }
 
+        // Validate message length (50 characters max)
+        if (content.trim().length > 50) {
+          socket.emit('error', { message: 'Message too long! Maximum 50 characters allowed.' });
+          return;
+        }
+
         const Chat = (await import('../Model/ChatModel.js')).default;
         const Message = (await import('../Model/MessageModel.js')).default;
 
@@ -195,7 +201,8 @@ export const initializeSocket = (server) => {
           content: message.content,
           messageType: message.messageType,
           createdAt: message.createdAt,
-          readBy: message.readBy
+          readBy: message.readBy,
+          status: 'sent'
         };
 
         if (messageType === 'image') {
@@ -203,8 +210,8 @@ export const initializeSocket = (server) => {
           messageResponse.fileName = message.fileName;
         }
 
+        // Emit to all participants (including sender)
         io.to(`chat_${chatId}`).emit('message_received', messageResponse);
-
 
       } catch (error) {
         socket.emit('error', { message: 'Failed to send message' });

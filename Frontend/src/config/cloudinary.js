@@ -9,3 +9,11 @@ export const IMAGE_UPLOAD_CONFIG = {
     quality: 'auto:good',
     format: 'auto',
 };
+
+// Separate config for chat images (smaller size limit)
+export const CHAT_IMAGE_CONFIG = {
+    maxSize: 2 * 1024 * 1024, // 2MB for chat images
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+    quality: 'auto:good',
+    format: 'auto',
+};

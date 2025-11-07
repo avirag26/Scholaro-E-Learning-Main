@@ -15,6 +15,8 @@ import TutorOrders from "../src/Pages/TUTOR/Orders";
 import TutorOrderDetail from "../src/Pages/TUTOR/OrderDetail";
 import TutorChat from "../src/Pages/TUTOR/Chat";
 import TutorWallet from "../src/Pages/TUTOR/TutorWallet";
+import ExamManagement from "../src/Pages/TUTOR/ExamManagement";
+import ExamSettings from "../src/Pages/TUTOR/ExamSettings";
 import ProtectedRoute from "../src/components/RouteProtection/ProtectedRoute";
 import GuestRoute from "../src/components/RouteProtection/GuestRoute";
 
@@ -97,6 +99,16 @@ const TutorRoutes = () => {
       <Route path="wallet" element={
         <ProtectedRoute userType="tutor">
           <TutorWallet />
+        </ProtectedRoute>
+      } />
+      <Route path="course/:courseId/exam" element={
+        <ProtectedRoute userType="tutor">
+          <ExamManagement />
+        </ProtectedRoute>
+      } />
+      <Route path="course/:courseId/final-lesson" element={
+        <ProtectedRoute userType="tutor">
+          <ExamSettings />
         </ProtectedRoute>
       } />
 

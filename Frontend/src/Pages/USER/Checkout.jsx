@@ -4,13 +4,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
-import { getCart, clearCart } from '../../Redux/cartSlice';
+import { getCart, clearCart, clearRemovedItems } from '../../Redux/cartSlice';
 import { createOrder, verifyPayment } from '../../Redux/paymentSlice';
 
 function Checkout() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { items, loading: cartLoading } = useSelector(state => state.cart);
+    const { items, loading: cartLoading, removedItems } = useSelector(state => state.cart);
     const { loading: paymentLoading } = useSelector(state => state.payment);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -18,6 +18,35 @@ function Checkout() {
     useEffect(() => {
         dispatch(getCart());
     }, [dispatch]);
+
+    // Show message for removed unavailable courses (only once)
+    useEffect(() => {
+        if (removedItems && removedItems.length > 0) {
+            // Check if we already showed this message recently
+            const lastShownTime = localStorage.getItem('lastRemovedItemsMessage');
+            const now = Date.now();
+            
+            if (!lastShownTime || (now - parseInt(lastShownTime)) > 15000) { // 15 seconds cooldown
+                const removedCourseNames = removedItems.map(item => 
+                    `${item.title} (${item.reason.toLowerCase()})`
+                ).join(', ');
+
+                toast.warning(
+                    `${removedItems.length} course${removedItems.length > 1 ? 's were' : ' was'} automatically removed from your cart: ${removedCourseNames}`,
+                    { 
+                        autoClose: 8000,
+                        toastId: 'cart-removed-items'
+                    }
+                );
+                
+                // Store the time we showed the message
+                localStorage.setItem('lastRemovedItemsMessage', now.toString());
+            }
+
+            // Clear the removed items after showing the message
+            dispatch(clearRemovedItems());
+        }
+    }, [removedItems, dispatch]);
 
     const calculateDiscountedPrice = (price, offerPercentage) => {
         if (!offerPercentage) return price;
@@ -54,13 +83,31 @@ function Checkout() {
 
         // Check for unavailable courses
         const availableItems = getAvailableItems();
+        const unavailableItems = items.filter(item => {
+            const course = item.course;
+            return !course || !course.listed || !course.isActive || course.isBanned;
+        });
+
         if (availableItems.length === 0) {
-            toast.error('No available courses in cart. Please remove unavailable courses and add new ones.');
+            toast.error('All courses in your cart are currently unavailable. Please go back to your cart and remove them.');
             return;
         }
 
-        if (availableItems.length < items.length) {
-            toast.warning(`${items.length - availableItems.length} unavailable course(s) will be excluded from checkout.`);
+        if (unavailableItems.length > 0) {
+            // Show detailed message about unavailable courses
+            const unavailableCourseNames = unavailableItems.map(item => {
+                const course = item.course;
+                const reason = !course ? 'Course not found' :
+                              !course.isActive ? 'Course is inactive' :
+                              course.isBanned ? 'Course is banned' :
+                              !course.listed ? 'Course is unlisted' : 'Course unavailable';
+                return `${course?.title || 'Unknown Course'} (${reason})`;
+            }).join(', ');
+
+            toast.warning(
+                `${unavailableItems.length} course${unavailableItems.length > 1 ? 's' : ''} removed from checkout: ${unavailableCourseNames}`,
+                { autoClose: 6000 }
+            );
         }
 
         // Check if Razorpay is loaded
@@ -70,10 +117,9 @@ function Checkout() {
         }
 
         try {
-         
+            // Create temporary Razorpay order (no database order created yet)
             const orderData = await dispatch(createOrder()).unwrap();
 
-       
             const options = {
                 key: orderData.key,
                 amount: orderData.order.amount,
@@ -83,6 +129,7 @@ function Checkout() {
                 order_id: orderData.order.id,
                 handler: async function (response) {
                     try {
+                        // Verify payment and create actual order in database
                         await dispatch(verifyPayment({
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
@@ -100,7 +147,12 @@ function Checkout() {
                         toast.success('Payment successful! You are now enrolled in the courses.');
                         navigate(`/user/order-success/${orderData.order.orderId}`);
                     } catch (error) {
-                        toast.error('Payment verification failed');
+                        toast.error('Payment verification failed. Please contact support if amount was deducted.');
+                    }
+                },
+                modal: {
+                    ondismiss: function() {
+                        toast.info('Payment cancelled. No charges were made.');
                     }
                 },
                 prefill: {

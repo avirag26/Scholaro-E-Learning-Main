@@ -1,9 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from 'react-router-dom';
 import { BookOpen, Clock, Award, TrendingUp, Star } from 'lucide-react';
 import Button from "../../ui/Button";
 import PriceDisplay from "../../components/PriceDisplay";
-import CategoryCards from "../../ui/CategoryCards";
+import DynamicCategoryCards from "../../components/DynamicCategoryCards";
 import Testimonials from "../../ui/Testmonials";
 import TeamSection from "../../ui/TeamSection";
 import BannerImg from "../../assets/banner.png";
@@ -13,11 +13,17 @@ import Footer from "../../components/Common/Footer";
 import { userAPI } from "../../api/axiosConfig";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useLogout } from "../../hooks/useLogout";
+import { toast } from 'react-toastify';
 export default function UserHomePage() {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useCurrentUser();
   const { forceLogout } = useLogout('user');
   const hasCheckedStatus = useRef(false);
+  
+  const [dashboardData, setDashboardData] = useState(null);
+  const [featuredCourses, setFeaturedCourses] = useState([]);
+  const [featuredTutors, setFeaturedTutors] = useState([]);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     window.history.pushState(null, '', window.location.pathname);
     const preventBack = () => {
@@ -41,6 +47,9 @@ export default function UserHomePage() {
           await forceLogout();
           return;
         }
+        
+        // Load dashboard data after verification
+        await loadDashboardData();
       } catch (error) {
         if (error.response?.status === 401 || error.response?.status === 403) {
           await forceLogout();
@@ -49,46 +58,99 @@ export default function UserHomePage() {
     }
     verifyAndLoadUser();
   }, [navigate, isAuthenticated]);
-  const userProgress = {
-    coursesEnrolled: 3,
-    coursesCompleted: 1,
-    totalHours: 24,
-    certificates: 1
-  };
-  const enrolledCourses = [
-    {
-      id: 1,
-      title: "React for Beginners",
-      instructor: "John Doe",
-      progress: 75,
-      thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=300&h=200&fit=crop",
-      duration: "8 hours"
-    },
-    {
-      id: 2,
-      title: "JavaScript Fundamentals",
-      instructor: "Jane Smith",
-      progress: 45,
-      thumbnail: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=200&fit=crop",
-      duration: "12 hours"
-    },
-    {
-      id: 3,
-      title: "UI/UX Design Basics",
-      instructor: "Mike Johnson",
-      progress: 20,
-      thumbnail: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=300&h=200&fit=crop",
-      duration: "6 hours"
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load dashboard data, featured courses, and tutors in parallel
+      const [dashboardRes, coursesRes, tutorsRes] = await Promise.all([
+        userAPI.get('/api/users/dashboard-data'),
+        userAPI.get('/api/users/featured-courses'),
+        userAPI.get('/api/users/featured-tutors')
+      ]);
+
+      setDashboardData(dashboardRes.data);
+      setFeaturedCourses(coursesRes.data.courses || []);
+      setFeaturedTutors(tutorsRes.data.tutors || []);
+      
+
+    } catch (error) {
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
     }
-  ];
-  const courses = [
-    { _id: '1', title: 'React for Beginners', course_thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=200&fit=crop', tutor: { full_name: 'John Doe' }, rating: 4.5, reviews: { length: 120 }, price: 499, offer_percentage: 10 },
-    { _id: '2', title: 'Advanced CSS and Sass', course_thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop', tutor: { full_name: 'Jane Smith' }, rating: 4.8, reviews: { length: 250 }, price: 799, offer_percentage: 20 },
-    { _id: '3', title: 'JavaScript: The Hard Parts', course_thumbnail: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400&h=200&fit=crop', tutor: { full_name: 'Will Sentance' }, rating: 4.9, reviews: { length: 500 }, price: 999, offer_percentage: 0 },
-    { _id: '4', title: 'Node.js, Express, MongoDB', course_thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=200&fit=crop', tutor: { full_name: 'Jonas S.' }, rating: 4.7, reviews: { length: 450 }, price: 899, offer_percentage: 15 },
-    { _id: '5', title: 'Python for Everybody', course_thumbnail: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=400&h=200&fit=crop', tutor: { full_name: 'Charles Severance' }, rating: 4.9, reviews: { length: 1000 }, price: 0, offer_percentage: 0 },
-    { _id: '6', title: 'UI/UX Design Fundamentals', course_thumbnail: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=200&fit=crop', tutor: { full_name: 'Gary Simon' }, rating: 4.6, reviews: { length: 300 }, price: 699, offer_percentage: 5 },
-  ];
+  };
+
+  // Use dynamic data or fallback to defaults
+  const userProgress = dashboardData?.userProgress || {
+    coursesEnrolled: 0,
+    coursesCompleted: 0,
+    totalHours: 0,
+    certificates: 0
+  };
+
+  const enrolledCourses = dashboardData?.enrolledCourses || [];
+
+  // Helper function to get expertise area for tutors
+  const getExpertiseArea = (tutor) => {
+    // Use subjects if available
+    if (tutor.subjects && tutor.subjects.length > 0) {
+      return tutor.subjects.slice(0, 2).join(', ');
+    }
+    
+    if (tutor.expertise) return tutor.expertise;
+    
+    // Generate expertise based on tutor name or random selection
+    const expertiseAreas = [
+      'Web Development',
+      'Data Science',
+      'UI/UX Design',
+      'Digital Marketing',
+      'Mobile Development',
+      'Machine Learning',
+      'Graphic Design',
+      'Business Strategy',
+      'Photography',
+      'Content Writing',
+      'Software Engineering',
+      'Cybersecurity'
+    ];
+    
+    // Use tutor ID to consistently assign the same expertise
+    const index = tutor._id ? tutor._id.slice(-1).charCodeAt(0) % expertiseAreas.length : 0;
+    return expertiseAreas[index];
+  };
+
+  // Helper function to get random profile images
+  const getRandomProfileImage = (tutorId) => {
+    const profileImages = [
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=150&h=150&fit=crop&crop=face"
+    ];
+    
+    // Use tutor ID to consistently assign the same image
+    const index = tutorId ? tutorId.slice(-1).charCodeAt(0) % profileImages.length : 0;
+    return profileImages[index];
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -98,7 +160,7 @@ export default function UserHomePage() {
             <div className="space-y-6">
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                  Welcome back, {user?.name || 'Student'}! 👋
+                  Welcome back, {user?.full_name || user?.name || 'Student'}! 👋
                 </h1>
                 <p className="text-xl text-gray-600">
                   Continue your learning journey and achieve your goals.
@@ -182,39 +244,70 @@ export default function UserHomePage() {
               View All Courses
             </Link>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {enrolledCourses.map((course) => (
-              <div key={course.id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                <img
-                  src={course.thumbnail}
-                  alt={course.title}
-                  className="w-full h-40 object-cover"
-                />
-                <div className="p-6">
-                  <h3 className="font-semibold text-gray-900 mb-2">{course.title}</h3>
-                  <p className="text-gray-600 text-sm mb-4">by {course.instructor}</p>
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm text-gray-600 mb-1">
-                      <span>Progress</span>
-                      <span>{course.progress}%</span>
+          {enrolledCourses.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {enrolledCourses.map((course) => (
+                <div key={course._id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                  <img
+                    src={course.thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop"}
+                    alt={course.title}
+                    className="w-full h-40 object-cover"
+                  />
+                  <div className="p-6">
+                    <h3 className="font-semibold text-gray-900 mb-2">{course.title}</h3>
+                    <p className="text-gray-600 text-sm mb-4">by {course.instructor}</p>
+                    <div className="mb-4">
+                      <div className="flex justify-between text-sm text-gray-600 mb-1">
+                        <span>Progress</span>
+                        <span>{course.progress}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                        <div
+                          className={`h-3 rounded-full transition-all duration-700 ease-out ${
+                            course.progress === 100 
+                              ? 'bg-gradient-to-r from-green-400 to-green-600' 
+                              : course.progress >= 75 
+                              ? 'bg-gradient-to-r from-blue-400 to-blue-600' 
+                              : course.progress >= 50 
+                              ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' 
+                              : 'bg-gradient-to-r from-teal-400 to-teal-600'
+                          }`}
+                          style={{ width: `${course.progress}%` }}
+                        ></div>
+                      </div>
+                      {course.completionStatus && (
+                        <div className="flex items-center mt-2 text-green-600 text-sm">
+                          <Award className="w-4 h-4 mr-1" />
+                          <span>Completed</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-teal-600 h-2 rounded-full"
-                        style={{ width: `${course.progress}%` }}
-                      ></div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">{course.duration}</span>
+                      <Button 
+                        onClick={() => navigate(`/user/course/${course._id}`)}
+                        className="bg-teal-600 hover:bg-teal-700 px-4 py-2 text-sm"
+                      >
+                        {course.completionStatus ? 'Review' : 'Continue'}
+                      </Button>
                     </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">{course.duration}</span>
-                    <Button className="bg-teal-600 hover:bg-teal-700 px-4 py-2 text-sm">
-                      Continue
-                    </Button>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Enrolled Courses</h3>
+              <p className="text-gray-600 mb-6">Start your learning journey by enrolling in a course</p>
+              <Button 
+                onClick={() => navigate('/user/courses')}
+                className="bg-teal-600 hover:bg-teal-700 px-6 py-3"
+              >
+                Browse Courses
+              </Button>
+            </div>
+          )}
         </div>
       </section>
       <section className="py-12 bg-white">
@@ -225,8 +318,8 @@ export default function UserHomePage() {
               See All
             </Link>
           </div>
-          <div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar">
-            {courses.map((course) => (
+          <div className="flex overflow-x-auto gap-4 pb-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {featuredCourses.map((course) => (
               <div
                 key={course._id}
                 className="flex-none w-[300px]"
@@ -288,92 +381,86 @@ export default function UserHomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Meet Our Expert Tutors</h2>
-            <Link to="/user/teachers" className="text-teal-600 hover:underline font-medium">
-              View All Tutors
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {}
-            <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 text-center">
-              <img
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
-                alt="Expert Tutor"
-                className="w-16 h-16 rounded-full object-cover mx-auto mb-4 border-4 border-gray-100"
-              />
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">John Smith</h3>
-              <p className="text-sm text-gray-600 mb-2">Web Development</p>
-              <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span>4.9 � 150+ students</span>
-              </div>
-              <Button
-                onClick={() => navigate('/user/teachers')}
-                className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg text-sm"
+            <div className="flex items-center gap-4">
+              <button
+                onClick={loadDashboardData}
+                className="text-teal-600 hover:text-teal-700 font-medium text-sm flex items-center gap-1"
+                disabled={loading}
               >
-                View Profile
-              </Button>
-            </div>
-            <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 text-center">
-              <img
-                src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"
-                alt="Expert Tutor"
-                className="w-16 h-16 rounded-full object-cover mx-auto mb-4 border-4 border-gray-100"
-              />
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Sarah Johnson</h3>
-              <p className="text-sm text-gray-600 mb-2">Data Science</p>
-              <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span>4.8 � 200+ students</span>
-              </div>
-              <Button
-                onClick={() => navigate('/user/teachers')}
-                className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg text-sm"
-              >
-                View Profile
-              </Button>
-            </div>
-            <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 text-center">
-              <img
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
-                alt="Expert Tutor"
-                className="w-16 h-16 rounded-full object-cover mx-auto mb-4 border-4 border-gray-100"
-              />
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Michael Chen</h3>
-              <p className="text-sm text-gray-600 mb-2">UI/UX Design</p>
-              <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span>4.7 � 180+ students</span>
-              </div>
-              <Button
-                onClick={() => navigate('/user/teachers')}
-                className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg text-sm"
-              >
-                View Profile
-              </Button>
-            </div>
-            <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 text-center">
-              <img
-                src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face"
-                alt="Expert Tutor"
-                className="w-16 h-16 rounded-full object-cover mx-auto mb-4 border-4 border-gray-100"
-              />
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Emily Davis</h3>
-              <p className="text-sm text-gray-600 mb-2">Digital Marketing</p>
-              <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span>4.9 � 220+ students</span>
-              </div>
-              <Button
-                onClick={() => navigate('/user/teachers')}
-                className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg text-sm"
-              >
-                View Profile
-              </Button>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Refresh
+              </button>
+              <Link to="/user/teachers" className="text-teal-600 hover:underline font-medium">
+                View All Tutors
+              </Link>
             </div>
           </div>
+          
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, index) => (
+                <div key={index} className="animate-pulse bg-white rounded-lg p-6">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded mb-3"></div>
+                  <div className="h-8 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : 
+          featuredTutors.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredTutors.slice(0, 4).map((tutor) => (
+                  <div key={tutor._id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 text-center">
+                    <img
+                      src={tutor.profileImage || getRandomProfileImage(tutor._id)}
+                      alt={tutor.full_name}
+                      className="w-16 h-16 rounded-full object-cover mx-auto mb-4 border-4 border-gray-100"
+                    />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{tutor.full_name}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{getExpertiseArea(tutor)}</p>
+                    <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                      <span>{tutor.rating.toFixed(1)} • {tutor.studentCount}+ students</span>
+                    </div>
+                    <Button
+                      onClick={() => navigate('/user/teachers')}
+                      className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg text-sm"
+                    >
+                      View Profile
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              
+              {featuredTutors.length > 4 && (
+                <div className="text-center mt-8">
+                  <Button
+                    onClick={() => navigate('/user/teachers')}
+                    className="bg-teal-600 hover:bg-teal-700 px-6 py-3"
+                  >
+                    View All Tutors
+                  </Button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-gray-400 mb-4">
+                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Tutors Available</h3>
+              <p className="text-gray-600">Check back later for expert tutors</p>
+            </div>
+          )}
         </div>
       </section>
-      <CategoryCards />
+      <DynamicCategoryCards />
       <Testimonials />
       <TeamSection />
       <Footer />

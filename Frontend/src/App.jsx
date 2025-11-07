@@ -9,6 +9,7 @@ import LandingProtection from "./components/RouteProtection/LandingProtection";
 import NotFoundPage from "./ui/NotFound";
 import AdminRoutes from "../Routes/adminRoutes";
 import LoadingPage from "./ui/Loading";
+import CertificateVerification from "./components/Public/CertificateVerification";
 import { useCurrentUser } from "./hooks/useCurrentUser";
 import { useCurrentTutor } from "./hooks/useCurrentTutor";
 import { useCurrentAdmin } from "./hooks/useCurrentAdmin";
@@ -78,6 +79,7 @@ function App() {
             <Route path="/user/*" element={<UserRoutes />} />
             <Route path='/tutor/*' element={<TutorRoutes />} />
             <Route path="/admin/*" element={<AdminRoutes />} />
+            <Route path="/verify-certificate/:verificationCode" element={<CertificateVerification />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </GlobalGuard>

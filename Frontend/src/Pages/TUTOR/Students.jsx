@@ -35,7 +35,6 @@ const Students = () => {
                 setStudents(response.data.students);
             }
         } catch (error) {
-            console.error('Error fetching students:', error);
             toast.error('Failed to fetch students');
         } finally {
             setLoading(false);
@@ -49,7 +48,6 @@ const Students = () => {
             navigate('/tutor/chat');
             toast.success('Chat started successfully');
         } catch (error) {
-            console.error('Error starting chat:', error);
             toast.error(error || 'Failed to start chat');
         } finally {
             setChatLoading(prev => ({ ...prev, [studentId]: false }));

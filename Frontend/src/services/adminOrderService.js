@@ -3,7 +3,7 @@ import { adminAPI } from '../api/axiosConfig';
 export const adminOrderService = {
   // Get all orders with filters and pagination
   async getAllOrders(params = {}) {
-    try {
+    
       const queryParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -13,9 +13,8 @@ export const adminOrderService = {
       
       const response = await adminAPI.get(`/api/admin/orders?${queryParams}`);
       return response.data;
-    } catch (error) {
-      throw error;
-    }
+    
+    
   },
 
   // Get order details by ID

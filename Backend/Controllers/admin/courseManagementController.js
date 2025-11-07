@@ -513,9 +513,49 @@ const toggleCourseListing = async (req, res) => {
   }
 };
 
+const refreshEnrollmentCounts = async (req, res) => {
+  try {
+    const User = (await import('../../Model/usermodel.js')).default;
+    
+
+    
+    const courses = await Course.find();
+    let updatedCount = 0;
+    
+    for (const course of courses) {
+      const actualCount = await User.countDocuments({
+        'courses.course': course._id
+      });
+      
+      await Course.findByIdAndUpdate(course._id, {
+        enrolled_count: actualCount
+      });
+      
+      updatedCount++;
+    }
+    
+
+    
+    res.status(200).json({
+      success: true,
+      message: `Successfully refreshed enrollment counts for ${updatedCount} courses`,
+      updatedCount
+    });
+    
+  } catch (error) {
+    console.error('Error refreshing enrollment counts:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to refresh enrollment counts",
+      error: error.message
+    });
+  }
+};
+
 export {
   getCoursesByCategory,
   getAllCourses,
   getCourseDetails,
-  toggleCourseListing
+  toggleCourseListing,
+  refreshEnrollmentCounts
 };

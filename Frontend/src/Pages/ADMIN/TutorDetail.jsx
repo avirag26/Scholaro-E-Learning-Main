@@ -217,7 +217,7 @@ const TutorDetail = () => {
           </div>
         </div>
       </div>
-
+ 
       {/* Courses Section */}
       <div className="bg-white rounded-lg shadow p-8">
         <div className="flex items-center justify-between mb-8">

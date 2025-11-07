@@ -50,11 +50,11 @@ const TutorStatsCard = ({ stats, loading = false, className = "" }) => {
     ];
 
     return (
-        <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 ${className}`}>
+        <div className={`grid grid-cols-2 md:grid-cols-2 gap-4 ${className}`}>
             {statsData.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
-                    <div key={index} className={`${stat.bgColor} p-4 rounded-lg text-center border border-opacity-20`}>
+                    <div key={index} className={`${stat.bgColor} p-1 rounded-lg text-center border border-opacity-20`}>
                         <div className="flex items-center justify-center mb-2">
                             <Icon className={`w-5 h-5 ${stat.textColor} mr-2`} />
                             <span className={`text-2xl font-bold ${stat.textColor}`}>

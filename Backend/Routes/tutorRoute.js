@@ -58,6 +58,15 @@ import {
   updateBankDetails,
   requestWithdrawal
 } from "../Controllers/common/walletController.js";
+import {
+  createExam,
+  getExam,
+  updateExam,
+  deleteExam,
+  getExamAttempts,
+  setFinalLesson,
+  updateExamSettings
+} from "../Controllers/tutor/examController.js";
 import { protectTutor } from "../Middleware/tutorMiddleware.js";
 
 router.post("/", registerTutor);
@@ -92,6 +101,15 @@ router.delete("/lessons/:lessonId", protectTutor, deleteLesson);
 router.patch("/lessons/:lessonId/toggle-publish", protectTutor, toggleLessonPublish);
 router.post("/submit-course/:courseId", submitCourse);
 router.get("/courses/category/:categoryId", getCourseByCategory);
+
+// Exam management routes
+router.post("/courses/:courseId/exam", protectTutor, createExam);
+router.get("/courses/:courseId/exam", protectTutor, getExam);
+router.put("/exams/:examId", protectTutor, updateExam);
+router.delete("/exams/:examId", protectTutor, deleteExam);
+router.get("/exams/:examId/attempts", protectTutor, getExamAttempts);
+router.put("/courses/:courseId/final-lesson", protectTutor, setFinalLesson);
+router.put("/courses/:courseId/exam-settings", protectTutor, updateExamSettings);
 
 // Order management routes
 router.get("/orders", protectTutor, getTutorOrders);

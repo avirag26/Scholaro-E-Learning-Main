@@ -64,7 +64,6 @@ const Teachers = () => {
         toast.info('No tutors found');
       }
     } catch (error) {
-      console.error('Error fetching teachers:', error);
       setError(error.message);
       toast.error(`Failed to load teachers: ${error.response?.data?.message || error.message}`);
       setTeachers([]);
@@ -364,7 +363,6 @@ const Teachers = () => {
       </div>
     );
   } catch (renderError) {
-    console.error('Teachers component render error:', renderError);
     return (
       <div className="min-h-screen bg-gray-50">
         <Header user={userInfo} />

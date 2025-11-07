@@ -208,6 +208,8 @@ const chatSlice = createSlice({
       // Check if message already exists (prevent duplicates)
       const exists = state.messages[chatId].some(m => m._id === message._id);
       if (!exists) {
+        // Add status field for new messages
+        message.status = message.status || 'delivered';
         state.messages[chatId].push(message);
       }
       
@@ -231,6 +233,8 @@ const chatSlice = createSlice({
       // Update total unread count
       state.totalUnreadCount = state.chats.reduce((total, chat) => total + (chat.unreadCount || 0), 0);
     },
+
+
     
     // Update message read status
     updateMessageReadStatus: (state, action) => {
@@ -248,6 +252,12 @@ const chatSlice = createSlice({
               user: readBy,
               readAt: readAt
             });
+          }
+          
+          // Update status to read for sender's messages
+          const currentUserId = state.currentUser?.user?._id || state.currentTutor?.tutor?._id;
+          if (message.sender._id === currentUserId) {
+            message.status = 'read';
           }
         });
       }
@@ -418,11 +428,17 @@ const chatSlice = createSlice({
         state.messagesLoading = false;
         const { chatId, messages, pagination, isFirstLoad } = action.payload;
         
+        // Add proper status to existing messages
+        const messagesWithStatus = messages.map(message => ({
+          ...message,
+          status: message.readBy && message.readBy.length > 0 ? 'read' : 'delivered'
+        }));
+        
         if (isFirstLoad) {
-          state.messages[chatId] = messages;
+          state.messages[chatId] = messagesWithStatus;
         } else {
           // Prepend older messages
-          state.messages[chatId] = [...messages, ...(state.messages[chatId] || [])];
+          state.messages[chatId] = [...messagesWithStatus, ...(state.messages[chatId] || [])];
         }
         
         state.messagePagination[chatId] = pagination;

@@ -63,7 +63,11 @@ const userSchema = new mongoose.Schema(
         course: { type: mongoose.Schema.Types.ObjectId, ref: "courses" },
         enrollmentDate: { type: Date, default: Date.now },
         progress: { type: Number, default: 0 },
-        completionStatus: { type: Boolean, default: false }
+        completionStatus: { type: Boolean, default: false },
+        completedLessons: [{ 
+          type: mongoose.Schema.Types.ObjectId, 
+          ref: "lessons" 
+        }]
       }
     ],
     wallet: {

@@ -125,4 +125,48 @@ router.delete("/chats/:chatId/clear", protectUser, clearChatMessages);
 
 router.get("/available-tutors", protectUser, getAvailableTutors);
 
+// Exam routes
+import {
+  checkExamEligibility,
+  getExamForStudent,
+  startExamAttempt,
+  submitExamAttempt,
+  getExamAttemptResult
+} from '../Controllers/user/examController.js';
+
+router.get('/courses/:courseId/exam-eligibility', protectUser, checkExamEligibility);
+router.get('/courses/:courseId/exam', protectUser, getExamForStudent);
+router.post('/exams/:examId/start', protectUser, startExamAttempt);
+router.post('/exams/:examId/submit', protectUser, submitExamAttempt);
+router.get('/exam-attempts/:attemptId/result', protectUser, getExamAttemptResult);
+
+// Lesson completion tracking
+import { markLessonComplete, getLessonProgress } from '../Controllers/user/lessonController.js';
+router.post('/lessons/:lessonId/complete', protectUser, markLessonComplete);
+router.get('/courses/:courseId/lesson-progress', protectUser, getLessonProgress);
+
+// Certificate routes
+import {
+  generateCertificate,
+  getUserCertificates,
+  downloadCertificate
+} from '../Controllers/user/certificateController.js';
+
+router.post('/certificates/generate', protectUser, generateCertificate);
+router.get('/certificates', protectUser, getUserCertificates);
+router.get('/certificates/:certificateId/download', protectUser, downloadCertificate);
+
+// Home page data
+import {
+  getUserDashboardData,
+  getFeaturedCourses,
+  getFeaturedTutors,
+  getPopularCategories
+} from '../Controllers/user/homeController.js';
+
+router.get('/dashboard-data', protectUser, getUserDashboardData);
+router.get('/featured-courses', getFeaturedCourses);
+router.get('/featured-tutors', getFeaturedTutors);
+router.get('/popular-categories', getPopularCategories);
+
 export default router;

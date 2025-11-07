@@ -23,10 +23,43 @@ export const getCart = async (req, res) => {
       await cart.save();
     }
 
-    // Calculate totals for available items only
-    const availableItems = cart.items.filter(item => {
+    // Check if cart was recently emptied (possible course removal)
+    const wasRecentlyModified = cart.updatedAt && (Date.now() - new Date(cart.updatedAt).getTime()) < 10000; // Within last 10 seconds
+    if (cart.items.length === 0 && wasRecentlyModified) {
+      // Add a placeholder unavailable item to show message
+      const unavailableItems = [{
+        courseId: 'unknown',
+        title: 'One or more courses',
+        reason: 'Courses were removed because they are no longer available'
+      }];
+      
+      return res.status(200).json({
+        success: true,
+        cart,
+        removedItems: unavailableItems
+      });
+    }
+
+    // Separate available and unavailable items
+    const availableItems = [];
+    const unavailableItems = [];
+
+    cart.items.forEach(item => {
       const course = item.course;
-      return course && course.listed && course.isActive && !course.isBanned;
+      if (course && course.listed && course.isActive && !course.isBanned) {
+        availableItems.push(item);
+      } else {
+        const reason = !course ? 'Course not found' :
+                      !course.isActive ? 'Course is inactive' :
+                      course.isBanned ? 'Course is banned' :
+                      !course.listed ? 'Course is unlisted' : 'Course unavailable';
+        
+        unavailableItems.push({
+          courseId: course?._id,
+          title: course?.title || 'Unknown Course',
+          reason: reason
+        });
+      }
     });
 
     const totalAmount = availableItems.reduce((total, item) => {
@@ -37,13 +70,20 @@ export const getCart = async (req, res) => {
 
     const totalItems = availableItems.length;
 
-    // Update cart with calculated values
+    // Update cart with available items only
+    cart.items = availableItems;
     cart.totalAmount = totalAmount;
     cart.totalItems = totalItems;
 
+    // Save the updated cart if there were unavailable items
+    if (unavailableItems.length > 0) {
+      await cart.save();
+    }
+
     res.status(200).json({
       success: true,
-      cart
+      cart,
+      removedItems: unavailableItems.length > 0 ? unavailableItems : undefined
     });
   } catch (error) {
     res.status(500).json({
@@ -334,3 +374,4 @@ export const removeUnavailableFromCart = async (req, res) => {
     });
   }
 };
+

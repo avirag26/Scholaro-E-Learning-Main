@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } fro
 import AdminLayout from './common/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { adminAPI } from '../../api/axiosConfig';
+
 const chartData = [
     { month: 'Jan', income: 45000, profit: 35000 },
     { month: 'Feb', income: 52000, profit: 38000 },
@@ -57,18 +58,23 @@ export default function AdminDashboard() {
         verifiedUsers: 0,
         verifiedTutors: 0,
         blockedUsers: 0,
-        blockedTutors: 0
+        blockedTutors: 0,
+        totalCourses:0,
+        totalRevenue:0
     });
+    const roundedReveneue = Math.floor(stats.totalRevenue);
     const [loading, setLoading] = useState(true);
     useEffect(() => {
         fetchDashboardStats();
+        
     }, []);
     const fetchDashboardStats = async () => {
         try {
             const response = await adminAPI.get('/api/admin/dashboard-stats');
+             
             setStats(response.data);
         } catch (error) {
-            console.log(error)
+            // Handle error silently
         } finally {
             setLoading(false);
         }
@@ -156,7 +162,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-600 text-sm">Total Courses</p>
-                                <p className="text-2xl font-bold text-gray-800">500</p>
+                                <p className="text-2xl font-bold text-gray-800">{loading ? '...' : stats.totalCourses}</p>
                             </div>
                             <BookOpen className="w-8 h-8 text-purple-500" />
                         </div>
@@ -165,7 +171,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-600 text-sm">Total Revenue</p>
-                                <p className="text-2xl font-bold text-gray-800">₹5,51,000</p>
+                                <p className="text-2xl font-bold text-gray-800">{loading ? '...':roundedReveneue}</p>
                             </div>
                             <DollarSign className="w-8 h-8 text-yellow-500" />
                         </div>
