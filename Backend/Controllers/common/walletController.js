@@ -1,16 +1,10 @@
 import Wallet from '../../Model/WalletModel.js';
 import PaymentDistribution from '../../Model/PaymentDistributionModel.js';
-import Tutor from '../../Model/TutorModel.js';
-import Admin from '../../Model/AdminModel.js';
 
-// Get wallet details
 export const getWallet = async (req, res) => {
   try {
     let userId, userType;
-    
 
-    
-    // Determine user type based on the route and middleware
     if (req.tutor) {
       userId = req.tutor._id;
       userType = 'Tutor';
@@ -18,7 +12,6 @@ export const getWallet = async (req, res) => {
       userId = req.admin._id;
       userType = 'Admin';
     } else if (req.user) {
-      // Check if this is actually an admin or tutor based on the route
       const routePath = req.route?.path || req.originalUrl;
       if (routePath.includes('/admin/')) {
         userId = req.user._id;
@@ -40,13 +33,11 @@ export const getWallet = async (req, res) => {
     }
 
     let wallet = await Wallet.findByOwner(userId, userType);
-    
-    // Create wallet if it doesn't exist
+
     if (!wallet) {
       wallet = await Wallet.createWallet(userId, userType);
     }
 
-    // Get recent transactions (last 10)
     const recentTransactions = wallet.transactions
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 10);
@@ -73,12 +64,10 @@ export const getWallet = async (req, res) => {
   }
 };
 
-// Get wallet transactions with pagination
 export const getWalletTransactions = async (req, res) => {
   try {
     let userId, userType;
-    
-    // Determine user type based on the route and middleware
+
     if (req.tutor) {
       userId = req.tutor._id;
       userType = 'Tutor';
@@ -86,7 +75,6 @@ export const getWalletTransactions = async (req, res) => {
       userId = req.admin._id;
       userType = 'Admin';
     } else if (req.user) {
-      // Check if this is actually an admin or tutor based on the route
       const routePath = req.route?.path || req.originalUrl;
       if (routePath.includes('/admin/')) {
         userId = req.user._id;
@@ -107,7 +95,7 @@ export const getWalletTransactions = async (req, res) => {
       });
     }
 
-    const { page = 1, limit = 20, type, startDate, endDate } = req.query;
+    const { page = 1, limit = 5, type, startDate, endDate } = req.query;
 
     const wallet = await Wallet.findByOwner(userId, userType);
     if (!wallet) {
@@ -117,7 +105,6 @@ export const getWalletTransactions = async (req, res) => {
       });
     }
 
-    // Build filter for transactions
     let transactionFilter = {};
     if (type && type !== 'all') {
       transactionFilter.type = type;
@@ -128,7 +115,6 @@ export const getWalletTransactions = async (req, res) => {
       if (endDate) transactionFilter.createdAt.$lte = new Date(endDate);
     }
 
-    // Filter transactions
     let filteredTransactions = wallet.transactions;
     if (Object.keys(transactionFilter).length > 0) {
       filteredTransactions = wallet.transactions.filter(transaction => {
@@ -148,10 +134,8 @@ export const getWalletTransactions = async (req, res) => {
       });
     }
 
-    // Sort by date (newest first)
     filteredTransactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // Pagination
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + parseInt(limit);
     const paginatedTransactions = filteredTransactions.slice(startIndex, endIndex);
@@ -176,12 +160,10 @@ export const getWalletTransactions = async (req, res) => {
   }
 };
 
-// Update bank details
 export const updateBankDetails = async (req, res) => {
   try {
     let userId, userType;
-    
-    // Determine user type based on the route and middleware
+
     if (req.tutor) {
       userId = req.tutor._id;
       userType = 'Tutor';
@@ -189,7 +171,6 @@ export const updateBankDetails = async (req, res) => {
       userId = req.admin._id;
       userType = 'Admin';
     } else if (req.user) {
-      // Check if this is actually an admin or tutor based on the route
       const routePath = req.route?.path || req.originalUrl;
       if (routePath.includes('/admin/')) {
         userId = req.user._id;
@@ -212,7 +193,6 @@ export const updateBankDetails = async (req, res) => {
 
     const { accountNumber, ifscCode, accountHolderName, bankName } = req.body;
 
-    // Validate required fields
     if (!accountNumber || !ifscCode || !accountHolderName || !bankName) {
       return res.status(400).json({
         success: false,
@@ -225,13 +205,12 @@ export const updateBankDetails = async (req, res) => {
       wallet = await Wallet.createWallet(userId, userType);
     }
 
-    // Update bank details
     wallet.bankDetails = {
       accountNumber,
       ifscCode: ifscCode.toUpperCase(),
       accountHolderName,
       bankName,
-      isVerified: false // Reset verification status
+      isVerified: false
     };
 
     await wallet.save();
@@ -250,12 +229,10 @@ export const updateBankDetails = async (req, res) => {
   }
 };
 
-// Request withdrawal
 export const requestWithdrawal = async (req, res) => {
   try {
     let userId, userType;
-    
-    // Determine user type based on the route and middleware
+
     if (req.tutor) {
       userId = req.tutor._id;
       userType = 'Tutor';
@@ -263,7 +240,6 @@ export const requestWithdrawal = async (req, res) => {
       userId = req.admin._id;
       userType = 'Admin';
     } else if (req.user) {
-      // Check if this is actually an admin or tutor based on the route
       const routePath = req.route?.path || req.originalUrl;
       if (routePath.includes('/admin/')) {
         userId = req.user._id;
@@ -301,7 +277,6 @@ export const requestWithdrawal = async (req, res) => {
       });
     }
 
-    // Check if bank details are verified
     if (!wallet.bankDetails.isVerified) {
       return res.status(400).json({
         success: false,
@@ -309,7 +284,6 @@ export const requestWithdrawal = async (req, res) => {
       });
     }
 
-    // Check if withdrawal is possible
     if (!wallet.canWithdraw(amount)) {
       return res.status(400).json({
         success: false,
@@ -317,7 +291,6 @@ export const requestWithdrawal = async (req, res) => {
       });
     }
 
-    // Add withdrawal transaction
     const transaction = {
       type: 'withdrawal',
       amount: amount,
@@ -341,10 +314,8 @@ export const requestWithdrawal = async (req, res) => {
   }
 };
 
-// Get wallet statistics (for admins)
 export const getWalletStatistics = async (req, res) => {
   try {
-    // Only admins can access this
     if (!req.admin) {
       return res.status(403).json({
         success: false,
@@ -352,19 +323,15 @@ export const getWalletStatistics = async (req, res) => {
       });
     }
 
-    // Get all tutor wallets
     const tutorWallets = await Wallet.find({ ownerType: 'Tutor' })
       .populate('owner', 'full_name email');
 
-    // Get admin wallet
     const adminWallet = await Wallet.findOne({ ownerType: 'Admin' });
 
-    // Calculate statistics
     const totalTutorBalance = tutorWallets.reduce((sum, wallet) => sum + wallet.balance, 0);
     const totalTutorEarnings = tutorWallets.reduce((sum, wallet) => sum + wallet.totalEarnings, 0);
     const totalTutorWithdrawals = tutorWallets.reduce((sum, wallet) => sum + wallet.totalWithdrawals, 0);
 
-    // Get pending distributions
     const pendingDistributions = await PaymentDistribution.find({ status: 'pending' });
     const totalPendingAmount = pendingDistributions.reduce((sum, dist) => sum + dist.totalAmount, 0);
 

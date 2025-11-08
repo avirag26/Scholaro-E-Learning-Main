@@ -33,6 +33,7 @@ import {
 import {
   getCoursesByCategory,
   getAllCourses,
+  getAllCoursesGrouped,
   getCourseDetails,
   toggleCourseListing,
   refreshEnrollmentCounts,
@@ -91,6 +92,7 @@ router.get('/categories', protectAdmin, getAllCategories);
 
 router.get('/categories/:categoryId/courses', protectAdmin, getCoursesByCategory);
 router.get('/courses', protectAdmin, getAllCourses);
+router.get('/courses-grouped', protectAdmin, getAllCoursesGrouped);
 router.get('/courses/:courseId/details', protectAdmin, getCourseDetails);
 router.patch('/courses/:courseId/toggle-listing', protectAdmin, toggleCourseListing);
 router.post('/courses/refresh-enrollment-counts', protectAdmin, refreshEnrollmentCounts);
@@ -101,25 +103,6 @@ router.delete('/categories/:id', protectAdmin, deleteCategory);
 router.patch('/categories/:id/toggle-visibility', protectAdmin, toggleCategoryVisibility);
 
 // Order management routes
-router.get('/orders/test', protectAdmin, async (req, res) => {
-  try {
-    const OrderModel = (await import('../../Model/OrderModel.js')).default;
-    const orderCount = await OrderModel.countDocuments();
-    res.json({
-      success: true,
-      message: 'Admin orders route is working',
-      admin: req.admin.full_name,
-      orderCount: orderCount
-    });
-  } catch (error) {
-    res.json({
-      success: true,
-      message: 'Admin orders route is working',
-      admin: req.admin.full_name,
-      error: error.message
-    });
-  }
-});
 router.get('/orders', protectAdmin, getAllOrders);
 router.get('/orders/stats', protectAdmin, getOrderStats);
 router.get('/orders/:orderId', protectAdmin, getOrderDetails);

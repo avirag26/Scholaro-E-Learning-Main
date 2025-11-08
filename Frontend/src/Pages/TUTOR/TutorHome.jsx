@@ -1,119 +1,529 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import TutorLayout from "./COMMON/TutorLayout"; 
-const chartData = [
-  { name: 'Sun', uv: 400000, pv: 200000 },
-  { name: 'Mon', uv: 600000, pv: 350000 },
-  { name: 'Tue', uv: 800000, pv: 450000 },
-  { name: 'Wed', uv: 750000, pv: 420000 },
-  { name: 'Thu', uv: 950000, pv: 400000 },
-  { name: 'Fri', uv: 700000, pv: 480000 },
-  { name: 'Sat', uv: 500000, pv: 380000 },
-];
-const coursesData = [
-  {
-    name: "Web Development",
-    students: 120,
-    enrolled: 80,
-    drafts: 5,
-    lessons: 11,
-    rating: "4.5 stars",
-    notice: "₹2000",
-    status: "Published"
-  },
-  {
-    name: "Data Science",
-    students: 95,
-    enrolled: 60,
-    drafts: 2,
-    lessons: 14,
-    rating: "4.2 stars",
-    notice: "₹1800",
-    status: "Published"
-  },
-  {
-    name: "Graphic Design",
-    students: 70,
-    enrolled: 0,
-    drafts: 3,
-    lessons: 13,
-    rating: "3.9 stars",
-    notice: "₹2500",
-    status: "Inactive"
-  },
-];
+import { useState, useEffect } from 'react';
+import { ChevronDown, Download, FileText, Users, BookOpen, GraduationCap, DollarSign, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import Button from '../../ui/Button';
+import RevenueChart from '../../components/Charts/RevenueChart';
+import DoughnutChart from '../../components/Charts/DoughnutChart';
+import BarChart from '../../components/Charts/BarChart';
+import TutorLayout from "./COMMON/TutorLayout";
+import { tutorAPI } from '../../api/axiosConfig';
+import { exportToPDF, exportToExcel, formatCurrency, generateRevenueChartData } from '../../utils/exportUtils';
+import { toast } from 'react-toastify'; 
 export default function TutorDashboard() {
+  const [dateFilter, setDateFilter] = useState('This Month');
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalCourses: 0,
+    activeCourses: 0,
+    listedCourses: 0,
+    draftCourses: 0,
+    totalLessons: 0,
+    totalRevenue: 0,
+    totalOrders: 0
+  });
+  const [revenueData, setRevenueData] = useState([]);
+  const [coursesData, setCoursesData] = useState([]);
+  const [ordersData, setOrdersData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Pagination and filtering states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
+  const [coursesLoading, setCoursesLoading] = useState(false);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
+    fetchCoursesData();
+  }, [currentPage, searchTerm, statusFilter]);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch dashboard stats
+      const statsResponse = await tutorAPI.get(`/api/tutors/dashboard-stats?dateFilter=${dateFilter}`);
+      const data = statsResponse.data;
+      
+      setStats({
+        totalStudents: data.totalStudents,
+        totalCourses: data.totalCourses,
+        activeCourses: data.activeCourses,
+        listedCourses: data.listedCourses || data.activeCourses,
+        draftCourses: data.draftCourses || (data.totalCourses - data.activeCourses),
+        totalLessons: data.totalLessons,
+        totalRevenue: data.totalRevenue,
+        totalOrders: data.totalOrders
+      });
+
+      // Process monthly revenue data for chart
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const chartData = months.map((month, index) => {
+        const monthData = data.monthlyRevenue?.find(item => item._id === index + 1);
+        return {
+          name: month,
+          uv: monthData?.revenue || 0,
+          pv: Math.round((monthData?.revenue || 0) * 0.7) // 70% profit margin
+        };
+      });
+      setRevenueData(chartData);
+
+      // Set orders data (courses will be fetched separately with pagination)
+      setOrdersData(data.recentOrders || []);
+
+    } catch (error) {
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCoursesData = async () => {
+    try {
+      setCoursesLoading(true);
+      
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '5',
+        search: searchTerm,
+        status: statusFilter
+      });
+      
+      const response = await tutorAPI.get(`/api/tutors/courses-paginated?${params}`);
+      const data = response.data;
+      
+
+      
+      setCoursesData(data.courses || []);
+      setTotalPages(data.pagination?.totalPages || 1);
+      
+    } catch (error) {
+      toast.error('Failed to load courses data');
+    } finally {
+      setCoursesLoading(false);
+    }
+  };
+
+  const handleDateFilterChange = (filter) => {
+    setDateFilter(filter);
+    // Refetch dashboard data with new filter
+    setTimeout(() => {
+      fetchDashboardData();
+    }, 100);
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handleStatusFilter = (status) => {
+    setStatusFilter(status);
+    setCurrentPage(1); // Reset to first page when filtering
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      const exportData = {
+        stats,
+        revenueData,
+        coursesData,
+        ordersData
+      };
+      
+      await exportToPDF(exportData, 'Tutor Dashboard Report');
+      toast.success('PDF report downloaded successfully!');
+    } catch (error) {
+      console.error('PDF download failed:', error);
+      // toast.error(`Failed to download PDF: ${error.message}`);
+    }
+  };
+
+  const handleDownloadExcel = async () => {
+    try {
+      const exportData = {
+        stats,
+        revenueData,
+        coursesData,
+        ordersData
+      };
+      
+      await exportToExcel(exportData, 'tutor-dashboard-report');
+      toast.success('Excel report downloaded successfully!');
+    } catch (error) {
+      console.error('Excel download failed:', error);
+      toast.error(`Failed to download Excel: ${error.message}`);
+    }
+  };
   return (
-    <TutorLayout>
-      <div className="rounded-2xl shadow-md px-8 py-6 bg-white border-4 border-[#b8eec4]/30">
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-2xl font-bold text-sky-600">Dashboard</div>
-          <div>
-            <button className="bg-sky-500 text-white px-4 py-2 rounded mr-3 hover:bg-sky-600 transition">Download PDF</button>
-            <button className="bg-[#efefef] text-sky-600 px-4 py-2 rounded hover:bg-[#e4eaea] transition">Download Excel</button>
+    <TutorLayout title="Dashboard" subtitle="Welcome to your tutor dashboard">
+      <div className="space-y-6">
+        {/* Header with Analytics Overview and Export Buttons */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-xl font-semibold text-gray-800">Analytics Overview</h2>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handleDateFilterChange('This Month')}
+                className={`px-3 py-1 rounded text-sm ${
+                  dateFilter === 'This Month' 
+                    ? 'bg-sky-500 text-white' 
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                This Month
+              </button>
+              <button
+                onClick={() => handleDateFilterChange('Last Month')}
+                className={`px-3 py-1 rounded text-sm ${
+                  dateFilter === 'Last Month' 
+                    ? 'bg-sky-500 text-white' 
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                Last Month
+              </button>
+              <button
+                onClick={() => handleDateFilterChange('This Year')}
+                className={`px-3 py-1 rounded text-sm ${
+                  dateFilter === 'This Year' 
+                    ? 'bg-sky-500 text-white' 
+                    : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                This Year
+              </button>
+              <div className="relative">
+                <button className="flex items-center space-x-1 px-3 py-1 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200">
+                  <span>{dateFilter}</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          </div>
+          {/* Export Buttons */}
+          <div className="flex items-center space-x-3">
+            <Button 
+              onClick={handleDownloadPDF}
+              className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2"
+              disabled={loading}
+            >
+              <FileText className="w-4 h-4" />
+              <span>{loading ? 'Loading...' : 'PDF'}</span>
+            </Button>
+            <Button 
+              onClick={handleDownloadExcel}
+              className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2"
+              disabled={loading}
+            >
+              <Download className="w-4 h-4" />
+              <span>{loading ? 'Loading...' : 'Excel'}</span>
+            </Button>
+
+
           </div>
         </div>
-        <div className="flex items-center mt-6 mb-4 gap-8">
-          <div className="flex flex-col items-center justify-center text-sky-600 text-lg font-semibold">
-            <span className="text-2xl font-bold">1,674,767</span>
-            <span className="mt-1 text-[#666] font-normal text-base">Students</span>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Total Students</p>
+                <p className="text-2xl font-bold text-gray-800">{loading ? '...' : stats.totalStudents}</p>
+              </div>
+              <Users className="w-8 h-8 text-sky-500" />
+            </div>
           </div>
-          <div className="flex flex-col items-center justify-center text-sky-600 text-lg font-semibold">
-            <span className="text-2xl font-bold">957</span>
-            <span className="mt-1 text-[#666] font-normal text-base">Total Courses</span>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Total Courses</p>
+                <p className="text-2xl font-bold text-gray-800">{loading ? '...' : stats.totalCourses}</p>
+              </div>
+              <BookOpen className="w-8 h-8 text-green-500" />
+            </div>
           </div>
-          <div className="flex flex-col items-center justify-center text-sky-600 text-lg font-semibold">
-            <span className="text-2xl font-bold">₹6,15,78,345</span>
-            <span className="mt-1 text-[#666] font-normal text-base">Total Revenue</span>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Active Courses</p>
+                <p className="text-2xl font-bold text-gray-800">{loading ? '...' : stats.activeCourses}</p>
+              </div>
+              <GraduationCap className="w-8 h-8 text-purple-500" />
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Total Revenue</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {loading ? '...' : formatCurrency(stats.totalRevenue)}
+                </p>
+              </div>
+              <DollarSign className="w-8 h-8 text-yellow-500" />
+            </div>
           </div>
         </div>
-        <div className="bg-[#f0f9f5] p-4 rounded-xl mt-4">
-          <div className="flex justify-between items-center mb-3">
-            <span className="font-semibold text-[#4e9b8f]">Market Overview</span>
-            <span className="text-sm text-gray-400">This week</span>
+
+        {/* Revenue Chart */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold">Revenue & Profit Overview</h3>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-sky-500 rounded-full"></div>
+                <span className="text-sm text-gray-600">Revenue</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-gray-600">Profit</span>
+              </div>
+            </div>
           </div>
-          <ResponsiveContainer width="100%" height={230}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis tickFormatter={(val) => `${(val / 1000)}K`} />
-              <Tooltip />
-              <Line type="monotone" dataKey="uv" stroke="#2ebeb6" strokeWidth={3} dot={false} isAnimationActive={true} />
-              <Line type="monotone" dataKey="pv" stroke="#fd5d7e" strokeWidth={3} dot={false} isAnimationActive={true} />
-            </LineChart>
-          </ResponsiveContainer>
+          <RevenueChart data={revenueData} title="Revenue & Profit Overview" />
         </div>
-        <div className="bg-white rounded-xl p-4 mt-6 border border-[#e3eae2]">
-          <table className="w-full text-center">
-            <thead>
-              <tr className="text-[#666] border-b">
-                <th className="py-2">Course Name</th>
-                <th>Students</th>
-                <th>Enrolled</th>
-                <th>Drafts</th>
-                <th>Rating</th>
-                <th>Notice</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {coursesData.map((course) => (
-                <tr key={course.name} className="text-[#222] border-b last:border-none">
-                  <td className="py-3">{course.name}</td>
-                  <td>{course.students}</td>
-                  <td>{course.enrolled}</td>
-                  <td>{course.drafts}</td>
-                  <td>{course.rating}</td>
-                  <td>{course.notice}</td>
-                  <td>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold 
-                      ${course.status === "Published" ? "bg-sky-50 text-sky-600" : "bg-gray-200 text-gray-500"}`}>
-                      {course.status}
-                    </span>
-                  </td>
+
+        {/* Additional Analytics */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Course Performance Chart */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold mb-4">Course Performance</h3>
+            <DoughnutChart 
+              data={[
+                { label: 'Active Courses', value: stats.activeCourses },
+                { label: 'Draft Courses', value: stats.draftCourses },
+                { label: 'Total Lessons', value: stats.totalLessons }
+              ]}
+            />
+          </div>
+
+          {/* Key Metrics Chart */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold mb-4">Key Metrics</h3>
+            <BarChart 
+              data={[
+                { label: 'Total Orders', value: stats.totalOrders },
+                { label: 'Students', value: stats.totalStudents },
+                { label: 'Lessons', value: stats.totalLessons }
+              ]}
+            />
+          </div>
+        </div>
+
+        {/* Course Management Table */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="p-6 border-b">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Course Management</h3>
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center space-x-1 px-3 py-1 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200"
+                >
+                  <Filter className="w-3 h-3" />
+                  <span>Filter</span>
+                </button>
+              </div>
+            </div>
+            
+            {/* Filters */}
+            {showFilters && (
+              <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                {/* Search */}
+                <div className="flex items-center space-x-2">
+                  <Search className="w-4 h-4 text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Search courses..."
+                    value={searchTerm}
+                    onChange={handleSearch}
+                    className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+                
+                {/* Status Filter */}
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Status:</span>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => handleStatusFilter(e.target.value)}
+                    className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    <option value="all">All Courses</option>
+                    <option value="active">Active Only</option>
+                    <option value="inactive">Inactive Only</option>
+                  </select>
+                </div>
+                
+                {/* Clear Filters */}
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setStatusFilter('all');
+                    setCurrentPage(1);
+                  }}
+                  className="px-3 py-1 bg-red-100 text-red-600 rounded text-sm hover:bg-red-200"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Course Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Students
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Enrolled
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Lessons
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Rating
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Price
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {coursesLoading ? (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                      Loading courses...
+                    </td>
+                  </tr>
+                ) : coursesData.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                      {searchTerm || statusFilter !== 'all' ? 'No courses match your filters' : 'No courses found'}
+                    </td>
+                  </tr>
+                ) : (
+                  coursesData.map((course) => (
+                    <tr key={course._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {course.title}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {course.enrolled_count || 0}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {course.enrolled_count || 0}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {course.lessons_count || 0}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ⭐ {course.average_rating?.toFixed(1) || '0.0'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ₹{course.price || 0}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          course.listed && course.isActive
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {course.listed && course.isActive ? 'Published' : 'Inactive'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          
+
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`flex items-center px-3 py-1 rounded text-sm ${
+                      currentPage === 1
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Previous
+                  </button>
+                  
+                  {/* Page Numbers */}
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`px-3 py-1 rounded text-sm ${
+                            currentPage === pageNum
+                              ? 'bg-sky-500 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`flex items-center px-3 py-1 rounded text-sm ${
+                      currentPage === totalPages
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </TutorLayout>

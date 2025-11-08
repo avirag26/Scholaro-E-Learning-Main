@@ -374,27 +374,124 @@ const getCourseDetails = async (req, res) => {
         message: "Invalid course ID format"
       });
     }
-    let course = await Course.findOne({
-      _id: courseId,
-      listed: true,
-      isActive: true,
-      isBanned: false
-    })
-      .populate('category', 'title description')
-      .populate('tutor', 'full_name profileImage email bio is_blocked')
-      .populate('lessons', 'title description duration');
-    if (!course) {
+
+    // Use aggregation to get course with correct enrolled count
+    const courseResult = await Course.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(courseId),
+          listed: true,
+          isActive: true,
+          isBanned: false
+        }
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'tutors',
+          localField: 'tutor',
+          foreignField: '_id',
+          as: 'tutorInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'lessons',
+          localField: '_id',
+          foreignField: 'course',
+          as: 'lessonsInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          let: { courseId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ['$$courseId', '$courses.course']
+                }
+              }
+            }
+          ],
+          as: 'enrolledUsers'
+        }
+      },
+      {
+        $addFields: {
+          category: { $arrayElemAt: ['$categoryInfo', 0] },
+          tutor: { $arrayElemAt: ['$tutorInfo', 0] },
+          lessons: '$lessonsInfo',
+          enrolled_count: { $size: '$enrolledUsers' }
+        }
+      },
+      {
+        $project: {
+          title: 1,
+          description: 1,
+          price: 1,
+          offer_percentage: 1,
+          course_thumbnail: 1,
+          enrolled_count: 1,
+          average_rating: 1,
+          total_reviews: 1,
+          duration: 1,
+          level: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          category: {
+            _id: '$category._id',
+            title: '$category.title',
+            description: '$category.description'
+          },
+          tutor: {
+            _id: '$tutor._id',
+            full_name: '$tutor.full_name',
+            profileImage: '$tutor.profileImage',
+            email: '$tutor.email',
+            bio: '$tutor.bio',
+            is_blocked: '$tutor.is_blocked'
+          },
+          lessons: {
+            $map: {
+              input: '$lessons',
+              as: 'lesson',
+              in: {
+                _id: '$$lesson._id',
+                title: '$$lesson.title',
+                description: '$$lesson.description',
+                duration: '$$lesson.duration'
+              }
+            }
+          }
+        }
+      }
+    ]);
+
+    if (!courseResult || courseResult.length === 0) {
       return res.status(404).json({
         success: false,
         message: "Course not found or not available"
       });
     }
+
+    const course = courseResult[0];
+
     if (course.tutor && course.tutor.is_blocked) {
       return res.status(404).json({
         success: false,
         message: "Course not found or not available"
       });
     }
+
     const formattedCourse = {
       id: course._id,
       title: course.title,
@@ -404,7 +501,7 @@ const getCourseDetails = async (req, res) => {
       category: course.category,
       tutor: course.tutor,
       course_thumbnail: course.course_thumbnail,
-      enrolled_count: course.enrolled_count || 0,
+      enrolled_count: course.enrolled_count,
       average_rating: course.average_rating || 0,
       total_reviews: course.total_reviews || 0,
       lessons: course.lessons,
@@ -413,6 +510,7 @@ const getCourseDetails = async (req, res) => {
       createdAt: course.createdAt,
       updatedAt: course.updatedAt
     };
+
     res.status(200).json({
       success: true,
       course: formattedCourse

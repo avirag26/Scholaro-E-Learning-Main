@@ -125,29 +125,87 @@ const getTutorCourses = async (req, res) => {
   try {
     const tutorId = req.tutor._id;
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 6;
+    const limit = parseInt(req.query.limit) || 5;
     const skip = (page - 1) * limit;
     const search = req.query.search || '';
     const status = req.query.status || 'all';
-    let query = { tutor: tutorId };
+    
+    let matchQuery = { tutor: tutorId };
     if (search) {
-      query.$or = [
+      matchQuery.$or = [
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } }
       ];
     }
     if (status !== 'all') {
-      if (status === 'listed') query.listed = true;
-      if (status === 'unlisted') query.listed = false;
-      if (status === 'active') query.isActive = true;
-      if (status === 'inactive') query.isActive = false;
+      if (status === 'listed') matchQuery.listed = true;
+      if (status === 'unlisted') matchQuery.listed = false;
+      if (status === 'active') matchQuery.isActive = true;
+      if (status === 'inactive') matchQuery.isActive = false;
     }
-    const courses = await Course.find(query)
-      .populate('category', 'title')
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    const totalCourses = await Course.countDocuments(query);
+
+    // Use aggregation to get correct enrolled count
+    const courses = await Course.aggregate([
+      { $match: matchQuery },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          let: { courseId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ['$$courseId', '$courses.course']
+                }
+              }
+            }
+          ],
+          as: 'enrolledUsers'
+        }
+      },
+      {
+        $addFields: {
+          enrolled_count: { $size: '$enrolledUsers' },
+          category: { $arrayElemAt: ['$categoryInfo', 0] }
+        }
+      },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $project: {
+          title: 1,
+          description: 1,
+          price: 1,
+          offer_percentage: 1,
+          category: {
+            _id: '$category._id',
+            title: '$category.title'
+          },
+          course_thumbnail: 1,
+          enrolled_count: 1,
+          average_rating: 1,
+          total_reviews: 1,
+          isActive: 1,
+          listed: 1,
+          unlistedByAdmin: 1,
+          isBanned: 1,
+          createdAt: 1,
+          updatedAt: 1
+        }
+      }
+    ]);
+
+    const totalCourses = await Course.countDocuments(matchQuery);
+    
     const formattedCourses = courses.map((course) => ({
       id: course._id,
       title: course.title,
@@ -166,6 +224,7 @@ const getTutorCourses = async (req, res) => {
       createdAt: course.createdAt,
       updatedAt: course.updatedAt,
     }));
+    
     res.status(200).json({
       courses: formattedCourses,
       pagination: {
@@ -304,14 +363,70 @@ const getCourseDetails = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid course ID" });
     }
-    const course = await Course.findOne({ _id: id, tutor: tutorId })
-      .populate('category', 'title description')
-      .populate('tutor', 'full_name email profileImage')
-      .populate('lessons', 'title description order')
-      .populate('examSettings.finalLessonId', 'title description order');
-    if (!course) {
+
+    // Use aggregation to get course with correct enrolled count
+    const courseResult = await Course.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(id),
+          tutor: tutorId
+        }
+      },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'category',
+          foreignField: '_id',
+          as: 'categoryInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'tutors',
+          localField: 'tutor',
+          foreignField: '_id',
+          as: 'tutorInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'lessons',
+          localField: '_id',
+          foreignField: 'course',
+          as: 'lessonsInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          let: { courseId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ['$$courseId', '$courses.course']
+                }
+              }
+            }
+          ],
+          as: 'enrolledUsers'
+        }
+      },
+      {
+        $addFields: {
+          category: { $arrayElemAt: ['$categoryInfo', 0] },
+          tutor: { $arrayElemAt: ['$tutorInfo', 0] },
+          lessons: '$lessonsInfo',
+          enrolled_count: { $size: '$enrolledUsers' }
+        }
+      }
+    ]);
+
+    if (!courseResult || courseResult.length === 0) {
       return res.status(404).json({ message: "Course not found or unauthorized" });
     }
+
+    const course = courseResult[0];
     res.status(200).json({ course });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch course details" });

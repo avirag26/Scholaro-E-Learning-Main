@@ -20,10 +20,7 @@ import {
 
 const router = express.Router();
 
-// Test route to verify exam routes are loaded
-router.get('/test-exam-routes', (req, res) => {
-  res.json({ success: true, message: 'Exam routes are loaded!' });
-});
+
 
 // ========== USER ROUTES ==========
 // Exam taking

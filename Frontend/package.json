@@ -14,11 +14,15 @@
     "@reduxjs/toolkit": "^2.9.0",
     "@tailwindcss/vite": "^4.1.14",
     "axios": "^1.12.2",
+    "chart.js": "^4.5.1",
     "croppie": "^2.6.5",
     "framer-motion": "^12.23.22",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.545.0",
     "razorpay": "^2.9.6",
     "react": "^19.2.0",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",
     "react-icons": "^5.5.0",
     "react-redux": "^9.2.0",
@@ -30,7 +34,8 @@
     "sonner": "^2.0.7",
     "sweetalert": "^2.1.2",
     "sweetalert2": "^11.26.1",
-    "tailwindcss": "^4.1.14"
+    "tailwindcss": "^4.1.14",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

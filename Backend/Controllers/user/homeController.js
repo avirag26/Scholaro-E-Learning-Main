@@ -82,34 +82,70 @@ export const getUserDashboardData = async (req, res) => {
 
 export const getFeaturedCourses = async (req, res) => {
   try {
-    const courses = await Course.find({ 
-      listed: true, 
-      isActive: true,
-      isBanned: false 
-    })
-    .populate('tutor', 'full_name profileImage')
-    .populate('reviews')
-    .sort({ enrollmentCount: -1 })
-    .limit(12);
-
-    const coursesWithStats = courses.map(course => ({
-      _id: course._id,
-      title: course.title,
-      course_thumbnail: course.course_thumbnail,
-      tutor: {
-        full_name: course.tutor?.full_name || 'Unknown Tutor',
-        profileImage: course.tutor?.profileImage
+    const courses = await Course.aggregate([
+      {
+        $match: { 
+          listed: true, 
+          isActive: true,
+          isBanned: false 
+        }
       },
-      rating: course.averageRating || 0,
-      reviews: { length: course.reviews?.length || 0 },
-      price: course.price,
-      offer_percentage: course.offer_percentage || 0,
-      enrollmentCount: course.enrollmentCount || 0
-    }));
+      {
+        $lookup: {
+          from: 'tutors',
+          localField: 'tutor',
+          foreignField: '_id',
+          as: 'tutorInfo'
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          let: { courseId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ['$$courseId', '$courses.course']
+                }
+              }
+            }
+          ],
+          as: 'enrolledUsers'
+        }
+      },
+      {
+        $addFields: {
+          enrollmentCount: { $size: '$enrolledUsers' },
+          tutor: { $arrayElemAt: ['$tutorInfo', 0] }
+        }
+      },
+      {
+        $sort: { enrollmentCount: -1 }
+      },
+      {
+        $limit: 12
+      },
+      {
+        $project: {
+          title: 1,
+          course_thumbnail: 1,
+          tutor: {
+            full_name: '$tutor.full_name',
+            profileImage: '$tutor.profileImage'
+          },
+          rating: { $ifNull: ['$averageRating', 0] },
+          reviews: { length: { $ifNull: ['$reviewCount', 0] } },
+          price: 1,
+          offer_percentage: { $ifNull: ['$offer_percentage', 0] },
+          enrollmentCount: 1
+        }
+      }
+    ]);
 
     res.status(200).json({
       success: true,
-      courses: coursesWithStats
+      courses
     });
   } catch (error) {
     res.status(500).json({

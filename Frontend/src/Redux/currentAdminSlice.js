@@ -67,11 +67,14 @@ export const {
 } = currentAdminSlice.actions;
 export const logoutAdmin = (navigate) => async (dispatch) => {
   try {
-    await adminAPI.post('/api/admins/logout');
+    // Clear admin data and redirect (no API call needed for logout)
+    dispatch(logout());
+    if (navigate) {
+      navigate('/admin/login', { replace: true });
+    }
   } catch (error) {
     // Handle logout error silently
+    console.error('Logout error:', error);
   }
-  dispatch(logout());
-  navigate('/admin/login', { replace: true });
 };
 export default currentAdminSlice.reducer;

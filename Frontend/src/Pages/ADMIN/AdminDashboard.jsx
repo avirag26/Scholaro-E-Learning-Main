@@ -1,56 +1,16 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, Download, FileText, Users, BookOpen, GraduationCap, DollarSign, TrendingUp } from 'lucide-react';
+import { ChevronDown, Download, FileText, Users, BookOpen, GraduationCap, DollarSign } from 'lucide-react';
 import Button from '../../ui/Button';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import RevenueChart from '../../components/Charts/RevenueChart';
+import DoughnutChart from '../../components/Charts/DoughnutChart';
+import BarChart from '../../components/Charts/BarChart';
 import AdminLayout from './common/AdminLayout';
-import { useNavigate } from 'react-router-dom';
 import { adminAPI } from '../../api/axiosConfig';
+import { exportToPDF, exportToExcel, formatCurrency, generateRevenueChartData } from '../../utils/exportUtils';
+import { toast } from 'react-toastify';
 
-const chartData = [
-    { month: 'Jan', income: 45000, profit: 35000 },
-    { month: 'Feb', income: 52000, profit: 38000 },
-    { month: 'Mar', income: 48000, profit: 42000 },
-    { month: 'Apr', income: 61000, profit: 45000 },
-    { month: 'May', income: 77000, profit: 48000 },
-    { month: 'Jun', income: 68000, profit: 52000 },
-    { month: 'Jul', income: 72000, profit: 46000 },
-    { month: 'Aug', income: 65000, profit: 49000 },
-    { month: 'Sep', income: 78000, profit: 55000 },
-    { month: 'Oct', income: 82000, profit: 51000 },
-    { month: 'Nov', income: 75000, profit: 47000 },
-    { month: 'Dec', income: 69000, profit: 43000 }
-];
-const courseData = [
-    {
-        name: 'Web Development',
-        students: 120,
-        enrolled: 80,
-        drafts: 5,
-        rating: 4.5,
-        notice: '₹2000',
-        status: 'Published'
-    },
-    {
-        name: 'Data Science',
-        students: 95,
-        enrolled: 60,
-        drafts: 2,
-        rating: 4.2,
-        notice: '₹1800',
-        status: 'Published'
-    },
-    {
-        name: 'Graphic Design',
-        students: 70,
-        enrolled: 0,
-        drafts: 3,
-        rating: 3.9,
-        notice: '₹2500',
-        status: 'Inactive'
-    }
-];
+
 export default function AdminDashboard() {
-    const navigate = useNavigate();
     const [dateFilter, setDateFilter] = useState('This Month');
     const [stats, setStats] = useState({
         totalUsers: 0,
@@ -59,29 +19,151 @@ export default function AdminDashboard() {
         verifiedTutors: 0,
         blockedUsers: 0,
         blockedTutors: 0,
-        totalCourses:0,
-        totalRevenue:0
+        totalCourses: 0,
+        totalRevenue: 0,
+        totalOrders: 0,
+        activeCourses: 0
     });
-    const roundedReveneue = Math.floor(stats.totalRevenue);
+    const [revenueData, setRevenueData] = useState([]);
+    const [coursesData, setCoursesData] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    // Filtering states
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 0,
+        hasNext: false,
+        hasPrev: false,
+        limit: 10
+    });
+
     useEffect(() => {
-        fetchDashboardStats();
-        
+        fetchDashboardData();
     }, []);
-    const fetchDashboardStats = async () => {
+
+    useEffect(() => {
+        fetchCoursesData();
+    }, [searchTerm, statusFilter, currentPage]);
+
+    const fetchDashboardData = async () => {
         try {
-            const response = await adminAPI.get('/api/admin/dashboard-stats');
-             
-            setStats(response.data);
+            setLoading(true);
+            
+            // Fetch dashboard stats
+            const statsResponse = await adminAPI.get('/api/admin/dashboard-stats');
+            setStats(statsResponse.data);
+
+            // Fetch recent orders for revenue chart
+            try {
+                const ordersResponse = await adminAPI.get('/api/admin/orders?limit=100');
+                const orders = ordersResponse.data.orders || [];
+                
+                // Generate revenue chart data
+                const chartData = generateRevenueChartData(orders);
+                setRevenueData(chartData);
+            } catch (orderError) {
+                console.warn('Failed to fetch orders for revenue chart:', orderError);
+                // Set empty revenue data if orders fail
+                setRevenueData([]);
+            }
+
         } catch (error) {
-            // Handle error silently
+            console.error('Dashboard data fetch error:', error);
+            toast.error(`Failed to load dashboard data: ${error.response?.data?.message || error.message}`);
         } finally {
             setLoading(false);
         }
     };
-    const handleDownloadPDF = () => {
+
+    const fetchCoursesData = async () => {
+        try {
+            // Build query parameters
+            const params = new URLSearchParams();
+            params.append('page', currentPage);
+            params.append('limit', 10);
+            if (searchTerm) params.append('search', searchTerm);
+            if (statusFilter !== 'all') params.append('status', statusFilter);
+
+            const response = await adminAPI.get(`/api/admin/courses?${params}`);
+            const data = response.data;
+            
+            setCoursesData(data.data || []);
+            setPagination(data.pagination || {
+                currentPage: 1,
+                totalPages: 1,
+                totalItems: 0,
+                hasNext: false,
+                hasPrev: false,
+                limit: 10
+            });
+            
+        } catch (error) {
+            console.error('Courses fetch error:', error);
+            toast.error(`Failed to fetch courses: ${error.response?.data?.message || error.message}`);
+            setCoursesData([]);
+        }
     };
-    const handleDownloadExcel = () => {
+
+    const handleSearch = (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1); // Reset to first page when searching
+    };
+
+    const handleStatusFilter = (status) => {
+        setStatusFilter(status);
+        setCurrentPage(1); // Reset to first page when filtering
+    };
+
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+    };
+
+    const handlePrevPage = () => {
+        if (pagination.hasPrev) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (pagination.hasNext) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
+    const handleDownloadPDF = async () => {
+        try {
+            const exportData = {
+                stats,
+                revenueData,
+                coursesData: coursesData
+            };
+            exportToPDF(exportData, 'Admin Dashboard Report');
+            toast.success('PDF report downloaded successfully!');
+        } catch (error) {
+            console.error('PDF download failed:', error);
+            toast.error(`Failed to download PDF: ${error.message}`);
+        }
+    };
+
+    const handleDownloadExcel = async () => {
+        try {
+            const exportData = {
+                stats,
+                revenueData,
+                coursesData: coursesData
+            };
+            exportToExcel(exportData, 'admin-dashboard-report');
+            toast.success('Excel report downloaded successfully!');
+        } catch (error) {
+            console.error('Excel download failed:', error);
+            toast.error(`Failed to download Excel: ${error.message}`);
+        }
     };
     return (
         <AdminLayout title="Dashboard" subtitle="Welcome to your admin dashboard">
@@ -171,7 +253,9 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-600 text-sm">Total Revenue</p>
-                                <p className="text-2xl font-bold text-gray-800">{loading ? '...':roundedReveneue}</p>
+                                <p className="text-2xl font-bold text-gray-800">
+                                    {loading ? '...' : formatCurrency(stats.totalRevenue)}
+                                </p>
                             </div>
                             <DollarSign className="w-8 h-8 text-yellow-500" />
                         </div>
@@ -184,7 +268,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center space-x-4">
                             <div className="flex items-center space-x-2">
                                 <div className="w-3 h-3 bg-sky-500 rounded-full"></div>
-                                <span className="text-sm text-gray-600">Income</span>
+                                <span className="text-sm text-gray-600">Revenue</span>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -192,57 +276,77 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </div>
-                    <div className="h-96">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                <XAxis 
-                                    dataKey="month" 
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fontSize: 12, fill: '#666' }}
-                                />
-                                <YAxis 
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tick={{ fontSize: 12, fill: '#666' }}
-                                    tickFormatter={(value) => `?${value/1000}k`}
-                                />
-                                <Line 
-                                    type="monotone" 
-                                    dataKey="income" 
-                                    stroke="#0ea5e9" 
-                                    strokeWidth={3}
-                                    dot={{ fill: '#0ea5e9', strokeWidth: 2, r: 4 }}
-                                    activeDot={{ r: 6, stroke: '#0ea5e9', strokeWidth: 2 }}
-                                />
-                                <Line 
-                                    type="monotone" 
-                                    dataKey="profit" 
-                                    stroke="#10b981" 
-                                    strokeWidth={3}
-                                    dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-                                    activeDot={{ r: 6, stroke: '#10b981', strokeWidth: 2 }}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
+                    <RevenueChart data={revenueData} title="Revenue & Profit Overview" />
+                </div>
+
+                {/* Additional Analytics */}
+                <div className="grid lg:grid-cols-2 gap-6">
+                    {/* User Distribution Chart */}
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h3 className="text-lg font-semibold mb-4">User Distribution</h3>
+                        <DoughnutChart 
+                            data={[
+                                { label: 'Active Users', value: stats.totalUsers - stats.blockedUsers },
+                                { label: 'Blocked Users', value: stats.blockedUsers },
+                                { label: 'Verified Users', value: stats.verifiedUsers },
+                                { label: 'Unverified Users', value: stats.totalUsers - stats.verifiedUsers }
+                            ]}
+                        />
+                    </div>
+
+                    {/* Course Status Chart */}
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h3 className="text-lg font-semibold mb-4">Course Status</h3>
+                        <BarChart 
+                            data={[
+                                { label: 'Total Courses', value: stats.totalCourses },
+                                { label: 'Active Courses', value: stats.activeCourses },
+                                { label: 'Inactive Courses', value: stats.totalCourses - stats.activeCourses }
+                            ]}
+                        />
                     </div>
                 </div>
+
                 {}
                 <div className="bg-white rounded-lg shadow">
                     <div className="p-6 border-b">
                         <div className="flex items-center justify-between">
                             <h3 className="text-lg font-semibold">Course Management</h3>
                             <div className="flex items-center space-x-2">
-                                <button className="px-3 py-1 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200">
-                                    Filter
-                                </button>
                                 <div className="relative">
-                                    <button className="flex items-center space-x-1 px-3 py-1 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200">
-                                        <span>{dateFilter}</span>
-                                        <ChevronDown className="w-3 h-3" />
-                                    </button>
+                                    <input
+                                        type="text"
+                                        placeholder="Search courses..."
+                                        value={searchTerm}
+                                        onChange={handleSearch}
+                                        className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                    />
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
                                 </div>
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => handleStatusFilter(e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                >
+                                    <option value="all">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="listed">Listed</option>
+                                    <option value="unlisted">Unlisted</option>
+                                </select>
+                                <button
+                                    onClick={() => {
+                                        setSearchTerm('');
+                                        setStatusFilter('all');
+                                        setCurrentPage(1);
+                                    }}
+                                    className="px-3 py-1 bg-red-100 text-red-600 rounded text-sm hover:bg-red-200"
+                                >
+                                    Clear
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -274,40 +378,128 @@ export default function AdminDashboard() {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {courseData.map((course, index) => (
-                                    <tr key={index} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {course.name}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {course.students}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {course.enrolled}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {course.drafts}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            ? {course.rating}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {course.notice}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                course.status === 'Published' 
-                                                    ? 'bg-green-100 text-green-800' 
-                                                    : 'bg-red-100 text-red-800'
-                                            }`}>
-                                                {course.status}
-                                            </span>
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                                            Loading courses...
                                         </td>
                                     </tr>
-                                ))}
+                                ) : coursesData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                                            No courses found
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    coursesData.map((course, index) => (
+                                        <tr key={course.id || index} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                <div>
+                                                    <div className="font-medium">{course.title}</div>
+                                                    <div className="text-xs text-gray-500">{course.category?.title}</div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {course.enrolled_count || 0}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {course.enrolled_count || 0}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                0
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                ⭐ {course.average_rating?.toFixed(1) || '0.0'}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                ₹{course.price || 0}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                                    course.listed 
+                                                        ? 'bg-green-100 text-green-800' 
+                                                        : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                    {course.listed ? 'Published' : 'Inactive'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Pagination Controls */}
+                    {!loading && coursesData.length > 0 && pagination && (
+                        <div className="px-6 py-4 border-t border-gray-200">
+                            <div className="flex items-center justify-between">
+                                <div className="text-sm text-gray-700">
+                                    Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to{' '}
+                                    {Math.min(pagination.currentPage * pagination.limit, pagination.totalItems)} of{' '}
+                                    {pagination.totalItems} courses
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <button
+                                        onClick={handlePrevPage}
+                                        disabled={!pagination.hasPrev}
+                                        className={`px-3 py-1 rounded text-sm ${
+                                            pagination.hasPrev
+                                                ? 'bg-sky-500 text-white hover:bg-sky-600'
+                                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        Previous
+                                    </button>
+                                    
+                                    {/* Page Numbers */}
+                                    {pagination.totalPages > 1 && (
+                                        <div className="flex items-center space-x-1">
+                                            {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                                                let pageNum;
+                                                if (pagination.totalPages <= 5) {
+                                                    pageNum = i + 1;
+                                                } else if (pagination.currentPage <= 3) {
+                                                    pageNum = i + 1;
+                                                } else if (pagination.currentPage >= pagination.totalPages - 2) {
+                                                    pageNum = pagination.totalPages - 4 + i;
+                                                } else {
+                                                    pageNum = pagination.currentPage - 2 + i;
+                                                }
+                                                
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        onClick={() => handlePageChange(pageNum)}
+                                                        className={`px-3 py-1 rounded text-sm ${
+                                                            pageNum === pagination.currentPage
+                                                                ? 'bg-sky-500 text-white'
+                                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                        }`}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={handleNextPage}
+                                        disabled={!pagination.hasNext}
+                                        className={`px-3 py-1 rounded text-sm ${
+                                            pagination.hasNext
+                                                ? 'bg-sky-500 text-white hover:bg-sky-600'
+                                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                 </div>
             </div>
         </AdminLayout>

@@ -45,6 +45,10 @@ import {
   getTutorOrderStats
 } from "../Controllers/tutor/orderManagementController.js";
 import {
+  getTutorDashboardStats,
+  getTutorCoursesPaginated
+} from "../Controllers/tutor/dashboardController.js";
+import {
   getUserChats,
   getChatMessages,
   markChatAsRead,
@@ -88,6 +92,8 @@ router.get("/check-status", protectTutor, checkTutorStatus);
 router.post("/upload-profile-photo", protectTutor, uploadTutorProfilePhoto);
 router.get("/profile", protectTutor, getTutorProfile);
 router.put("/profile", protectTutor, updateTutorProfile);
+router.get("/dashboard-stats", protectTutor, getTutorDashboardStats);
+router.get("/courses-paginated", protectTutor, getTutorCoursesPaginated);
 router.post("/change-password/send-otp", protectTutor, sendTutorPasswordChangeOtp);
 router.post("/change-password/verify", protectTutor, changeTutorPasswordWithOtp);
 router.post("/change-email/send-otp", protectTutor, sendTutorEmailChangeOtp);

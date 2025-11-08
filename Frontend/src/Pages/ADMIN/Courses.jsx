@@ -49,7 +49,7 @@ const Courses = () => {
   const fetchAllCourses = async () => {
     try {
       setLoading(true);
-      const response = await adminAPI.get('/api/admin/courses', {
+      const response = await adminAPI.get('/api/admin/courses-grouped', {
         params: {
           search: debouncedSearchTerm,
           status: statusFilter,
@@ -63,6 +63,7 @@ const Courses = () => {
       if (response.data.success) {
         const coursesByCategory = response.data.data || [];
         setCoursesByCategory(coursesByCategory);
+        
         const initialPages = {};
         coursesByCategory.forEach(categoryData => {
           if (categoryData && categoryData.category && categoryData.category.id) {
@@ -75,6 +76,7 @@ const Courses = () => {
         setCurrentPages({});
       }
     } catch (error) {
+      console.error('Courses fetch error:', error);
       setCoursesByCategory([]);
       setCurrentPages({});
       toast.error(error.response?.data?.message || "Failed to fetch courses");
@@ -84,20 +86,22 @@ const Courses = () => {
   };
 
   const handleNextPage = (categoryId, totalCourses) => {
+    const safeTotal = totalCourses || 0;
     setCurrentPages(prev => ({
       ...prev,
-      [categoryId]: prev[categoryId] + coursesPerPage >= totalCourses 
+      [categoryId]: (prev[categoryId] || 0) + coursesPerPage >= safeTotal 
         ? 0 
-        : prev[categoryId] + coursesPerPage
+        : (prev[categoryId] || 0) + coursesPerPage
     }));
   };
 
   const handlePrevPage = (categoryId, totalCourses) => {
+    const safeTotal = totalCourses || 0;
     setCurrentPages(prev => ({
       ...prev,
-      [categoryId]: prev[categoryId] === 0 
-        ? Math.max(0, totalCourses - coursesPerPage)
-        : prev[categoryId] - coursesPerPage
+      [categoryId]: (prev[categoryId] || 0) === 0 
+        ? Math.max(0, safeTotal - coursesPerPage)
+        : (prev[categoryId] || 0) - coursesPerPage
     }));
   };
 
@@ -180,9 +184,11 @@ const Courses = () => {
                       >
                         <option value="all">All Categories</option>
                         {coursesByCategory.map((categoryData) => (
-                          <option key={categoryData.category.id} value={categoryData.category.id}>
-                            {categoryData.category.title}
-                          </option>
+                          categoryData && categoryData.category ? (
+                            <option key={categoryData.category.id} value={categoryData.category.id}>
+                              {categoryData.category.title}
+                            </option>
+                          ) : null
                         ))}
                       </select>
                     </div>
@@ -269,16 +275,16 @@ const Courses = () => {
                   <p className="text-gray-600">{categoryData.category.description}</p>
                 </div>
                 
-                {categoryData.courses.length > coursesPerPage && (
+                {categoryData.courses && categoryData.courses.length > coursesPerPage && (
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handlePrevPage(categoryData.category.id, categoryData.courses.length)}
+                      onClick={() => handlePrevPage(categoryData.category.id, categoryData.courses?.length || 0)}
                       className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleNextPage(categoryData.category.id, categoryData.courses.length)}
+                      onClick={() => handleNextPage(categoryData.category.id, categoryData.courses?.length || 0)}
                       className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -392,10 +398,10 @@ const Courses = () => {
               )}
 
               {/* Pagination Dots */}
-              {categoryData.courses.length > coursesPerPage && (
+              {categoryData.courses && categoryData.courses.length > coursesPerPage && (
                 <div className="flex justify-center mt-8">
                   <div className="flex items-center gap-2">
-                    {Array.from({ length: Math.ceil(categoryData.courses.length / coursesPerPage) }, (_, i) => {
+                    {Array.from({ length: Math.ceil((categoryData.courses?.length || 0) / coursesPerPage) }, (_, i) => {
                       const pageIndex = i * coursesPerPage;
                       const isActive = (currentPages[categoryData.category.id] || 0) === pageIndex;
                       return (
