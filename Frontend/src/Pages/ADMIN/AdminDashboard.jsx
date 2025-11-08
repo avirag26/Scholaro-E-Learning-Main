@@ -27,11 +27,11 @@ export default function AdminDashboard() {
     const [revenueData, setRevenueData] = useState([]);
     const [coursesData, setCoursesData] = useState([]);
     const [loading, setLoading] = useState(true);
-    
+
     // Filtering states
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    
+
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const [pagination, setPagination] = useState({
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
-            
+
             // Fetch dashboard stats
             const statsResponse = await adminAPI.get('/api/admin/dashboard-stats');
             setStats(statsResponse.data);
@@ -63,18 +63,15 @@ export default function AdminDashboard() {
             try {
                 const ordersResponse = await adminAPI.get('/api/admin/orders?limit=100');
                 const orders = ordersResponse.data.orders || [];
-                
+
                 // Generate revenue chart data
                 const chartData = generateRevenueChartData(orders);
                 setRevenueData(chartData);
             } catch (orderError) {
-                console.warn('Failed to fetch orders for revenue chart:', orderError);
-                // Set empty revenue data if orders fail
                 setRevenueData([]);
             }
 
         } catch (error) {
-            console.error('Dashboard data fetch error:', error);
             toast.error(`Failed to load dashboard data: ${error.response?.data?.message || error.message}`);
         } finally {
             setLoading(false);
@@ -92,7 +89,7 @@ export default function AdminDashboard() {
 
             const response = await adminAPI.get(`/api/admin/courses?${params}`);
             const data = response.data;
-            
+
             setCoursesData(data.data || []);
             setPagination(data.pagination || {
                 currentPage: 1,
@@ -102,9 +99,8 @@ export default function AdminDashboard() {
                 hasPrev: false,
                 limit: 10
             });
-            
+
         } catch (error) {
-            console.error('Courses fetch error:', error);
             toast.error(`Failed to fetch courses: ${error.response?.data?.message || error.message}`);
             setCoursesData([]);
         }
@@ -146,7 +142,6 @@ export default function AdminDashboard() {
             exportToPDF(exportData, 'Admin Dashboard Report');
             toast.success('PDF report downloaded successfully!');
         } catch (error) {
-            console.error('PDF download failed:', error);
             toast.error(`Failed to download PDF: ${error.message}`);
         }
     };
@@ -161,36 +156,33 @@ export default function AdminDashboard() {
             exportToExcel(exportData, 'admin-dashboard-report');
             toast.success('Excel report downloaded successfully!');
         } catch (error) {
-            console.error('Excel download failed:', error);
             toast.error(`Failed to download Excel: ${error.message}`);
         }
     };
     return (
         <AdminLayout title="Dashboard" subtitle="Welcome to your admin dashboard">
-            {}
+            { }
             <div className="space-y-6">
-                {}
+                { }
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                         <h2 className="text-xl font-semibold text-gray-800">Analytics Overview</h2>
                         <div className="flex items-center space-x-2">
                             <button
                                 onClick={() => setDateFilter('This Month')}
-                                className={`px-3 py-1 rounded text-sm ${
-                                    dateFilter === 'This Month' 
-                                        ? 'bg-sky-500 text-white' 
-                                        : 'bg-gray-100 text-gray-600'
-                                }`}
+                                className={`px-3 py-1 rounded text-sm ${dateFilter === 'This Month'
+                                    ? 'bg-sky-500 text-white'
+                                    : 'bg-gray-100 text-gray-600'
+                                    }`}
                             >
                                 This Month
                             </button>
                             <button
                                 onClick={() => setDateFilter('Last Month')}
-                                className={`px-3 py-1 rounded text-sm ${
-                                    dateFilter === 'Last Month' 
-                                        ? 'bg-sky-500 text-white' 
-                                        : 'bg-gray-100 text-gray-600'
-                                }`}
+                                className={`px-3 py-1 rounded text-sm ${dateFilter === 'Last Month'
+                                    ? 'bg-sky-500 text-white'
+                                    : 'bg-gray-100 text-gray-600'
+                                    }`}
                             >
                                 Last Month
                             </button>
@@ -202,16 +194,16 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </div>
-                    {}
+                    { }
                     <div className="flex items-center space-x-3">
-                        <Button 
+                        <Button
                             onClick={handleDownloadPDF}
                             className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2"
                         >
                             <FileText className="w-4 h-4" />
                             <span>PDF</span>
                         </Button>
-                        <Button 
+                        <Button
                             onClick={handleDownloadExcel}
                             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2"
                         >
@@ -220,7 +212,7 @@ export default function AdminDashboard() {
                         </Button>
                     </div>
                 </div>
-                {}
+                { }
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div className="bg-white p-6 rounded-lg shadow">
                         <div className="flex items-center justify-between">
@@ -261,7 +253,7 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 </div>
-                {}
+                { }
                 <div className="bg-white p-6 rounded-lg shadow">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-lg font-semibold">Revenue & Profit Overview</h3>
@@ -284,7 +276,7 @@ export default function AdminDashboard() {
                     {/* User Distribution Chart */}
                     <div className="bg-white p-6 rounded-lg shadow">
                         <h3 className="text-lg font-semibold mb-4">User Distribution</h3>
-                        <DoughnutChart 
+                        <DoughnutChart
                             data={[
                                 { label: 'Active Users', value: stats.totalUsers - stats.blockedUsers },
                                 { label: 'Blocked Users', value: stats.blockedUsers },
@@ -297,7 +289,7 @@ export default function AdminDashboard() {
                     {/* Course Status Chart */}
                     <div className="bg-white p-6 rounded-lg shadow">
                         <h3 className="text-lg font-semibold mb-4">Course Status</h3>
-                        <BarChart 
+                        <BarChart
                             data={[
                                 { label: 'Total Courses', value: stats.totalCourses },
                                 { label: 'Active Courses', value: stats.activeCourses },
@@ -307,7 +299,7 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {}
+                { }
                 <div className="bg-white rounded-lg shadow">
                     <div className="p-6 border-b">
                         <div className="flex items-center justify-between">
@@ -415,11 +407,10 @@ export default function AdminDashboard() {
                                                 ₹{course.price || 0}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                    course.listed 
-                                                        ? 'bg-green-100 text-green-800' 
-                                                        : 'bg-red-100 text-red-800'
-                                                }`}>
+                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${course.listed
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-red-100 text-red-800'
+                                                    }`}>
                                                     {course.listed ? 'Published' : 'Inactive'}
                                                 </span>
                                             </td>
@@ -443,15 +434,14 @@ export default function AdminDashboard() {
                                     <button
                                         onClick={handlePrevPage}
                                         disabled={!pagination.hasPrev}
-                                        className={`px-3 py-1 rounded text-sm ${
-                                            pagination.hasPrev
-                                                ? 'bg-sky-500 text-white hover:bg-sky-600'
-                                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                        }`}
+                                        className={`px-3 py-1 rounded text-sm ${pagination.hasPrev
+                                            ? 'bg-sky-500 text-white hover:bg-sky-600'
+                                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                            }`}
                                     >
                                         Previous
                                     </button>
-                                    
+
                                     {/* Page Numbers */}
                                     {pagination.totalPages > 1 && (
                                         <div className="flex items-center space-x-1">
@@ -466,16 +456,15 @@ export default function AdminDashboard() {
                                                 } else {
                                                     pageNum = pagination.currentPage - 2 + i;
                                                 }
-                                                
+
                                                 return (
                                                     <button
                                                         key={pageNum}
                                                         onClick={() => handlePageChange(pageNum)}
-                                                        className={`px-3 py-1 rounded text-sm ${
-                                                            pageNum === pagination.currentPage
-                                                                ? 'bg-sky-500 text-white'
-                                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                                        }`}
+                                                        className={`px-3 py-1 rounded text-sm ${pageNum === pagination.currentPage
+                                                            ? 'bg-sky-500 text-white'
+                                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                            }`}
                                                     >
                                                         {pageNum}
                                                     </button>
@@ -487,11 +476,10 @@ export default function AdminDashboard() {
                                     <button
                                         onClick={handleNextPage}
                                         disabled={!pagination.hasNext}
-                                        className={`px-3 py-1 rounded text-sm ${
-                                            pagination.hasNext
-                                                ? 'bg-sky-500 text-white hover:bg-sky-600'
-                                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                        }`}
+                                        className={`px-3 py-1 rounded text-sm ${pagination.hasNext
+                                            ? 'bg-sky-500 text-white hover:bg-sky-600'
+                                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                            }`}
                                     >
                                         Next
                                     </button>

@@ -550,7 +550,6 @@ const refreshEnrollmentCounts = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error refreshing enrollment counts:', error);
     res.status(500).json({
       success: false,
       message: "Failed to refresh enrollment counts",
@@ -753,7 +752,6 @@ const getAllCoursesGrouped = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get courses grouped error:', error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch courses",

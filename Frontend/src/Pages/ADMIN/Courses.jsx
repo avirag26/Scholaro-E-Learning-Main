@@ -76,7 +76,6 @@ const Courses = () => {
         setCurrentPages({});
       }
     } catch (error) {
-      console.error('Courses fetch error:', error);
       setCoursesByCategory([]);
       setCurrentPages({});
       toast.error(error.response?.data?.message || "Failed to fetch courses");
