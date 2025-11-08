@@ -66,3 +66,63 @@ video::-webkit-media-controls-picture-in-picture-button {
   75% { transform: translateX(-100px) translateY(calc(100vh - 100px)); }
   100% { transform: translateX(-100px) translateY(-50px); }
 }
+
+/* Unpublished lesson blur effect */
+.lesson-blur-overlay {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Enhanced blur for unpublished content */
+.unpublished-lesson {
+  filter: blur(2px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Coming soon animation */
+.coming-soon-pulse {
+  animation: comingSoonPulse 2s infinite;
+}
+
+@keyframes comingSoonPulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* Progress bar improvements */
+.lesson-progress-bar {
+  min-width: 0;
+  max-width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.lesson-progress-fill {
+  min-width: 0;
+  max-width: 100%;
+  transition: width 0.3s ease-in-out;
+  transform: translateZ(0); /* Force hardware acceleration */
+}
+
+/* Smooth scrolling for lesson sidebar */
+.lesson-sidebar {
+  scroll-behavior: smooth;
+}
+
+.lesson-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.lesson-sidebar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.lesson-sidebar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.lesson-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

@@ -1,6 +1,7 @@
 import React from "react";
 import { Star } from 'lucide-react';
 import Card from "./Card";
+
 export default function Testimonials({ testimonials = [] }) {
   const defaultTestimonials = [
     {
@@ -25,7 +26,9 @@ export default function Testimonials({ testimonials = [] }) {
       rating: 5
     }
   ];
+  
   const testimonialsToShow = testimonials.length > 0 ? testimonials : defaultTestimonials;
+  
   return (
     <section className="py-20 bg-teal-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

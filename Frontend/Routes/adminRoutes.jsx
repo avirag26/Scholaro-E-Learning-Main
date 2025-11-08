@@ -12,6 +12,7 @@ import CategoryCourses from "../src/Pages/ADMIN/CategoryCourses";
 import TutorDetail from "../src/Pages/ADMIN/TutorDetail";
 import Courses from "../src/Pages/ADMIN/Courses";
 import CourseDetail from "../src/Pages/ADMIN/CourseDetail";
+import LessonView from "../src/Pages/ADMIN/LessonView";
 import Orders from "../src/Pages/ADMIN/Orders";
 import OrderDetail from "../src/Pages/ADMIN/OrderDetail";
 import AdminWallet from "../src/Pages/ADMIN/AdminWallet";
@@ -75,6 +76,12 @@ const AdminRoutes = () => {
             <Route path="courses/:courseId/details" element={
                 <ProtectedRoute userType="admin">
                     <CourseDetail />
+                </ProtectedRoute>
+            } />
+
+            <Route path="lessons/:lessonId/view/:courseId" element={
+                <ProtectedRoute userType="admin">
+                    <LessonView />
                 </ProtectedRoute>
             } />
 

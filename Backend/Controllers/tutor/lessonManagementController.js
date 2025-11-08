@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Lesson from "../../Model/LessonModel.js";
 import { Course } from "../../Model/CourseModel.js";
+import { notifyUsersNewLesson } from "../../utils/notificationHelper.js";
 
 const createLesson = async (req, res) => {
   try {
@@ -65,6 +66,8 @@ const createLesson = async (req, res) => {
     await Course.findByIdAndUpdate(courseId, {
       $push: { lessons: lesson._id }
     });
+
+    await notifyUsersNewLesson(courseId, title);
     res.status(201).json({
       message: "Lesson created successfully",
       lesson
@@ -116,7 +119,7 @@ const updateLesson = async (req, res) => {
     const { lessonId } = req.params;
     const tutorId = req.tutor._id;
     const updateData = req.body;
-    
+
     // Validate title if provided
     if (updateData.title) {
       if (updateData.title.length < 3 || updateData.title.length > 100) {
@@ -145,7 +148,7 @@ const updateLesson = async (req, res) => {
         return res.status(400).json({ message: "Description must have at least 10 meaningful characters" });
       }
     }
-    
+
     const lesson = await Lesson.findOne({ _id: lessonId, tutor: tutorId });
     if (!lesson) {
       return res.status(404).json({ message: "Lesson not found or unauthorized" });

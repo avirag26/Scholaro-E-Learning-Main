@@ -4,6 +4,7 @@ const notificationSchema = new mongoose.Schema({
   message: {
     type: String,
     required: true,
+    default: 'Notification message'
   },
   read: {
     type: Boolean,

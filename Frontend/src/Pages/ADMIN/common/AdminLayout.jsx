@@ -4,6 +4,7 @@ import { Bell, Search, Users, BookOpen, GraduationCap, DollarSign, TrendingUp, L
 import { toast } from 'sonner';
 import { useLogout } from '../../../hooks/useLogout';
 import Footer from '../../../components/Common/Footer';
+import NotificationDropdown from '../../../components/Notifications/NotificationDropdown';
 export default function AdminLayout({ children, title, subtitle }) {
     const navigate = useNavigate();
     const location = useLocation();
@@ -64,9 +65,7 @@ export default function AdminLayout({ children, title, subtitle }) {
                     
                     
                     <div className="flex items-center space-x-4">
-                        <button className="p-2 text-gray-600 hover:text-sky-500">
-                            <Bell className="w-5 h-5" />
-                        </button>
+                        <NotificationDropdown userType="admin" />
                         <img
                                     src={adminInfo?.profileImage}
                                     alt="Profile"
@@ -174,6 +173,8 @@ export default function AdminLayout({ children, title, subtitle }) {
                                 <BookOpen className="w-5 h-5 mr-3" />
                                 Courses
                             </button>
+                            
+
                             
                             <button
                                 onClick={handleLogout}

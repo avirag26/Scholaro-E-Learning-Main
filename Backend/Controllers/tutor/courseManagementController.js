@@ -306,7 +306,9 @@ const getCourseDetails = async (req, res) => {
     }
     const course = await Course.findOne({ _id: id, tutor: tutorId })
       .populate('category', 'title description')
-      .populate('tutor', 'full_name email profileImage');
+      .populate('tutor', 'full_name email profileImage')
+      .populate('lessons', 'title description order')
+      .populate('examSettings.finalLessonId', 'title description order');
     if (!course) {
       return res.status(404).json({ message: "Course not found or unauthorized" });
     }

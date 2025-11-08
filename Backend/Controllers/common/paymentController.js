@@ -6,6 +6,7 @@ import User from '../../Model/usermodel.js';
 import PaymentDistribution from '../../Model/PaymentDistributionModel.js';
 import { Course } from '../../Model/CourseModel.js';
 import { v4 as uuidv4 } from 'uuid';
+import { notifyAdminNewOrder, notifyTutorWalletCredit } from '../../utils/notificationHelper.js';
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -72,7 +73,7 @@ export const createOrder = async (req, res) => {
     const tempOrderId = `ORD_${uuidv4()}`;
 
     const razorpayOrder = await razorpay.orders.create({
-      amount: amountInPaise, 
+      amount: amountInPaise,
       currency: 'INR',
       receipt: `ord_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`, // Max 40 chars
       notes: {
@@ -206,6 +207,8 @@ export const verifyPayment = async (req, res) => {
 
     // Enroll user in courses
     const user = await User.findById(userId);
+
+    await notifyAdminNewOrder(order.orderId, order.finalAmount, user.email);
     for (const item of order.items) {
       const isAlreadyEnrolled = user.courses.some(c => c.course.toString() === item.course.toString());
       if (!isAlreadyEnrolled) {
@@ -264,10 +267,10 @@ const createPaymentDistribution = async (order) => {
 
 
     const tutorGroups = {};
-    
+
     for (const item of orderWithCourses.items) {
       const tutorId = item.course.tutor._id.toString();
-      
+
       if (!tutorGroups[tutorId]) {
         tutorGroups[tutorId] = {
           tutor: item.course.tutor,
@@ -275,7 +278,7 @@ const createPaymentDistribution = async (order) => {
           totalAmount: 0
         };
       }
-      
+
       tutorGroups[tutorId].courses.push({
         courseId: item.course._id,
         amount: item.discountedPrice
@@ -283,10 +286,10 @@ const createPaymentDistribution = async (order) => {
       tutorGroups[tutorId].totalAmount += item.discountedPrice;
     }
 
-  
+
     for (const tutorId in tutorGroups) {
       const tutorGroup = tutorGroups[tutorId];
-      
+
       const distributionData = {
         orderId: order.orderId,
         razorpayOrderId: order.razorpayOrderId,

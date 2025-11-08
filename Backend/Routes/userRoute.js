@@ -64,6 +64,12 @@ import {
   getAvailableTutors,
   clearChatMessages
 } from "../Controllers/common/chatController.js";
+import {
+  getUserNotifications,
+  markAsRead,
+  getUnreadCount,
+  clearAllNotifications
+} from "../Controllers/common/notificationController.js";
 import { protectUser } from "../Middleware/userMiddleware.js";
 
 router.route("/").post(registerUser);
@@ -168,5 +174,11 @@ router.get('/dashboard-data', protectUser, getUserDashboardData);
 router.get('/featured-courses', getFeaturedCourses);
 router.get('/featured-tutors', getFeaturedTutors);
 router.get('/popular-categories', getPopularCategories);
+
+// Notification routes
+router.get('/notifications', protectUser, getUserNotifications);
+router.put('/notifications/:notificationId/read', protectUser, markAsRead);
+router.get('/notifications/unread-count', protectUser, getUnreadCount);
+router.delete('/notifications/clear-all', protectUser, clearAllNotifications);
 
 export default router;

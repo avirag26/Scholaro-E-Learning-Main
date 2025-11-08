@@ -1,5 +1,25 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+
+const notificationSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  body: {
+    type: String,
+    required: true
+  },
+  read: {
+    type: Boolean,
+    default: false
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
 const adminSchema = new mongoose.Schema(
   {
     full_name: {
@@ -60,6 +80,7 @@ const adminSchema = new mongoose.Schema(
     },
     lastActive: { type: Date },
     lastLogin: { type: Date },
+    notifications: [notificationSchema]
   },
   { timestamps: true }
 );

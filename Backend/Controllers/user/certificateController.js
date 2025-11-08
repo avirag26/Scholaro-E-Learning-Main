@@ -7,6 +7,7 @@ import puppeteer from 'puppeteer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { uploadToCloudinary } from '../../config/cloudinary.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,10 +38,10 @@ export const generateCertificate = async (req, res) => {
     }
 
     // Check if certificate already exists
-    const existingCertificate = await Certificate.findOne({ 
-      userId, 
+    const existingCertificate = await Certificate.findOne({
+      userId,
       examAttemptId,
-      isValid: true 
+      isValid: true
     });
 
     if (existingCertificate) {
@@ -78,10 +79,11 @@ export const generateCertificate = async (req, res) => {
     await certificate.save();
 
     // Generate PDF certificate
-    const certificateUrl = await generateCertificatePDF(certificate);
-    
-    // Update certificate with PDF URL
-    certificate.certificateUrl = certificateUrl;
+    const certificateResult = await generateCertificatePDF(certificate);
+
+    // Update certificate with Cloudinary URL and public ID
+    certificate.certificateUrl = certificateResult.url;
+    certificate.cloudinaryPublicId = certificateResult.publicId;
     await certificate.save();
 
     res.status(201).json({
@@ -108,25 +110,25 @@ export const generateCertificate = async (req, res) => {
   }
 };
 
-// Generate certificate PDF using Puppeteer
+// Generate certificate PDF using Puppeteer and upload to Cloudinary
 const generateCertificatePDF = async (certificate) => {
   try {
     if (!puppeteer) {
       throw new Error('Puppeteer is not available');
     }
-    
+
     const browser = await puppeteer.launch({
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
     });
-    
+
     const page = await browser.newPage();
-    
+
     // Create certificate HTML
     const certificateHTML = createCertificateHTML(certificate);
-    
+
     await page.setContent(certificateHTML, { waitUntil: 'networkidle0' });
-    
+
     // Generate PDF - optimized for single page
     const pdfBuffer = await page.pdf({
       format: 'A4',
@@ -139,25 +141,26 @@ const generateCertificatePDF = async (certificate) => {
         bottom: '10px',
         left: '10px'
       },
-      scale: 0.85, // Reduce scale to ensure everything fits on one page
-      width: '11.7in', // A4 landscape width
-      height: '8.3in'  // A4 landscape height
+      scale: 0.85,
+      width: '11.7in',
+      height: '8.3in'
     });
-    
+
     await browser.close();
-    
-    // Save PDF to file system
-    const certificatesDir = path.join(__dirname, '../../uploads/certificates');
-    if (!fs.existsSync(certificatesDir)) {
-      fs.mkdirSync(certificatesDir, { recursive: true });
-    }
-    
-    const fileName = `certificate_${certificate.certificateId}.pdf`;
-    const filePath = path.join(certificatesDir, fileName);
-    
-    fs.writeFileSync(filePath, pdfBuffer);
-    return `/uploads/certificates/${fileName}`;
+
+    // Upload PDF to Cloudinary
+    const uploadResult = await uploadToCloudinary(pdfBuffer, {
+      public_id: `certificate_${certificate.certificateId}`,
+      resource_type: 'raw',
+      format: 'pdf'
+    });
+
+    return {
+      url: uploadResult.secure_url,
+      publicId: uploadResult.public_id
+    };
   } catch (error) {
+    console.error('PDF generation failed, falling back to HTML:', error);
     return await generateHTMLCertificate(certificate);
   }
 };
@@ -165,18 +168,20 @@ const generateCertificatePDF = async (certificate) => {
 // HTML certificate generator (fallback when Puppeteer fails)
 const generateHTMLCertificate = async (certificate) => {
   try {
-    const certificatesDir = path.join(__dirname, '../../uploads/certificates');
-    if (!fs.existsSync(certificatesDir)) {
-      fs.mkdirSync(certificatesDir, { recursive: true });
-    }
-    
-    const fileName = `certificate_${certificate.certificateId}.html`;
-    const filePath = path.join(certificatesDir, fileName);
-    
     const htmlContent = createCertificateHTML(certificate);
-    fs.writeFileSync(filePath, htmlContent);
-    
-    return `/uploads/certificates/${fileName}`;
+    const htmlBuffer = Buffer.from(htmlContent, 'utf8');
+
+    // Upload HTML to Cloudinary
+    const uploadResult = await uploadToCloudinary(htmlBuffer, {
+      public_id: `certificate_${certificate.certificateId}`,
+      resource_type: 'raw',
+      format: 'html'
+    });
+
+    return {
+      url: uploadResult.secure_url,
+      publicId: uploadResult.public_id
+    };
   } catch (error) {
     throw error;
   }
@@ -422,11 +427,11 @@ const createCertificateHTML = (certificate) => {
         <div class="details">
           <div class="detail-item">
             <div class="detail-label">Date</div>
-            <div class="detail-value">${new Date(certificate.completionDate).toLocaleDateString('en-US', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}</div>
+            <div class="detail-value">${new Date(certificate.completionDate).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })}</div>
           </div>
           <div class="detail-item">
             <div class="detail-label">Score</div>
@@ -489,10 +494,10 @@ export const downloadCertificate = async (req, res) => {
     const { certificateId } = req.params;
     const userId = req.user._id;
 
-    const certificate = await Certificate.findOne({ 
-      _id: certificateId, 
-      userId, 
-      isValid: true 
+    const certificate = await Certificate.findOne({
+      _id: certificateId,
+      userId,
+      isValid: true
     });
 
     if (!certificate) {
@@ -505,9 +510,22 @@ export const downloadCertificate = async (req, res) => {
     // Record download
     await certificate.recordDownload();
 
-    // Serve the PDF file
+    // For Cloudinary URLs, redirect to the direct download URL
+    if (certificate.certificateUrl && certificate.certificateUrl.includes('cloudinary.com')) {
+      // Add download parameters to Cloudinary URL
+      const downloadUrl = certificate.certificateUrl.replace('/upload/', '/upload/fl_attachment/');
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Certificate download URL',
+        downloadUrl: downloadUrl,
+        fileName: `certificate_${certificate.studentName.replace(/\s+/g, '_')}.pdf`
+      });
+    }
+
+    // Fallback for local files (legacy support)
     const filePath = path.join(__dirname, '../../', certificate.certificateUrl);
-    
+
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({
         success: false,
@@ -519,16 +537,16 @@ export const downloadCertificate = async (req, res) => {
     const fileExtension = path.extname(filePath).toLowerCase();
     let contentType = 'application/pdf';
     let fileName = `certificate_${certificate.studentName.replace(/\s+/g, '_')}.pdf`;
-    
+
     if (fileExtension === '.html') {
       contentType = 'text/html';
       fileName = `certificate_${certificate.studentName.replace(/\s+/g, '_')}.html`;
     }
-    
+
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Length', fs.statSync(filePath).size);
-    
+
     const fileStream = fs.createReadStream(filePath);
     fileStream.on('error', (error) => {
       console.error('Error reading certificate file:', error);
@@ -537,7 +555,7 @@ export const downloadCertificate = async (req, res) => {
         message: 'Error reading certificate file'
       });
     });
-    
+
     fileStream.pipe(res);
   } catch (error) {
     res.status(500).json({

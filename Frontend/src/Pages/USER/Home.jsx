@@ -4,7 +4,7 @@ import { BookOpen, Clock, Award, TrendingUp, Star } from 'lucide-react';
 import Button from "../../ui/Button";
 import PriceDisplay from "../../components/PriceDisplay";
 import DynamicCategoryCards from "../../components/DynamicCategoryCards";
-import Testimonials from "../../ui/Testmonials";
+import Testimonials from "../../ui/Testimonials";
 import TeamSection from "../../ui/TeamSection";
 import BannerImg from "../../assets/banner.png";
 import { MdFavoriteBorder } from "react-icons/md";
@@ -196,7 +196,7 @@ export default function UserHomePage() {
       </section>
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl">
               <div className="flex items-center justify-between">
                 <div>
@@ -215,15 +215,7 @@ export default function UserHomePage() {
                 <Award className="w-8 h-8 text-green-600" />
               </div>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-2xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sky-600 text-sm font-medium">Learning Hours</p>
-                  <p className="text-2xl font-bold text-sky-900">{userProgress.totalHours}</p>
-                </div>
-                <Clock className="w-8 h-8 text-sky-600" />
-              </div>
-            </div>
+            
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-2xl">
               <div className="flex items-center justify-between">
                 <div>
@@ -283,9 +275,9 @@ export default function UserHomePage() {
                       )}
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-500">{course.duration}</span>
+                      <span></span>
                       <Button 
-                        onClick={() => navigate(`/user/course/${course._id}`)}
+                        onClick={() => navigate(`/user/learn/${course._id}`)}
                         className="bg-teal-600 hover:bg-teal-700 px-4 py-2 text-sm"
                       >
                         {course.completionStatus ? 'Review' : 'Continue'}

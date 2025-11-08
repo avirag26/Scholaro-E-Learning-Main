@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Award, Users, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Award, Users, BarChart3, Settings } from 'lucide-react';
 import { toast } from 'react-toastify';
 import TutorLayout from './COMMON/TutorLayout';
 import ExamCreator from '../../components/Tutor/Exam/ExamCreator';
+import FinalLessonSelector from '../../components/Tutor/Exam/FinalLessonSelector';
 import { tutorAPI } from '../../api/axiosConfig';
 
 
@@ -29,7 +30,8 @@ const ExamManagement = () => {
     try {
       const response = await tutorAPI.get(`/api/tutors/courses/${courseId}`);
       // Backend might return course directly or in a wrapper
-      setCourse(response.data?.course || response.data);
+      const courseData = response.data?.course || response.data;
+      setCourse(courseData);
     } catch (error) {
       toast.error(`Failed to load course data: ${error.response?.data?.message || error.message}`);
     }
@@ -192,6 +194,18 @@ const ExamManagement = () => {
                 Exam Setup
               </button>
               
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'settings'
+                    ? 'border-teal-500 text-teal-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Settings className="w-4 h-4 inline mr-2" />
+                Exam Settings
+              </button>
+              
               {exam && (
                 <>
                   <button
@@ -245,6 +259,16 @@ const ExamManagement = () => {
                   existingExam={exam && exam._id ? exam : null}
                   onExamCreated={handleExamCreated}
                   onExamUpdated={handleExamUpdated}
+                />
+              </div>
+            )}
+
+            {activeTab === 'settings' && (
+              <div>
+                <FinalLessonSelector
+                  courseId={courseId}
+                  lessons={course?.lessons || []}
+                  currentFinalLessonId={course?.examSettings?.finalLessonId}
                 />
               </div>
             )}

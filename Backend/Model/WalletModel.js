@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { notifyTutorWalletCredit } from '../utils/notificationHelper.js';
 
 const transactionSchema = new mongoose.Schema({
   type: {
@@ -125,13 +126,21 @@ walletSchema.index({ 'transactions.razorpayPaymentId': 1 });
 walletSchema.index({ 'transactions.createdAt': -1 });
 
 // Methods
-walletSchema.methods.addTransaction = function(transactionData) {
+walletSchema.methods.addTransaction = async function(transactionData) {
   this.transactions.push(transactionData);
   this.lastTransactionAt = new Date();
   
   if (transactionData.type === 'credit' || transactionData.type === 'commission') {
     this.balance += transactionData.amount;
     this.totalEarnings += transactionData.amount;
+    
+    if (this.ownerType === 'Tutor') {
+      await notifyTutorWalletCredit(
+        this.owner, 
+        transactionData.amount, 
+        transactionData.description || 'Course sale commission'
+      );
+    }
   } else if (transactionData.type === 'debit' || transactionData.type === 'withdrawal') {
     this.balance -= transactionData.amount;
     this.totalWithdrawals += transactionData.amount;

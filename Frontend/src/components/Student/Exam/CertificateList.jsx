@@ -25,38 +25,46 @@ const CertificateList = () => {
 
   const downloadCertificate = async (certificateId, courseName) => {
     try {
-      const response = await userAPI.get(
-        `/api/users/certificates/${certificateId}/download`,
-        { responseType: 'blob' }
-      );
+      const response = await userAPI.get(`/api/users/certificates/${certificateId}/download`);
       
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${courseName}_Certificate.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      toast.success('Certificate downloaded successfully!');
+      // Check if response contains download URL (Cloudinary)
+      if (response.data.success && response.data.downloadUrl) {
+        // Create a temporary link to download from Cloudinary
+        const link = document.createElement('a');
+        link.href = response.data.downloadUrl;
+        link.download = response.data.fileName || `${courseName}_Certificate.pdf`;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast.success('Certificate downloaded successfully!');
+      } else {
+        // Fallback to blob download for legacy certificates
+        const blobResponse = await userAPI.get(
+          `/api/users/certificates/${certificateId}/download`,
+          { responseType: 'blob' }
+        );
+        
+        const blob = new Blob([blobResponse.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${courseName}_Certificate.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        toast.success('Certificate downloaded successfully!');
+      }
     } catch (error) {
       toast.error('Failed to download certificate');
     }
   };
 
-  const copyVerificationLink = (verificationCode) => {
-    const verificationUrl = `${window.location.origin}/verify-certificate/${verificationCode}`;
-    navigator.clipboard.writeText(verificationUrl);
-    toast.success('Verification link copied to clipboard!');
-  };
+ 
 
-  const shareOnLinkedIn = (courseName, verificationCode) => {
-    const verificationUrl = `${window.location.origin}/verify-certificate/${verificationCode}`;
-    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(verificationUrl)}&title=${encodeURIComponent(`I just completed ${courseName}!`)}&summary=${encodeURIComponent(`I'm excited to share that I've successfully completed ${courseName} and earned a certificate!`)}`;
-    window.open(linkedInUrl, '_blank');
-  };
 
   if (loading) {
     return (
@@ -129,19 +137,10 @@ const CertificateList = () => {
                     {new Date(certificate.completionDate).toLocaleDateString()}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Downloads:</span>
-                  <span className="font-medium">{certificate.downloadCount}</span>
-                </div>
+                
               </div>
 
-              {/* Verification Code */}
-              <div className="bg-gray-50 rounded p-2 mb-4">
-                <div className="text-xs text-gray-500 mb-1">Verification Code</div>
-                <div className="font-mono text-sm text-gray-800">
-                  {certificate.verificationCode}
-                </div>
-              </div>
+              
 
               {/* Action Buttons */}
               <div className="space-y-2">
@@ -152,20 +151,7 @@ const CertificateList = () => {
                   Download PDF
                 </button>
                 
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => copyVerificationLink(certificate.verificationCode)}
-                    className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 text-xs"
-                  >
-                    Copy Link
-                  </button>
-                  <button
-                    onClick={() => shareOnLinkedIn(certificate.courseName, certificate.verificationCode)}
-                    className="flex-1 px-3 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 text-xs"
-                  >
-                    Share on LinkedIn
-                  </button>
-                </div>
+                
               </div>
 
               {/* Status Indicators */}
@@ -196,19 +182,14 @@ const CertificateList = () => {
       {/* Summary Stats */}
       <div className="bg-white rounded-lg shadow-lg p-6 mt-8">
         <h3 className="text-lg font-semibold mb-4">Certificate Statistics</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
               {certificates.length}
             </div>
             <div className="text-sm text-gray-600">Total Certificates</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {certificates.reduce((sum, cert) => sum + cert.downloadCount, 0)}
-            </div>
-            <div className="text-sm text-gray-600">Total Downloads</div>
-          </div>
+          
           <div className="text-center">
             <div className="text-2xl font-bold text-purple-600">
               {Math.round(certificates.reduce((sum, cert) => sum + cert.score, 0) / certificates.length) || 0}%

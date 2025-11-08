@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Play, 
-  Clock, 
-  Users, 
-  Star, 
-  CheckCircle, 
-  PlayCircle, 
+import {
+  Play,
+  Users,
+  Star,
+  CheckCircle,
+  PlayCircle,
   ArrowLeft,
   Calendar,
   Award,
   TrendingUp,
   Eye,
-  EyeOff
+  EyeOff,
+  ExternalLink
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import AdminLayout from './common/AdminLayout';
@@ -55,7 +55,7 @@ const CourseDetail = () => {
     const action = course.listed ? 'unlist' : 'list';
     const result = await Swal.fire({
       title: `${action.charAt(0).toUpperCase() + action.slice(1)} Course?`,
-      text: course.listed 
+      text: course.listed
         ? 'This course will be hidden from students and they won\'t be able to enroll.'
         : 'This course will be visible to students and they can enroll.',
       icon: 'question',
@@ -80,6 +80,33 @@ const CourseDetail = () => {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const toggleLessonPublish = async (lessonId, currentStatus) => {
+    setActionLoading(true);
+    try {
+      const response = await adminAPI.patch(`/api/admin/lessons/${lessonId}/toggle-publish`);
+      if (response.data.success) {
+        setCourse(prev => ({
+          ...prev,
+          lessons: prev.lessons.map(lesson =>
+            lesson._id === lessonId
+              ? { ...lesson, isPublished: !currentStatus }
+              : lesson
+          )
+        }));
+
+        toast.success(`Lesson ${!currentStatus ? 'published' : 'unpublished'} successfully`);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update lesson status');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleViewLesson = (lesson) => {
+    navigate(`/admin/lessons/${lesson._id}/view/${courseId}`);
   };
 
   if (loading) {
@@ -132,22 +159,20 @@ const CourseDetail = () => {
                 <span className="inline-block px-4 py-2 bg-teal-100 text-teal-800 text-sm font-semibold rounded-full">
                   {course.category?.title || 'Course'}
                 </span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  course.listed 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${course.listed
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+                  }`}>
                   {course.listed ? 'Listed' : 'Unlisted'}
                 </span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  course.isActive 
-                    ? 'bg-blue-100 text-blue-800' 
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${course.isActive
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-gray-100 text-gray-800'
+                  }`}>
                   {course.isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
-              
+
               <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
                 {course.title}
               </h1>
@@ -194,11 +219,10 @@ const CourseDetail = () => {
                   <p className="text-gray-600 mb-2">Professional Instructor</p>
                   <div className="flex items-center gap-4 text-sm text-gray-500">
                     <span>ID: {course.tutor?.tutor_id}</span>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      course.tutor?.is_blocked 
-                        ? 'bg-red-100 text-red-800' 
-                        : 'bg-green-100 text-green-800'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-xs ${course.tutor?.is_blocked
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-green-100 text-green-800'
+                      }`}>
                       {course.tutor?.is_blocked ? 'Blocked' : 'Active'}
                     </span>
                   </div>
@@ -253,10 +277,47 @@ const CourseDetail = () => {
                         <p className="text-gray-600">
                           {lesson.description || 'Course lesson content'}
                         </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${lesson.isPublished
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                            }`}>
+                            {lesson.isPublished ? 'Published' : 'Unpublished'}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-sm text-gray-500 font-medium">
-                      {lesson.duration || '10:00'}
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-gray-500 font-medium">
+                        {lesson.duration || '10:00'}
+                      </div>
+                      <button
+                        onClick={() => handleViewLesson(lesson)}
+                        className="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        View
+                      </button>
+                      <button
+                        onClick={() => toggleLessonPublish(lesson._id, lesson.isPublished)}
+                        disabled={actionLoading}
+                        className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium transition-colors ${lesson.isPublished
+                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
+                          } disabled:opacity-50`}
+                      >
+                        {lesson.isPublished ? (
+                          <>
+                            <EyeOff className="h-4 w-4 mr-1" />
+                            Unpublish
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="h-4 w-4 mr-1" />
+                            Publish
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 ))
@@ -324,11 +385,10 @@ const CourseDetail = () => {
                 <button
                   onClick={handleToggleListing}
                   disabled={actionLoading}
-                  className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg font-medium transition-colors ${
-                    course.listed
-                      ? 'bg-red-600 hover:bg-red-700 text-white'
-                      : 'bg-green-600 hover:bg-green-700 text-white'
-                  } ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-lg font-medium transition-colors ${course.listed
+                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    : 'bg-green-600 hover:bg-green-700 text-white'
+                    } ${actionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {course.listed ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   {actionLoading ? 'Processing...' : (course.listed ? 'Unlist Course' : 'List Course')}
@@ -369,6 +429,8 @@ const CourseDetail = () => {
           </div>
         </div>
       </div>
+
+
     </AdminLayout>
   );
 };

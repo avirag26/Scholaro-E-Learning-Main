@@ -2,6 +2,7 @@ import { Course } from "../../Model/CourseModel.js";
 import Category from "../../Model/CategoryModel.js";
 import Cart from "../../Model/CartModel.js";
 import Wishlist from "../../Model/WishlistModel.js";
+import Lesson from "../../Model/LessonModel.js";
 import mongoose from "mongoose";
 
 const getCoursesByCategory = async (req, res) => {
@@ -376,7 +377,7 @@ const getCourseDetails = async (req, res) => {
     const course = await Course.findById(courseId)
       .populate('category', 'title description')
       .populate('tutor', 'full_name email profileImage bio')
-      .populate('lessons', 'title description duration order');
+      .populate('lessons', 'title description duration order isPublished');
 
     if (!course) {
       return res.status(404).json({
@@ -552,10 +553,100 @@ const refreshEnrollmentCounts = async (req, res) => {
   }
 };
 
+const getLessonDetails = async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(lessonId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid lesson ID"
+      });
+    }
+
+    const lesson = await Lesson.findById(lessonId)
+      .populate('course', 'title description tutor')
+      .populate({
+        path: 'course',
+        populate: {
+          path: 'tutor',
+          select: 'full_name email'
+        }
+      });
+
+    if (!lesson) {
+      return res.status(404).json({
+        success: false,
+        message: "Lesson not found"
+      });
+    }
+
+    const formattedLesson = {
+      _id: lesson._id,
+      title: lesson.title,
+      description: lesson.description,
+      videoUrl: lesson.videoUrl,
+      thumbnailUrl: lesson.thumbnailUrl,
+      pdfUrl: lesson.pdfUrl,
+      duration: lesson.duration,
+      order: lesson.order,
+      isPublished: lesson.isPublished,
+      isFinalLesson: lesson.isFinalLesson,
+      isRequired: lesson.isRequired,
+      views: lesson.views,
+      course: lesson.course,
+      createdAt: lesson.createdAt,
+      updatedAt: lesson.updatedAt
+    };
+
+    res.status(200).json({
+      success: true,
+      lesson: formattedLesson
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch lesson details",
+      error: error.message
+    });
+  }
+};
+
+const adminToggleLessonPublish = async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+
+    const lesson = await Lesson.findById(lessonId);
+    if (!lesson) {
+      return res.status(404).json({
+        success: false,
+        message: "Lesson not found"
+      });
+    }
+
+    lesson.isPublished = !lesson.isPublished;
+    await lesson.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Lesson ${lesson.isPublished ? 'published' : 'unpublished'} successfully`,
+      isPublished: lesson.isPublished
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to toggle lesson status"
+    });
+  }
+};
+
 export {
   getCoursesByCategory,
   getAllCourses,
   getCourseDetails,
   toggleCourseListing,
-  refreshEnrollmentCounts
+  refreshEnrollmentCounts,
+  getLessonDetails,
+  adminToggleLessonPublish
 };

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Bell, User } from "lucide-react";
+import NotificationDropdown from "../../../components/Notifications/NotificationDropdown";
 export default function Header() {
   const navigate = useNavigate();
   const [tutorInfo, setTutorInfo] = useState(null);
@@ -52,9 +53,7 @@ export default function Header() {
         {}
         <div className="flex items-center space-x-4">
           {}
-          <button className="p-2 text-gray-600 hover:text-sky-500 hover:bg-sky-50 rounded-full transition-colors">
-            <Bell className="w-5 h-5" />
-          </button>
+          <NotificationDropdown userType="tutor" />
           {}
           <div className="flex items-center space-x-3">
             <button 

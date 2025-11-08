@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import {  useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, Search, ShoppingCart, Bell, MoreVertical, Heart, MessageCircle } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useCurrentUser } from "../../../hooks/useCurrentUser";
 import { getCart } from "../../../Redux/cartSlice";
 import { getWishlist } from "../../../Redux/wishlistSlice";
+import NotificationDropdown from "../../../components/Notifications/NotificationDropdown";
 export default function Header({ onMenuClick }) {
   const { user } = useCurrentUser(); // Get user from Redux
   const dispatch = useDispatch();
@@ -46,19 +47,9 @@ export default function Header({ onMenuClick }) {
             Scholaro
           </Link>
         </div>
-        {}
-        <div className="hidden md:flex relative flex-1 max-w-lg mx-4">
-          <input
-            type="text"
-            placeholder="Search courses..."
-            className="w-full bg-gray-100 text-gray-700 rounded-full pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500"
-          />
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-            <Search className="h-5 w-5" />
-          </span>
-        </div>
-        {}
-        <nav className="hidden lg:flex gap-6 items-center">
+        
+        
+        <nav className="hidden lg:flex gap-9 items-center">
           <Link
             to="/user/home"
             className="text-sm font-medium hover:text-sky-500 text-gray-900"
@@ -155,20 +146,7 @@ export default function Header({ onMenuClick }) {
           </div>
 
           {/* Notifications */}
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative hover:bg-gray-100"
-            >
-              <Bell className="h-5 w-5" />
-              {notificationCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                  {notificationCount}
-                </span>
-              )}
-            </Button>
-          </div>
+          <NotificationDropdown userType="user" />
           <img
             src={user?.profileImage || avatar}
             alt="Profile"

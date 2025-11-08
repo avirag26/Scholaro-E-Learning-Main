@@ -4,6 +4,7 @@ import { Play, ArrowLeft, BookOpen, Clock, MessageCircle, Award, CheckCircle } f
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import { userAPI } from '../../api/axiosConfig';
+import PDFViewer from '../../components/PDFViewer';
 import '../../styles/videoProtection.css';
 
 const CourseLearning = () => {
@@ -29,8 +30,18 @@ const CourseLearning = () => {
 
     useEffect(() => {
         if (lessons.length > 0 && !currentLesson) {
-            setCurrentLesson(lessons[0]);
-            setCurrentLessonIndex(0);
+            // Find the first published lesson
+            const firstPublishedLesson = lessons.find(lesson => lesson.isPublished);
+            const firstPublishedIndex = lessons.findIndex(lesson => lesson.isPublished);
+            
+            if (firstPublishedLesson) {
+                setCurrentLesson(firstPublishedLesson);
+                setCurrentLessonIndex(firstPublishedIndex);
+            } else {
+                // If no published lessons, show a message
+                setCurrentLesson(null);
+                setCurrentLessonIndex(0);
+            }
             setVideoLoading(false); // Ensure loading is false for first lesson
         }
     }, [lessons, currentLesson]);
@@ -151,6 +162,12 @@ const CourseLearning = () => {
     };
 
     const handleLessonSelect = (lesson, index) => {
+        // Check if lesson is published
+        if (!lesson.isPublished) {
+            toast.info('This lesson is not yet available. The instructor is still preparing the content.');
+            return;
+        }
+
         setCurrentLesson(lesson);
         setCurrentLessonIndex(index);
         setVideoLoading(true);
@@ -219,20 +236,32 @@ const CourseLearning = () => {
                             <div className="flex items-center justify-between mb-2">
                                 <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
                                     <BookOpen className="w-4 h-4" />
-                                    Lessons ({lessons.length})
+                                    Lessons ({lessons.filter(l => l.isPublished).length}/{lessons.length})
                                 </h3>
-                                <span className="text-xs text-gray-500">
-                                    {completedLessons.length}/{lessons.length} completed
+                                <span className="text-xs text-gray-500 font-medium">
+                                    {completedLessons.length}/{Math.max(1, lessons.filter(l => l.isPublished).length)} completed
                                 </span>
                             </div>
-                            {lessons.length > 0 && (
-                                <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="flex items-center gap-3 mb-1">
+                                <div className="flex-1 bg-gray-200 rounded-full h-2 lesson-progress-bar">
                                     <div 
-                                        className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                                        style={{ width: `${(completedLessons.length / lessons.length) * 100}%` }}
+                                        className={`h-2 rounded-full lesson-progress-fill ${
+                                            lessons.filter(l => l.isPublished).length > 0 ? 'bg-green-500' : 'bg-gray-400'
+                                        }`}
+                                        style={{ 
+                                            width: lessons.filter(l => l.isPublished).length > 0 
+                                                ? `${Math.min(100, Math.max(0, (completedLessons.length / lessons.filter(l => l.isPublished).length) * 100))}%`
+                                                : '0%'
+                                        }}
                                     ></div>
                                 </div>
-                            )}
+                                <span className="text-xs text-gray-600 font-semibold min-w-[35px] text-right">
+                                    {lessons.filter(l => l.isPublished).length > 0 
+                                        ? `${Math.round((completedLessons.length / lessons.filter(l => l.isPublished).length) * 100)}%`
+                                        : '0%'
+                                    }
+                                </span>
+                            </div>
                         </div>
 
                         {lessons.length === 0 ? (
@@ -246,25 +275,48 @@ const CourseLearning = () => {
                                 {lessons.map((lesson, index) => (
                                     <div
                                         key={lesson._id}
-                                        onClick={() => handleLessonSelect(lesson, index)}
-                                        className={`p-3 rounded-lg border cursor-pointer transition-all ${currentLesson?._id === lesson._id
-                                            ? 'bg-teal-50 border-teal-200 shadow-sm'
-                                            : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                                            }`}
+                                        onClick={() => lesson.isPublished ? handleLessonSelect(lesson, index) : null}
+                                        className={`p-3 rounded-lg border transition-all relative ${
+                                            !lesson.isPublished 
+                                                ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-60' 
+                                                : currentLesson?._id === lesson._id
+                                                    ? 'bg-teal-50 border-teal-200 shadow-sm cursor-pointer'
+                                                    : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm cursor-pointer'
+                                        }`}
                                     >
+                                        {/* Blur overlay for unpublished lessons */}
+                                        {!lesson.isPublished && (
+                                            <div className="absolute inset-0 bg-white bg-opacity-50 lesson-blur-overlay rounded-lg flex items-center justify-center z-10">
+                                                <div className="text-center coming-soon-pulse">
+                                                    <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center mx-auto mb-2">
+                                                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </div>
+                                                    <p className="text-xs text-gray-600 font-medium">Unavailabe</p>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="flex items-start gap-3">
-                                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${currentLesson?._id === lesson._id
-                                                ? 'bg-teal-600 text-white'
-                                                : 'bg-gray-100 text-gray-600'
-                                                }`}>
+                                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                                                !lesson.isPublished
+                                                    ? 'bg-gray-300 text-gray-500'
+                                                    : currentLesson?._id === lesson._id
+                                                        ? 'bg-teal-600 text-white'
+                                                        : 'bg-gray-100 text-gray-600'
+                                            }`}>
                                                 <Play className="w-3 h-3" />
                                             </div>
 
                                             <div className="flex-1 min-w-0">
-                                                <h4 className={`text-sm font-medium ${currentLesson?._id === lesson._id
-                                                    ? 'text-teal-900'
-                                                    : 'text-gray-900'
-                                                    }`}>
+                                                <h4 className={`text-sm font-medium ${
+                                                    !lesson.isPublished
+                                                        ? 'text-gray-500'
+                                                        : currentLesson?._id === lesson._id
+                                                            ? 'text-teal-900'
+                                                            : 'text-gray-900'
+                                                }`}>
                                                     Lesson {index + 1}: {lesson.title}
                                                 </h4>
                                                 <div className="flex items-center gap-2 mt-1">
@@ -272,12 +324,23 @@ const CourseLearning = () => {
                                                     <span className="text-xs text-gray-500">
                                                         {lesson.duration || 'N/A'}
                                                     </span>
+                                                    {!lesson.isPublished && (
+                                                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
+                                                            Unpublished
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                             
                                             {/* Completion Status */}
                                             <div className="flex-shrink-0">
-                                                {completedLessons.includes(lesson._id) ? (
+                                                {!lesson.isPublished ? (
+                                                    <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center opacity-50">
+                                                        <svg className="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </div>
+                                                ) : completedLessons.includes(lesson._id) ? (
                                                     <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
                                                         <CheckCircle className="w-3 h-3 text-white" />
                                                     </div>
@@ -495,7 +558,17 @@ const CourseLearning = () => {
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        {completedLessons.includes(currentLesson._id) ? (
+                                        {!currentLesson.isPublished ? (
+                                            <button
+                                                disabled
+                                                className="flex items-center gap-2 px-4 py-2 bg-gray-400 text-white rounded-lg opacity-75 cursor-not-allowed"
+                                            >
+                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                                </svg>
+                                                Unavailable
+                                            </button>
+                                        ) : completedLessons.includes(currentLesson._id) ? (
                                             <button
                                                 disabled
                                                 className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg opacity-75 cursor-not-allowed"
@@ -526,19 +599,93 @@ const CourseLearning = () => {
                             {/* Lesson Description */}
                             <div className="flex-1 bg-gray-50 p-6">
                                 <div className="bg-white rounded-lg p-6">
+                                    {!currentLesson.isPublished && (
+                                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <svg className="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                </svg>
+                                                <span className="text-sm font-medium text-yellow-800">Lesson Not Available</span>
+                                            </div>
+                                            <p className="text-sm text-yellow-700">
+                                                This lesson is currently being prepared by the instructor and is not yet available for viewing. 
+                                                You'll be notified when it becomes available.
+                                            </p>
+                                        </div>
+                                    )}
                                     <h3 className="text-lg font-semibold text-gray-900 mb-4">About this lesson</h3>
-                                    <p className="text-gray-600 leading-relaxed">
+                                    <p className="text-gray-600 leading-relaxed mb-6">
                                         {currentLesson.description || 'No description available for this lesson.'}
                                     </p>
+
+                                    {/* PDF Materials Section */}
+                                    {currentLesson.pdfUrl && currentLesson.isPublished && (
+                                        <div className="border-t border-gray-200 pt-6">
+                                            <h4 className="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                                <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                                </svg>
+                                                Lesson Materials
+                                            </h4>
+                                            <div className="bg-gray-50 rounded-lg p-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                                                            <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                                            </svg>
+                                                        </div>
+                                                        <div>
+                                                            <h5 className="font-medium text-gray-900">Lesson Notes & Materials</h5>
+                                                            <p className="text-sm text-gray-500">PDF Document - Study materials for this lesson</p>
+                                                        </div>
+                                                    </div>
+                                                    <PDFViewer
+                                                        pdfUrl={currentLesson.pdfUrl}
+                                                        title={`${currentLesson.title} - Lesson Materials`}
+                                                        filename={`${currentLesson.title}_notes.pdf`}
+                                                        size="sm"
+                                                    />
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </>
                     ) : (
                         <div className="flex-1 flex items-center justify-center">
                             <div className="text-center">
-                                <Play className="w-24 h-24 text-gray-300 mx-auto mb-4" />
-                                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Select a lesson to start learning</h2>
-                                <p className="text-gray-600">Choose a lesson from the sidebar to begin</p>
+                                {lessons.length === 0 ? (
+                                    <>
+                                        <BookOpen className="w-24 h-24 text-gray-300 mx-auto mb-4" />
+                                        <h2 className="text-2xl font-semibold text-gray-900 mb-2">No lessons available yet</h2>
+                                        <p className="text-gray-600">The instructor is still preparing the course content</p>
+                                    </>
+                                ) : lessons.every(lesson => !lesson.isPublished) ? (
+                                    <>
+                                        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <svg className="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Lessons are being prepared</h2>
+                                        <p className="text-gray-600 mb-4">All lessons are currently unpublished. The instructor is working on making them available.</p>
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+                                            <p className="text-sm text-blue-800">
+                                                <strong>What does this mean?</strong><br />
+                                                The instructor is still finalizing the lesson content. You'll be notified when lessons become available.
+                                            </p>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Play className="w-24 h-24 text-gray-300 mx-auto mb-4" />
+                                        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Select a lesson to start learning</h2>
+                                        <p className="text-gray-600">Choose a published lesson from the sidebar to begin</p>
+                                    </>
+                                )}
                             </div>
                         </div>
                     )}

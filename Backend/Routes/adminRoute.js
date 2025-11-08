@@ -35,7 +35,9 @@ import {
   getAllCourses,
   getCourseDetails,
   toggleCourseListing,
-  refreshEnrollmentCounts
+  refreshEnrollmentCounts,
+  getLessonDetails,
+  adminToggleLessonPublish
 } from '../Controllers/admin/courseManagementController.js';
 import {
   getDashboardStats
@@ -54,6 +56,12 @@ import {
   updateOrderStatus,
   getOrderStats
 } from '../Controllers/admin/orderManagementController.js';
+import {
+  getUserNotifications,
+  markAsRead,
+  getUnreadCount,
+  clearAllNotifications
+} from '../Controllers/common/notificationController.js';
 import { protectAdmin } from '../Middleware/adminMiddleware.js';
 
 const router = express.Router();
@@ -86,6 +94,8 @@ router.get('/courses', protectAdmin, getAllCourses);
 router.get('/courses/:courseId/details', protectAdmin, getCourseDetails);
 router.patch('/courses/:courseId/toggle-listing', protectAdmin, toggleCourseListing);
 router.post('/courses/refresh-enrollment-counts', protectAdmin, refreshEnrollmentCounts);
+router.get('/lessons/:lessonId/details', protectAdmin, getLessonDetails);
+router.patch('/lessons/:lessonId/toggle-publish', protectAdmin, adminToggleLessonPublish);
 router.put('/categories/:id', protectAdmin, updateCategory);
 router.delete('/categories/:id', protectAdmin, deleteCategory);
 router.patch('/categories/:id/toggle-visibility', protectAdmin, toggleCategoryVisibility);
@@ -122,5 +132,11 @@ router.delete('/carts/cleanup-unavailable', protectAdmin, cleanupUnavailableCour
 router.get('/wallet', protectAdmin, getWallet);
 router.get('/wallet/transactions', protectAdmin, getWalletTransactions);
 router.get('/wallet/statistics', protectAdmin, getWalletStatistics);
+
+// Notification routes
+router.get('/notifications', protectAdmin, getUserNotifications);
+router.put('/notifications/:notificationId/read', protectAdmin, markAsRead);
+router.get('/notifications/unread-count', protectAdmin, getUnreadCount);
+router.delete('/notifications/clear-all', protectAdmin, clearAllNotifications);
 
 export default router;

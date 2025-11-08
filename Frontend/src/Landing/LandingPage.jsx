@@ -7,7 +7,7 @@ import AboutSection from "../ui/AboutSection";
 import CategoryCards from "../ui/CategoryCards";
 import StatsSection from "../ui/StatsSection";
 import TeamSection from "../ui/TeamSection";
-import Testimonials from "../ui/Testmonials";
+import Testimonials from "../ui/Testimonials";
 import BannerImg from '../assets/banner.png'
 export default function LandingPage(){
     const navigate=useNavigate()

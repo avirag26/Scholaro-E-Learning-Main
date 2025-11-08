@@ -380,32 +380,7 @@ const ExamCreator = ({ courseId, onExamCreated, onExamUpdated, existingExam = nu
             />
           </div>
         </div>
-        <div className="mt-4 flex space-x-6">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={examData?.settings?.shuffleQuestions ?? true}
-              onChange={(e) => setExamData(prev => ({
-                ...prev,
-                settings: { ...prev.settings, shuffleQuestions: e.target.checked }
-              }))}
-              className="mr-2"
-            />
-            Shuffle Questions
-          </label>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={examData?.settings?.shuffleOptions ?? true}
-              onChange={(e) => setExamData(prev => ({
-                ...prev,
-                settings: { ...prev.settings, shuffleOptions: e.target.checked }
-              }))}
-              className="mr-2"
-            />
-            Shuffle Options
-          </label>
-        </div>
+      
       </div>
     </div>
   );

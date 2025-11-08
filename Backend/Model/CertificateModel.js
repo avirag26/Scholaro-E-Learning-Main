@@ -32,6 +32,9 @@ const certificateSchema = new mongoose.Schema({
   certificateUrl: {
     type: String // URL to generated PDF
   },
+  cloudinaryPublicId: {
+    type: String // Cloudinary public ID for file management
+  },
   studentName: {
     type: String,
     required: true

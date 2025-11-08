@@ -67,6 +67,12 @@ import {
   setFinalLesson,
   updateExamSettings
 } from "../Controllers/tutor/examController.js";
+import {
+  getUserNotifications,
+  markAsRead,
+  getUnreadCount,
+  clearAllNotifications
+} from "../Controllers/common/notificationController.js";
 import { protectTutor } from "../Middleware/tutorMiddleware.js";
 
 router.post("/", registerTutor);
@@ -99,6 +105,7 @@ router.get("/lesson/:lessonId", protectTutor, getLessonDetails);
 router.put("/lessons/:lessonId", protectTutor, updateLesson);
 router.delete("/lessons/:lessonId", protectTutor, deleteLesson);
 router.patch("/lessons/:lessonId/toggle-publish", protectTutor, toggleLessonPublish);
+
 router.post("/submit-course/:courseId", submitCourse);
 router.get("/courses/category/:categoryId", getCourseByCategory);
 
@@ -130,5 +137,11 @@ router.get("/wallet", protectTutor, getWallet);
 router.get("/wallet/transactions", protectTutor, getWalletTransactions);
 router.put("/wallet/bank-details", protectTutor, updateBankDetails);
 router.post("/wallet/withdraw", protectTutor, requestWithdrawal);
+
+// Notification routes
+router.get('/notifications', protectTutor, getUserNotifications);
+router.put('/notifications/:notificationId/read', protectTutor, markAsRead);
+router.get('/notifications/unread-count', protectTutor, getUnreadCount);
+router.delete('/notifications/clear-all', protectTutor, clearAllNotifications);
 
 export default router;
