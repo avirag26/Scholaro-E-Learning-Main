@@ -9,8 +9,9 @@ const getDashboardStats = async (req, res) => {
     const Tutor = (await import('../../Model/TutorModel.js')).default;
     const Order = (await import('../../Model/OrderModel.js')).default;
 
-    // Get user statistics
+    // Get user statistics (students only)
     const totalUsers = await User.countDocuments();
+    const activeUsers = await User.countDocuments({ is_blocked: false });
     const verifiedUsers = await User.countDocuments({ is_verified: true });
     const blockedUsers = await User.countDocuments({ is_blocked: true });
 
@@ -30,25 +31,14 @@ const getDashboardStats = async (req, res) => {
     // Get order statistics
     const totalOrders = await Order.countDocuments();
     
-    // Calculate total revenue from completed orders
-    const revenueResult = await Order.aggregate([
-      {
-        $match: {
-          status: 'completed'
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          totalRevenue: { $sum: '$totalAmount' }
-        }
-      }
-    ]);
-
-    const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
+    // Calculate total revenue from admin wallet earnings
+    const Wallet = (await import('../../Model/WalletModel.js')).default;
+    const adminWallet = await Wallet.findOne({ ownerType: 'Admin' });
+    const totalRevenue = adminWallet ? adminWallet.totalEarnings : 0;
 
     const stats = {
       totalUsers,
+      activeUsers,
       totalTutors,
       verifiedUsers,
       verifiedTutors,

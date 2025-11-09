@@ -209,21 +209,15 @@ const TutorOrders = () => {
               </div>
 
               {/* Status Filters */}
-              <div className="flex gap-2">
-                {['all', 'paid'].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => handleStatusFilter(status)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      filters.status === status
-                        ? 'bg-teal-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {status === 'all' ? 'All Sales' : 'Completed'}
+              <button className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors 
+                   
+                        bg-teal-600 text-white
+                        
+                    `}>
+              All Sales
+                    
+                    
                   </button>
-                ))}
-              </div>
             </div>
           </div>
         </div>

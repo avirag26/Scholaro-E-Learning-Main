@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Search, Users, BookOpen, GraduationCap, DollarSign, TrendingUp, LogOut, User, Wallet } from 'lucide-react';
-import { toast } from 'sonner';
+
 import { useLogout } from '../../../hooks/useLogout';
 import Footer from '../../../components/Common/Footer';
 import NotificationDropdown from '../../../components/Notifications/NotificationDropdown';
@@ -27,6 +27,7 @@ export default function AdminLayout({ children, title, subtitle }) {
                 try {
                     setAdminInfo(JSON.parse(storedAdminInfo));
                 } catch (error) {
+                    console.log(error)
                 }
             }
         };
@@ -57,9 +58,7 @@ export default function AdminLayout({ children, title, subtitle }) {
                     {}
                     <div className="flex items-center space-x-8">
                         <h1 className="text-2xl font-bold text-sky-500">Scholaro</h1>
-                        <nav className="hidden md:flex space-x-6">
-                            <a href="#" className="text-gray-600 hover:text-sky-500">Categories</a>
-                        </nav>
+                        
                     </div>
                     
                     

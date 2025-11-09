@@ -217,8 +217,9 @@ export default function AdminDashboard() {
                     <div className="bg-white p-6 rounded-lg shadow">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-gray-600 text-sm">Total Students</p>
-                                <p className="text-2xl font-bold text-gray-800">{loading ? '...' : stats.totalUsers}</p>
+                                <p className="text-gray-600 text-sm">Active Students</p>
+                                <p className="text-2xl font-bold text-gray-800">{loading ? '...' : stats.activeUsers}</p>
+                                <p className="text-xs text-gray-500">Total: {loading ? '...' : stats.totalUsers}</p>
                             </div>
                             <Users className="w-8 h-8 text-sky-500" />
                         </div>
@@ -319,26 +320,7 @@ export default function AdminDashboard() {
                                         </svg>
                                     </div>
                                 </div>
-                                <select
-                                    value={statusFilter}
-                                    onChange={(e) => handleStatusFilter(e.target.value)}
-                                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                                >
-                                    <option value="all">All Status</option>
-                                    <option value="active">Active</option>
-                                    <option value="listed">Listed</option>
-                                    <option value="unlisted">Unlisted</option>
-                                </select>
-                                <button
-                                    onClick={() => {
-                                        setSearchTerm('');
-                                        setStatusFilter('all');
-                                        setCurrentPage(1);
-                                    }}
-                                    className="px-3 py-1 bg-red-100 text-red-600 rounded text-sm hover:bg-red-200"
-                                >
-                                    Clear
-                                </button>
+                               
                             </div>
                         </div>
                     </div>
@@ -353,14 +335,9 @@ export default function AdminDashboard() {
                                         Students
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Enrolled
+                                        Lessons
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Drafts
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Rating
-                                    </th>
+                                   
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Notice
                                     </th>
@@ -395,14 +372,9 @@ export default function AdminDashboard() {
                                                 {course.enrolled_count || 0}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {course.enrolled_count || 0}
+                                                {course.lessons_count || 0}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                0
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                ⭐ {course.average_rating?.toFixed(1) || '0.0'}
-                                            </td>
+                                           
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 ₹{course.price || 0}
                                             </td>

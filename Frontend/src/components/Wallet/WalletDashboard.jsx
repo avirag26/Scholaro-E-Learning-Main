@@ -175,7 +175,7 @@ const WalletDashboard = ({ userType = 'tutor' }) => {
             </div>
 
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                 <div className="bg-gradient-to-r from-sky-500 to-blue-600 rounded-xl p-6 text-white">
                     <div className="flex items-center justify-between mb-4">
@@ -218,15 +218,6 @@ const WalletDashboard = ({ userType = 'tutor' }) => {
                 </div>
 
 
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                    <div className="flex items-center space-x-2 mb-4">
-                        <Clock className="h-5 w-5 text-yellow-500" />
-                        <span className="text-sm text-gray-600">Pending</span>
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900">
-                        {formatCurrency(walletData?.pendingAmount || 0)}
-                    </div>
-                </div>
             </div>
 
 
@@ -251,17 +242,7 @@ const WalletDashboard = ({ userType = 'tutor' }) => {
                         >
                             All Transactions
                         </button>
-                        {userType === 'tutor' && (
-                            <button
-                                onClick={() => setActiveTab('bank')}
-                                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'bank'
-                                    ? 'border-sky-500 text-sky-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                                    }`}
-                            >
-                                Bank Details
-                            </button>
-                        )}
+                        
 
                     </nav>
                 </div>

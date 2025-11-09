@@ -227,6 +227,18 @@ const getAllCourses = async (req, res) => {
       .limit(limit)
       .lean();
 
+    // Get lessons count for each course
+    const courseIds = courses.map(course => course._id);
+    const lessonCounts = await Lesson.aggregate([
+      { $match: { course: { $in: courseIds } } },
+      { $group: { _id: '$course', count: { $sum: 1 } } }
+    ]);
+    
+    const lessonCountMap = {};
+    lessonCounts.forEach(item => {
+      lessonCountMap[item._id.toString()] = item.count;
+    });
+
     const formattedCourses = courses.map(course => ({
       id: course._id,
       title: course.title,
@@ -237,6 +249,7 @@ const getAllCourses = async (req, res) => {
       average_rating: course.average_rating || 0,
       total_reviews: course.total_reviews || 0,
       enrolled_count: course.enrolled_count || 0,
+      lessons_count: lessonCountMap[course._id.toString()] || 0,
       listed: course.listed,
       isActive: course.isActive,
       isBanned: course.isBanned,
@@ -533,7 +546,8 @@ const refreshEnrollmentCounts = async (req, res) => {
 
     for (const course of courses) {
       const actualCount = await User.countDocuments({
-        'courses.course': course._id
+        'courses.course': course._id,
+        is_blocked: { $ne: true }
       });
 
       await Course.findByIdAndUpdate(course._id, {

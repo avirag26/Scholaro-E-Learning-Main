@@ -39,18 +39,11 @@ const TutorStatsCard = ({ stats, loading = false, className = "" }) => {
             bgColor: 'bg-purple-50',
             textColor: 'text-purple-600'
         },
-        {
-            icon: Star,
-            value: stats?.averageRating || '0.0',
-            label: 'Rating',
-            color: 'yellow',
-            bgColor: 'bg-yellow-50',
-            textColor: 'text-yellow-600'
-        }
+        
     ];
 
     return (
-        <div className={`grid grid-cols-2 md:grid-cols-2 gap-4 ${className}`}>
+        <div className={`grid grid-cols-2 md:grid-cols-3 gap-2 ${className}`}>
             {statsData.map((stat, index) => {
                 const Icon = stat.icon;
                 return (

@@ -312,9 +312,7 @@ const Tutors = () => {
         {pagination && (pagination.totalTutors > 0 || pagination.totalPages > 0) && (
           <div className="px-6 py-4 border-t border-gray-200">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                Showing {((pagination.currentPage - 1) * (pagination.limit || 5)) + 1} to {Math.min(pagination.currentPage * (pagination.limit || 5), pagination.totalTutors || 0)} of {pagination.totalTutors || 0} tutors
-              </div>
+              <span></span>
 
               {pagination.totalPages > 1 && (
                 <div className="flex items-center space-x-2">

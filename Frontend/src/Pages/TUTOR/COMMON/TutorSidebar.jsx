@@ -18,7 +18,7 @@ const TutorSidebar = () => {
     { path: '/tutor/courses', icon: FaBook, label: 'Courses' },
     { path: '/tutor/orders', icon: FaShoppingBag, label: 'Orders' },
     { path: '/tutor/wallet', icon: FaWallet, label: 'Wallet' },
-    { path: '/tutor/revenues', icon: FaChartBar, label: 'Revenues' },
+
     { path: '/tutor/chat', icon: FaComments, label: 'Chat & video' },
   ];
   const isActive = (path) => location.pathname === path;

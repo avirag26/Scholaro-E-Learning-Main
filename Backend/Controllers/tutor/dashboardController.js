@@ -12,11 +12,12 @@ const getTutorDashboardStats = async (req, res) => {
     const tutorCourses = await Course.find({ tutor: tutorId });
     const courseIds = tutorCourses.map(course => course._id);
 
-    // Calculate total students (unique enrollments across all courses)
+    // Calculate total students (unique enrollments across all courses, excluding blocked users)
     const totalStudentsResult = await User.aggregate([
       {
         $match: {
-          'courses.course': { $in: courseIds }
+          'courses.course': { $in: courseIds },
+          is_blocked: { $ne: true }
         }
       },
       {
@@ -34,8 +35,13 @@ const getTutorDashboardStats = async (req, res) => {
     
     const totalStudents = totalStudentsResult[0]?.totalStudents || 0;
 
-    // Calculate total revenue from tutor's courses
-    const revenueResult = await Order.aggregate([
+    // Calculate total revenue from tutor's wallet earnings
+    const Wallet = (await import('../../Model/WalletModel.js')).default;
+    const tutorWallet = await Wallet.findOne({ owner: tutorId, ownerType: 'Tutor' });
+    const totalRevenue = tutorWallet ? tutorWallet.totalEarnings : 0;
+
+    // Calculate total orders from tutor's courses
+    const orderResult = await Order.aggregate([
       {
         $match: {
           status: 'paid',
@@ -53,14 +59,12 @@ const getTutorDashboardStats = async (req, res) => {
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: '$items.price' },
           totalOrders: { $sum: 1 }
         }
       }
     ]);
 
-    const totalRevenue = revenueResult[0]?.totalRevenue || 0;
-    const totalOrders = revenueResult[0]?.totalOrders || 0;
+    const totalOrders = orderResult[0]?.totalOrders || 0;
 
     // Course statistics with proper aggregation
     const courseStats = await Course.aggregate([
@@ -100,38 +104,37 @@ const getTutorDashboardStats = async (req, res) => {
     // Get total lessons count
     const totalLessons = await Lesson.countDocuments({ tutor: tutorId });
 
-    // Get monthly revenue data for the current year
+    // Get monthly revenue data for the current year from wallet transactions
     const currentYear = new Date().getFullYear();
-    const monthlyRevenue = await Order.aggregate([
-      {
-        $match: {
-          status: 'paid',
-          'items.course': { $in: courseIds },
-          createdAt: {
-            $gte: new Date(currentYear, 0, 1),
-            $lt: new Date(currentYear + 1, 0, 1)
-          }
+    let monthlyRevenue = [];
+    
+    if (tutorWallet && tutorWallet.transactions.length > 0) {
+      // Filter transactions for current year and credit/commission types
+      const yearTransactions = tutorWallet.transactions.filter(transaction => {
+        const transactionYear = new Date(transaction.createdAt).getFullYear();
+        return transactionYear === currentYear && 
+               (transaction.type === 'credit' || transaction.type === 'commission') &&
+               transaction.status === 'completed';
+      });
+
+      // Group by month
+      const monthlyData = {};
+      yearTransactions.forEach(transaction => {
+        const month = new Date(transaction.createdAt).getMonth() + 1;
+        if (!monthlyData[month]) {
+          monthlyData[month] = { revenue: 0, orders: 0 };
         }
-      },
-      {
-        $unwind: '$items'
-      },
-      {
-        $match: {
-          'items.course': { $in: courseIds }
-        }
-      },
-      {
-        $group: {
-          _id: { $month: '$createdAt' },
-          revenue: { $sum: '$items.price' },
-          orders: { $sum: 1 }
-        }
-      },
-      {
-        $sort: { '_id': 1 }
-      }
-    ]);
+        monthlyData[month].revenue += transaction.amount;
+        monthlyData[month].orders += 1;
+      });
+
+      // Convert to array format
+      monthlyRevenue = Object.keys(monthlyData).map(month => ({
+        _id: parseInt(month),
+        revenue: monthlyData[month].revenue,
+        orders: monthlyData[month].orders
+      })).sort((a, b) => a._id - b._id);
+    }
 
     // Get top performing courses with correct enrolled count
     const topCourses = await Course.aggregate([
@@ -278,96 +281,79 @@ const getTutorDashboardStats = async (req, res) => {
       }
     ]);
 
-    // Get revenue by category
-    const revenueByCategory = await Order.aggregate([
-      {
-        $match: {
-          status: 'paid',
-          'items.course': { $in: courseIds }
+    // Get revenue by category from wallet transactions
+    let revenueByCategory = [];
+    
+    if (tutorWallet && tutorWallet.transactions.length > 0) {
+      // Get course-category mapping
+      const courseCategoryMap = {};
+      for (const course of tutorCourses) {
+        const populatedCourse = await Course.findById(course._id).populate('category');
+        if (populatedCourse && populatedCourse.category) {
+          courseCategoryMap[course._id.toString()] = populatedCourse.category.title;
         }
-      },
-      {
-        $unwind: '$items'
-      },
-      {
-        $match: {
-          'items.course': { $in: courseIds }
-        }
-      },
-      {
-        $lookup: {
-          from: 'courses',
-          localField: 'items.course',
-          foreignField: '_id',
-          as: 'courseInfo'
-        }
-      },
-      {
-        $unwind: '$courseInfo'
-      },
-      {
-        $lookup: {
-          from: 'categories',
-          localField: 'courseInfo.category',
-          foreignField: '_id',
-          as: 'categoryInfo'
-        }
-      },
-      {
-        $unwind: '$categoryInfo'
-      },
-      {
-        $group: {
-          _id: '$categoryInfo.title',
-          revenue: { $sum: '$items.price' },
-          courseCount: { $addToSet: '$items.course' }
-        }
-      },
-      {
-        $project: {
-          _id: 1,
-          revenue: 1,
-          courseCount: { $size: '$courseCount' }
-        }
-      },
-      {
-        $sort: { revenue: -1 }
       }
-    ]);
 
-    // Get daily activity for the last 30 days
+      // Group wallet transactions by category
+      const categoryData = {};
+      tutorWallet.transactions.forEach(transaction => {
+        if ((transaction.type === 'credit' || transaction.type === 'commission') && 
+            transaction.status === 'completed' && 
+            transaction.metadata && 
+            transaction.metadata.courseId) {
+          
+          const courseId = transaction.metadata.courseId.toString();
+          const categoryTitle = courseCategoryMap[courseId] || 'Other';
+          
+          if (!categoryData[categoryTitle]) {
+            categoryData[categoryTitle] = { revenue: 0, courseCount: new Set() };
+          }
+          categoryData[categoryTitle].revenue += transaction.amount;
+          categoryData[categoryTitle].courseCount.add(courseId);
+        }
+      });
+
+      // Convert to array format
+      revenueByCategory = Object.keys(categoryData).map(category => ({
+        _id: category,
+        revenue: categoryData[category].revenue,
+        courseCount: categoryData[category].courseCount.size
+      })).sort((a, b) => b.revenue - a.revenue);
+    }
+
+    // Get daily activity for the last 30 days from wallet transactions
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
-    const dailyActivity = await Order.aggregate([
-      {
-        $match: {
-          status: 'paid',
-          'items.course': { $in: courseIds },
-          createdAt: { $gte: thirtyDaysAgo }
+    let dailyActivity = [];
+    
+    if (tutorWallet && tutorWallet.transactions.length > 0) {
+      // Filter transactions for last 30 days
+      const recentTransactions = tutorWallet.transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.createdAt);
+        return transactionDate >= thirtyDaysAgo && 
+               (transaction.type === 'credit' || transaction.type === 'commission') &&
+               transaction.status === 'completed';
+      });
+
+      // Group by date
+      const dailyData = {};
+      recentTransactions.forEach(transaction => {
+        const dateStr = new Date(transaction.createdAt).toISOString().split('T')[0];
+        if (!dailyData[dateStr]) {
+          dailyData[dateStr] = { enrollments: 0, revenue: 0 };
         }
-      },
-      {
-        $unwind: '$items'
-      },
-      {
-        $match: {
-          'items.course': { $in: courseIds }
-        }
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
-          },
-          enrollments: { $sum: 1 },
-          revenue: { $sum: '$items.price' }
-        }
-      },
-      {
-        $sort: { '_id': 1 }
-      }
-    ]);
+        dailyData[dateStr].enrollments += 1;
+        dailyData[dateStr].revenue += transaction.amount;
+      });
+
+      // Convert to array format
+      dailyActivity = Object.keys(dailyData).map(date => ({
+        _id: date,
+        enrollments: dailyData[date].enrollments,
+        revenue: dailyData[date].revenue
+      })).sort((a, b) => a._id.localeCompare(b._id));
+    }
 
     // Get recent orders for this tutor's courses
     const recentOrders = await Order.find({

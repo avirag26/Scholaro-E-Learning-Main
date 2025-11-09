@@ -55,7 +55,8 @@ const ExamResults = () => {
         examAttemptId: attemptId
       });
 
-      setCertificate(response.data);
+      // The response contains a nested certificate object
+      setCertificate(response.data.certificate);
       toast.success('Certificate generated successfully!');
     } catch (error) {
       toast.error('Failed to generate certificate');
@@ -65,26 +66,93 @@ const ExamResults = () => {
   };
 
   const downloadCertificate = async () => {
+    if (!certificate || !certificate._id) {
+      toast.error('Certificate not found. Please generate the certificate first.');
+      return;
+    }
+
     try {
-      const response = await userAPI.get(
-        `/api/users/certificates/${certificate._id}/download`,
-        { responseType: 'blob' }
-      );
-
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${certificate.courseName}_Certificate.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      toast.success('Certificate downloaded successfully!');
+      // First try to get the download URL
+      const response = await userAPI.get(`/api/users/certificates/${certificate._id}/download`);
+      
+      // Check if response contains download URL (Cloudinary)
+      if (response.data.success && response.data.downloadUrl) {
+        // Create a temporary link to download from Cloudinary
+        const link = document.createElement('a');
+        link.href = response.data.downloadUrl;
+        link.download = response.data.fileName || `${certificate.courseName.replace(/\s+/g, '_')}_Certificate.pdf`;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast.success('Certificate download started!');
+        return;
+      }
+      
+      // If no download URL, try blob download
+      throw new Error('No download URL provided');
+      
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to download certificate';
-      toast.error(errorMessage);
+      // Check if it's a 500 error, suggest regeneration
+      if (error.response?.status === 500) {
+        toast.error('Certificate file not ready. Please try regenerating the certificate.');
+        // Reset certificate state to allow regeneration
+        setCertificate(null);
+        return;
+      }
+      
+      // Fallback to blob download for legacy certificates or errors
+      try {
+        const blobResponse = await userAPI.get(
+          `/api/users/certificates/${certificate._id}/download`,
+          { 
+            responseType: 'blob',
+            timeout: 30000 // 30 second timeout
+          }
+        );
+        
+        // Check if we got a valid blob
+        if (blobResponse.data && blobResponse.data.size > 0) {
+          // Check if it's HTML content
+          const contentType = blobResponse.headers['content-type'];
+          let fileExtension = '.pdf';
+          let mimeType = 'application/pdf';
+          
+          if (contentType && contentType.includes('text/html')) {
+            fileExtension = '.html';
+            mimeType = 'text/html';
+          }
+          
+          const blob = new Blob([blobResponse.data], { type: mimeType });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${certificate.courseName.replace(/\s+/g, '_')}_Certificate${fileExtension}`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          toast.success('Certificate downloaded successfully!');
+        } else {
+          throw new Error('Empty or invalid certificate file');
+        }
+      } catch (blobError) {
+        // Show specific error message and allow regeneration
+        let errorMessage = 'Failed to download certificate. Please try regenerating it.';
+        
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (blobError.response?.data?.message) {
+          errorMessage = blobError.response.data.message;
+        }
+        
+        toast.error(errorMessage);
+        // Reset certificate state to allow regeneration
+        setCertificate(null);
+      }
     }
   };
 
@@ -257,18 +325,30 @@ const ExamResults = () => {
                 <div>
                   <h4 className="font-medium text-green-800">Certificate Ready!</h4>
                   <p className="text-green-600 text-sm">
-                    Generated on {new Date(certificate.createdAt).toLocaleDateString()}
+                    Generated on {new Date(certificate.createdAt || Date.now()).toLocaleDateString()}
                   </p>
                   <p className="text-green-600 text-sm">
                     Verification Code: {certificate.verificationCode}
                   </p>
+                 
                 </div>
-                <button
-                  onClick={downloadCertificate}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                >
-                  Download PDF
-                </button>
+                <div className="flex flex-col space-y-2">
+                  <button
+                    onClick={downloadCertificate}
+                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    Download Certificate
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCertificate(null);
+                      toast.info('You can now generate a new certificate');
+                    }}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
+                  >
+                    Regenerate
+                  </button>
+                </div>
               </div>
             </div>
           ) : (

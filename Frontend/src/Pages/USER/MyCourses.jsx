@@ -35,8 +35,8 @@ const MyCourses = () => {
             <Star
                 key={index}
                 className={`w-4 h-4 ${index < Math.floor(rating)
-                        ? 'text-yellow-400 fill-current'
-                        : 'text-gray-300'
+                    ? 'text-yellow-400 fill-current'
+                    : 'text-gray-300'
                     }`}
             />
         ));
@@ -152,6 +152,18 @@ const MyCourses = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Completed Courses */}
+                    {completedCourses.length > 0 && (
+                        <div className="mb-12">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-6">Completed Courses</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {completedCourses.map((course, index) => (
+                                    <CourseCard key={course._id || index} course={course} isCompleted={true} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
 
                 </div>

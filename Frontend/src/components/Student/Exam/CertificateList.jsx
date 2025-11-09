@@ -23,8 +23,11 @@ const CertificateList = () => {
     }
   };
 
+
+
   const downloadCertificate = async (certificateId, courseName) => {
     try {
+      // First try to get the download URL
       const response = await userAPI.get(`/api/users/certificates/${certificateId}/download`);
       
       // Check if response contains download URL (Cloudinary)
@@ -32,34 +35,77 @@ const CertificateList = () => {
         // Create a temporary link to download from Cloudinary
         const link = document.createElement('a');
         link.href = response.data.downloadUrl;
-        link.download = response.data.fileName || `${courseName}_Certificate.pdf`;
+        link.download = response.data.fileName || `${courseName.replace(/\s+/g, '_')}_Certificate.pdf`;
         link.target = '_blank';
+        link.rel = 'noopener noreferrer';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        toast.success('Certificate downloaded successfully!');
-      } else {
-        // Fallback to blob download for legacy certificates
+        toast.success('Certificate download started!');
+        return;
+      }
+      
+      // If no download URL, try blob download
+      throw new Error('No download URL provided');
+      
+    } catch (error) {
+      // Check if it's a 500 error, suggest regeneration
+      if (error.response?.status === 500) {
+        toast.error('Certificate generation failed. Try regenerating the certificate.');
+        return;
+      }
+      
+      // Fallback to blob download for legacy certificates or errors
+      try {
         const blobResponse = await userAPI.get(
           `/api/users/certificates/${certificateId}/download`,
-          { responseType: 'blob' }
+          { 
+            responseType: 'blob',
+            timeout: 30000 // 30 second timeout
+          }
         );
         
-        const blob = new Blob([blobResponse.data], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${courseName}_Certificate.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        // Check if we got a valid blob
+        if (blobResponse.data && blobResponse.data.size > 0) {
+          // Check if it's HTML content
+          const contentType = blobResponse.headers['content-type'];
+          let fileExtension = '.pdf';
+          let mimeType = 'application/pdf';
+          
+          if (contentType && contentType.includes('text/html')) {
+            fileExtension = '.html';
+            mimeType = 'text/html';
+          }
+          
+          const blob = new Blob([blobResponse.data], { type: mimeType });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${courseName.replace(/\s+/g, '_')}_Certificate${fileExtension}`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          toast.success('Certificate downloaded successfully!');
+        } else {
+          throw new Error('Empty or invalid certificate file');
+        }
+      } catch (blobError) {
+        // Show specific error message
+        let errorMessage = 'Failed to download certificate.';
         
-        toast.success('Certificate downloaded successfully!');
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (blobError.response?.data?.message) {
+          errorMessage = blobError.response.data.message;
+        } else if (error.response?.status === 500) {
+          errorMessage = 'Server error occurred. Please try regenerating the certificate.';
+        }
+        
+        toast.error(errorMessage);
       }
-    } catch (error) {
-      toast.error('Failed to download certificate');
     }
   };
 
@@ -148,10 +194,8 @@ const CertificateList = () => {
                   onClick={() => downloadCertificate(certificate._id, certificate.courseName)}
                   className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium"
                 >
-                  Download PDF
+                  Download Certificate
                 </button>
-                
-                
               </div>
 
               {/* Status Indicators */}

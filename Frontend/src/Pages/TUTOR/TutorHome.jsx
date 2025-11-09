@@ -325,13 +325,7 @@ export default function TutorDashboard() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Course Management</h3>
               <div className="flex items-center space-x-2">
-                <button 
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center space-x-1 px-3 py-1 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200"
-                >
-                  <Filter className="w-3 h-3" />
-                  <span>Filter</span>
-                </button>
+                
               </div>
             </div>
             
@@ -350,31 +344,8 @@ export default function TutorDashboard() {
                   />
                 </div>
                 
-                {/* Status Filter */}
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">Status:</span>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => handleStatusFilter(e.target.value)}
-                    className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                  >
-                    <option value="all">All Courses</option>
-                    <option value="active">Active Only</option>
-                    <option value="inactive">Inactive Only</option>
-                  </select>
-                </div>
+               
                 
-                {/* Clear Filters */}
-                <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setStatusFilter('all');
-                    setCurrentPage(1);
-                  }}
-                  className="px-3 py-1 bg-red-100 text-red-600 rounded text-sm hover:bg-red-200"
-                >
-                  Clear Filters
-                </button>
               </div>
             )}
           </div>
@@ -394,9 +365,7 @@ export default function TutorDashboard() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Lessons
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Rating
-                  </th>
+                
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Price
                   </th>
@@ -433,9 +402,7 @@ export default function TutorDashboard() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {course.lessons_count || 0}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ⭐ {course.average_rating?.toFixed(1) || '0.0'}
-                      </td>
+                      
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         ₹{course.price || 0}
                       </td>

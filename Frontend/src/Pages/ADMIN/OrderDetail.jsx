@@ -130,9 +130,7 @@ const OrderDetail = () => {
               </span>
             </div>
 
-            <div className="text-sm text-gray-600 bg-green-50 px-3 py-2 rounded-lg">
-              ✅ Course access granted to student
-            </div>
+            
           </div>
         </div>
 
@@ -199,10 +197,7 @@ const OrderDetail = () => {
                             <span className="text-gray-500">Category:</span>
                             <span className="ml-2 font-medium">{courseItem.category.title}</span>
                           </div>
-                          <div>
-                            <span className="text-gray-500">Level:</span>
-                            <span className="ml-2 font-medium">{courseItem.level}</span>
-                          </div>
+                          
                           <div>
                             <span className="text-gray-500">Duration:</span>
                             <span className="ml-2 font-medium">{courseItem.duration}h</span>

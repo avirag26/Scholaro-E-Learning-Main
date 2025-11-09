@@ -176,15 +176,7 @@ const NotificationDropdown = ({ userType = 'user' }) => {
           {notifications.length > 0 && (
             <div className="px-4 py-3 border-t border-gray-200">
               <div className="flex justify-between items-center">
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    // You can add navigation to full notifications page here
-                  }}
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  View all notifications
-                </button>
+                <span></span>
                 <button
                   onClick={handleClearAll}
                   className="text-sm text-red-600 hover:text-red-800 px-3 py-1 rounded-md hover:bg-red-50 transition-colors"

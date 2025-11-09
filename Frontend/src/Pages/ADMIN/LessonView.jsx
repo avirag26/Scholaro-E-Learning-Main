@@ -135,9 +135,7 @@ const AdminLessonView = () => {
                 <span className="text-sm text-gray-500">
                   Order: {lesson.order || 0}
                 </span>
-                <span className="text-sm text-gray-500">
-                  Views: {lesson.views || 0}
-                </span>
+                
               </div>
 
               <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
@@ -193,7 +191,7 @@ const AdminLessonView = () => {
           )}
 
           {/* PDF Content */}
-          {lesson.pdfUrl && (
+          {/* {lesson.pdfUrl && (
             <div className="bg-white rounded-lg shadow-sm p-8 mb-6">
               <div className="flex items-center gap-2 mb-4">
                 <FileText className="w-5 h-5 text-green-600" />
@@ -221,7 +219,7 @@ const AdminLessonView = () => {
 
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Lesson Properties */}
           <div className="bg-white rounded-lg shadow-sm p-8 mb-6">
@@ -234,13 +232,7 @@ const AdminLessonView = () => {
                   <p className="font-medium text-gray-900">{lesson.duration || 'Not specified'}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                <Users className="w-5 h-5 text-green-600" />
-                <div>
-                  <span className="text-sm text-gray-600">Views</span>
-                  <p className="font-medium text-gray-900">{lesson.views || 0}</p>
-                </div>
-              </div>
+             
               <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
                 <div className={`w-5 h-5 ${lesson.isFinalLesson ? 'text-yellow-600' : 'text-gray-400'}`}>
                   {lesson.isFinalLesson ? <CheckCircle /> : <XCircle />}
@@ -252,17 +244,7 @@ const AdminLessonView = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                <div className={`w-5 h-5 ${lesson.isRequired ? 'text-blue-600' : 'text-gray-400'}`}>
-                  {lesson.isRequired ? <CheckCircle /> : <XCircle />}
-                </div>
-                <div>
-                  <span className="text-sm text-gray-600">Required</span>
-                  <p className={`font-medium ${lesson.isRequired ? 'text-blue-600' : 'text-gray-600'}`}>
-                    {lesson.isRequired ? 'Yes' : 'No'}
-                  </p>
-                </div>
-              </div>
+              
             </div>
           </div>
 
