@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { Tag, X } from 'lucide-react';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
 import { getCart, clearCart, clearRemovedItems } from '../../Redux/cartSlice';
 import { createOrder, verifyPayment } from '../../Redux/paymentSlice';
+import { userAPI } from '../../api/axiosConfig';
+import AvailableCoupons from '../../components/Coupons/AvailableCoupons';
 
 function Checkout() {
     const dispatch = useDispatch();
@@ -13,6 +16,13 @@ function Checkout() {
     const { items, loading: cartLoading, removedItems } = useSelector(state => state.cart);
     const { loading: paymentLoading } = useSelector(state => state.payment);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    
+    // Coupon state - now supports multiple coupons (one per tutor)
+    const [couponCode, setCouponCode] = useState('');
+    const [showCouponsModal, setShowCouponsModal] = useState(false);
+    const [appliedCoupons, setAppliedCoupons] = useState({}); // { tutorId: couponData }
+    const [couponLoading, setCouponLoading] = useState(false);
+    const [selectedTutorForCoupon, setSelectedTutorForCoupon] = useState(null);
 
 
     useEffect(() => {
@@ -75,6 +85,127 @@ function Checkout() {
         }, 0);
     };
 
+    // Group items by tutor
+    const getItemsByTutor = () => {
+        const availableItems = getAvailableItems();
+        const groupedItems = {};
+        
+        availableItems.forEach(item => {
+            const tutorId = item.course.tutor._id || item.course.tutor;
+            const tutorName = item.course.tutor.full_name || 'Unknown Tutor';
+            
+            if (!groupedItems[tutorId]) {
+                groupedItems[tutorId] = {
+                    tutorId,
+                    tutorName,
+                    items: [],
+                    subtotal: 0
+                };
+            }
+            
+            const discountedPrice = calculateDiscountedPrice(item.course.price, item.course.offer_percentage);
+            groupedItems[tutorId].items.push(item);
+            groupedItems[tutorId].subtotal += discountedPrice;
+        });
+        
+        return groupedItems;
+    };
+
+    // Coupon functions
+    const applyCoupon = async () => {
+        if (!couponCode.trim()) {
+            toast.error('Please enter a coupon code');
+            return;
+        }
+
+        const itemsByTutor = getItemsByTutor();
+        const tutorIds = Object.keys(itemsByTutor);
+        
+        // Auto-select tutor if only one
+        let targetTutorId = selectedTutorForCoupon;
+        if (tutorIds.length === 1) {
+            targetTutorId = tutorIds[0];
+        }
+
+        if (!targetTutorId) {
+            toast.error('Please select a tutor to apply the coupon to');
+            return;
+        }
+
+        // Check if coupon already applied to this tutor
+        if (appliedCoupons[targetTutorId]) {
+            toast.error('Coupon already applied to this tutor\'s courses');
+            return;
+        }
+
+        setCouponLoading(true);
+        try {
+            const tutorItems = itemsByTutor[targetTutorId];
+            
+            if (!tutorItems) {
+                toast.error('No courses found for selected tutor');
+                return;
+            }
+
+            const courseIds = tutorItems.items.map(item => item.course._id);
+            const totalAmount = tutorItems.subtotal;
+
+            const response = await userAPI.post('/api/users/validate-coupon', {
+                code: couponCode.trim(),
+                courseIds,
+                totalAmount,
+                tutorId: targetTutorId
+            });
+
+            // Add tutor info to the response
+            const couponData = {
+                ...response.data,
+                tutorId: targetTutorId,
+                tutorName: tutorItems.tutorName
+            };
+
+            setAppliedCoupons(prev => ({
+                ...prev,
+                [targetTutorId]: couponData
+            }));
+
+            setCouponCode('');
+            setSelectedTutorForCoupon(null);
+            toast.success(`Coupon applied to ${tutorItems.tutorName}'s courses!`);
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Invalid coupon code');
+        } finally {
+            setCouponLoading(false);
+        }
+    };
+
+    const handleCouponSelect = (code) => {
+        setCouponCode(code);
+        setShowCouponsModal(false);
+    };
+
+    const removeCoupon = (tutorId) => {
+        setAppliedCoupons(prev => {
+            const newCoupons = { ...prev };
+            delete newCoupons[tutorId];
+            return newCoupons;
+        });
+        toast.info('Coupon removed');
+    };
+
+    const getTotalCouponDiscount = () => {
+        return Object.values(appliedCoupons).reduce((total, coupon) => {
+            return total + (coupon.discount?.amount || 0);
+        }, 0);
+    };
+
+    const calculateFinalTotal = () => {
+        const subtotal = calculateAvailableTotal();
+        const tax = subtotal * 0.03;
+        const couponDiscount = getTotalCouponDiscount();
+        return Math.max(0, subtotal + tax - couponDiscount);
+    };
+
     const handleProceedToCheckout = async () => {
         if (items.length === 0) {
             toast.error('Your cart is empty');
@@ -117,8 +248,23 @@ function Checkout() {
         }
 
         try {
+            // Prepare coupon data for order creation
+            const couponData = Object.keys(appliedCoupons).length > 0 ? {
+                appliedCoupons: Object.fromEntries(
+                    Object.entries(appliedCoupons).map(([tutorId, couponInfo]) => [
+                        tutorId,
+                        {
+                            couponId: couponInfo.coupon._id,
+                            code: couponInfo.coupon.code,
+                            discountAmount: couponInfo.discount.amount,
+                            tutorName: couponInfo.tutorName
+                        }
+                    ])
+                )
+            } : {};
+
             // Create temporary Razorpay order (no database order created yet)
-            const orderData = await dispatch(createOrder()).unwrap();
+            const orderData = await dispatch(createOrder(couponData)).unwrap();
 
             const options = {
                 key: orderData.key,
@@ -307,12 +453,127 @@ function Checkout() {
                                     <span className="text-gray-600">Tax (3%)</span>
                                     <span className="font-medium">₹{(calculateAvailableTotal() * 0.03).toFixed(2)}</span>
                                 </div>
+
+                                {/* Coupon Discounts */}
+                                {Object.values(appliedCoupons).map((coupon) => (
+                                    <div key={coupon.tutorId} className="flex justify-between text-green-600">
+                                        <span>Coupon ({coupon.coupon.code}) - {coupon.tutorName}</span>
+                                        <span>-₹{coupon.discount.amount.toFixed(2)}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Coupon Section */}
+                            <div className="mb-6 pb-6 border-b border-gray-200">
+                                <h3 className="text-sm font-medium text-gray-900 mb-3">Have a coupon code?</h3>
+                                
+                                {/* Applied Coupons */}
+                                {Object.values(appliedCoupons).length > 0 && (
+                                    <div className="space-y-2 mb-4">
+                                        {Object.values(appliedCoupons).map((coupon) => (
+                                            <div key={coupon.tutorId} className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                                                <div className="flex items-center space-x-2">
+                                                    <Tag className="w-4 h-4 text-green-600" />
+                                                    <div>
+                                                        <span className="text-sm font-medium text-green-800">
+                                                            {coupon.coupon.code} - {coupon.coupon.title}
+                                                        </span>
+                                                        <div className="text-xs text-green-600">
+                                                            Applied to {coupon.tutorName}'s courses
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeCoupon(coupon.tutorId)}
+                                                    className="text-green-600 hover:text-green-800"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* Add New Coupon */}
+                                <div className="space-y-3">
+                                    {/* Tutor Selection */}
+                                    {Object.keys(getItemsByTutor()).length > 1 && (
+                                        <div>
+                                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                Select tutor to apply coupon:
+                                            </label>
+                                            <select
+                                                value={selectedTutorForCoupon || ''}
+                                                onChange={(e) => setSelectedTutorForCoupon(e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm"
+                                            >
+                                                <option value="">Choose a tutor...</option>
+                                                {Object.values(getItemsByTutor()).map((tutorGroup) => {
+                                                    const hasAppliedCoupon = appliedCoupons[tutorGroup.tutorId];
+                                                    return (
+                                                        <option 
+                                                            key={tutorGroup.tutorId} 
+                                                            value={tutorGroup.tutorId}
+                                                            disabled={hasAppliedCoupon}
+                                                        >
+                                                            {tutorGroup.tutorName} ({tutorGroup.items.length} courses)
+                                                            {hasAppliedCoupon ? ' - Coupon Applied' : ''}
+                                                        </option>
+                                                    );
+                                                })}
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    {/* Coupon Input */}
+                                    <div className="flex space-x-2">
+                                        <input
+                                            type="text"
+                                            value={couponCode}
+                                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                            placeholder="Enter coupon code"
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 text-sm"
+                                            onKeyPress={(e) => e.key === 'Enter' && applyCoupon()}
+                                        />
+                                        <button
+                                            onClick={applyCoupon}
+                                            disabled={
+                                                couponLoading || 
+                                                !couponCode.trim() || 
+                                                (Object.keys(getItemsByTutor()).length > 1 && !selectedTutorForCoupon)
+                                            }
+                                            className="px-4 py-2 bg-sky-500 text-white rounded-md hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                                        >
+                                            {couponLoading ? 'Applying...' : 'Apply'}
+                                        </button>
+                                    </div>
+
+                                    {/* Browse Coupons Button */}
+                                    <div className="mt-3">
+                                        <button
+                                            onClick={() => setShowCouponsModal(true)}
+                                            className="text-sky-600 hover:text-sky-700 text-sm font-medium flex items-center space-x-1"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                            </svg>
+                                            <span>Browse Available Coupons</span>
+                                        </button>
+                                    </div>
+
+                                    {/* Auto-select tutor if only one */}
+                                    {Object.keys(getItemsByTutor()).length === 1 && (
+                                        <div className="text-xs text-gray-500 mt-2">
+                                            Coupon will be applied to {Object.values(getItemsByTutor())[0].tutorName}'s courses
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Total */}
                             <div className="flex justify-between text-xl font-bold mb-6">
                                 <span>Total</span>
-                                <span>₹{(calculateAvailableTotal() + (calculateAvailableTotal() * 0.03)).toFixed(2)}</span>
+                                <span>₹{calculateFinalTotal().toFixed(2)}</span>
                             </div>
 
                             {/* Proceed Button */}
@@ -346,6 +607,14 @@ function Checkout() {
                     </div>
                 </div>
             </div>
+
+            {/* Available Coupons Modal */}
+            <AvailableCoupons
+                isOpen={showCouponsModal}
+                onClose={() => setShowCouponsModal(false)}
+                onCouponSelect={handleCouponSelect}
+                selectedTutorId={selectedTutorForCoupon}
+            />
 
             <Footer />
         </div>

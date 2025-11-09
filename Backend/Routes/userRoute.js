@@ -148,8 +148,15 @@ router.get('/exam-attempts/:attemptId/result', protectUser, getExamAttemptResult
 
 // Lesson completion tracking
 import { markLessonComplete, getLessonProgress } from '../Controllers/user/lessonController.js';
+
+// Coupon validation
+import { validateCoupon, getPublicCoupons } from '../Controllers/common/couponController.js';
 router.post('/lessons/:lessonId/complete', protectUser, markLessonComplete);
 router.get('/courses/:courseId/lesson-progress', protectUser, getLessonProgress);
+
+// Coupon routes
+router.post('/validate-coupon', protectUser, validateCoupon);
+router.get('/coupons/public', getPublicCoupons); // Public endpoint - no auth needed
 
 // Certificate routes
 import {

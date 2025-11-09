@@ -48,6 +48,18 @@ const OrderSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  couponDiscount: {
+    type: Number,
+    default: 0
+  },
+  appliedCoupons: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
+  subtotalAfterCoupons: {
+    type: Number,
+    default: null
+  },
   taxAmount: {
     type: Number,
     required: true

@@ -4,9 +4,9 @@ import { userAPI } from '../api/axiosConfig';
 // Create Razorpay order
 export const createOrder = createAsyncThunk(
   'payment/createOrder',
-  async (_, { rejectWithValue }) => {
+  async (orderData = {}, { rejectWithValue }) => {
     try {
-      const response = await userAPI.post('/api/users/payment/create-order');
+      const response = await userAPI.post('/api/users/payment/create-order', orderData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create order');

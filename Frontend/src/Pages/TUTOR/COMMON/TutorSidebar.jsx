@@ -1,5 +1,5 @@
 import React from "react";
-import { FaPlus, FaUser, FaBook, FaChartBar, FaComments, FaSignOutAlt, FaShoppingBag, FaWallet } from "react-icons/fa";
+import { FaPlus, FaUser, FaBook, FaChartBar, FaComments, FaSignOutAlt, FaShoppingBag, FaWallet, FaDollarSign } from "react-icons/fa";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCurrentTutor } from "../../../hooks/useCurrentTutor";
 import { useLogout } from "../../../hooks/useLogout";
@@ -18,7 +18,7 @@ const TutorSidebar = () => {
     { path: '/tutor/courses', icon: FaBook, label: 'Courses' },
     { path: '/tutor/orders', icon: FaShoppingBag, label: 'Orders' },
     { path: '/tutor/wallet', icon: FaWallet, label: 'Wallet' },
-
+    {path:'/tutor/coupons',  icon:FaDollarSign, label: "Coupon"},
     { path: '/tutor/chat', icon: FaComments, label: 'Chat & video' },
   ];
   const isActive = (path) => location.pathname === path;

@@ -77,6 +77,14 @@ import {
   getUnreadCount,
   clearAllNotifications
 } from "../Controllers/common/notificationController.js";
+import {
+  createCoupon,
+  getTutorCoupons,
+  updateCoupon,
+  deleteCoupon,
+  toggleCouponStatus,
+  getCouponAnalytics
+} from "../Controllers/common/couponController.js";
 import { protectTutor } from "../Middleware/tutorMiddleware.js";
 
 router.post("/", registerTutor);
@@ -148,6 +156,14 @@ router.post("/wallet/withdraw", protectTutor, requestWithdrawal);
 router.get('/notifications', protectTutor, getUserNotifications);
 router.put('/notifications/:notificationId/read', protectTutor, markAsRead);
 router.get('/notifications/unread-count', protectTutor, getUnreadCount);
+
+// Coupon routes
+router.post('/coupons', protectTutor, createCoupon);
+router.get('/coupons', protectTutor, getTutorCoupons);
+router.put('/coupons/:couponId', protectTutor, updateCoupon);
+router.delete('/coupons/:couponId', protectTutor, deleteCoupon);
+router.patch('/coupons/:couponId/toggle-status', protectTutor, toggleCouponStatus);
+router.get('/coupons/analytics', protectTutor, getCouponAnalytics);
 router.delete('/notifications/clear-all', protectTutor, clearAllNotifications);
 
 export default router;
