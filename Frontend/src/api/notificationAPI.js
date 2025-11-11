@@ -2,7 +2,7 @@ import { userAPI, tutorAPI, adminAPI } from './axiosConfig';
 
 // Get notifications based on user type
 export const getNotifications = async (userType = 'user', limit = 10) => {
-  try {
+  
     let api, apiPath;
     switch (userType) {
       case 'tutor':
@@ -11,7 +11,7 @@ export const getNotifications = async (userType = 'user', limit = 10) => {
         break;
       case 'admin':
         api = adminAPI;
-        apiPath = '/api/admin/notifications'; // Admin is singular, not plural
+        apiPath = '/api/admin/notifications'; 
         break;
       default:
         api = userAPI;
@@ -20,14 +20,12 @@ export const getNotifications = async (userType = 'user', limit = 10) => {
 
     const response = await api.get(`${apiPath}?limit=${limit}`);
     return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
+  } 
+
 
 // Mark notification as read
 export const markNotificationAsRead = async (userType = 'user', notificationId) => {
-  try {
+ 
     let api, apiPath;
     switch (userType) {
       case 'tutor':
@@ -45,14 +43,12 @@ export const markNotificationAsRead = async (userType = 'user', notificationId) 
 
     const response = await api.put(apiPath);
     return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
+  } 
+
 
 // Get unread notification count
 export const getUnreadCount = async (userType = 'user') => {
-  try {
+
     let api, apiPath;
     switch (userType) {
       case 'tutor':
@@ -61,7 +57,7 @@ export const getUnreadCount = async (userType = 'user') => {
         break;
       case 'admin':
         api = adminAPI;
-        apiPath = '/api/admin/notifications/unread-count'; // Admin is singular
+        apiPath = '/api/admin/notifications/unread-count'; 
         break;
       default:
         api = userAPI;
@@ -70,14 +66,11 @@ export const getUnreadCount = async (userType = 'user') => {
 
     const response = await api.get(apiPath);
     return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
+  } 
 
 // Clear all notifications
 export const clearAllNotifications = async (userType = 'user') => {
-  try {
+
     let api, apiPath;
     switch (userType) {
       case 'tutor':
@@ -86,7 +79,7 @@ export const clearAllNotifications = async (userType = 'user') => {
         break;
       case 'admin':
         api = adminAPI;
-        apiPath = '/api/admin/notifications/clear-all'; // Admin is singular
+        apiPath = '/api/admin/notifications/clear-all'; 
         break;
       default:
         api = userAPI;
@@ -95,7 +88,4 @@ export const clearAllNotifications = async (userType = 'user') => {
 
     const response = await api.delete(apiPath);
     return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
+  } 

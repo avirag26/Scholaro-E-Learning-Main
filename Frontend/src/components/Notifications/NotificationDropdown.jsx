@@ -29,10 +29,25 @@ const NotificationDropdown = ({ userType = 'user' }) => {
     }
   }, [isOpen]);
 
-  // Load unread count on component mount
+  // Load unread count on component mount and set up real-time updates
   useEffect(() => {
     loadUnreadCount();
-  }, []);
+    
+    // Set up global function for socket updates
+    window.updateNotificationCount = () => {
+      loadUnreadCount();
+      if (isOpen) {
+        loadNotifications();
+      }
+    };
+
+    // Cleanup
+    return () => {
+      if (window.updateNotificationCount) {
+        delete window.updateNotificationCount;
+      }
+    };
+  }, [isOpen]);
 
   const loadNotifications = async () => {
     try {

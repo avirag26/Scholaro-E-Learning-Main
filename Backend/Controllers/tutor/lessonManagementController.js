@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Lesson from "../../Model/LessonModel.js";
 import { Course } from "../../Model/CourseModel.js";
 import { notifyUsersNewLesson } from "../../utils/notificationHelper.js";
+import { generateSignedVideoUrl, extractPublicIdFromUrl } from '../../config/cloudinary.js';
 
 const createLesson = async (req, res) => {
   try {
@@ -88,20 +89,39 @@ const getCourseLessons = async (req, res) => {
     const lessons = await Lesson.find({ course: courseId })
       .sort({ order: 1 })
       .populate('tutor', 'full_name');
-    const formattedLessons = lessons.map(lesson => ({
-      id: lesson._id,
-      title: lesson.title,
-      description: lesson.description,
-      duration: lesson.duration,
-      videoUrl: lesson.videoUrl,
-      thumbnailUrl: lesson.thumbnailUrl,
-      pdfUrl: lesson.pdfUrl,
-      order: lesson.order,
-      isPublished: lesson.isPublished,
-      views: lesson.views,
-      createdAt: lesson.createdAt,
-      updatedAt: lesson.updatedAt
-    }));
+    const formattedLessons = lessons.map(lesson => {
+      let videoUrl = lesson.videoUrl;
+      
+      // Generate signed URL for video if it exists
+      if (lesson.videoUrl) {
+        try {
+          const publicId = extractPublicIdFromUrl(lesson.videoUrl);
+          if (publicId) {
+            videoUrl = generateSignedVideoUrl(publicId, {
+              expires_at: Math.floor(Date.now() / 1000) + (30 * 60), // 30 minutes for consistency
+            });
+          }
+        } catch (error) {
+          console.error('Error generating signed URL for lesson:', lesson._id, error);
+          // Keep original URL if signing fails
+        }
+      }
+
+      return {
+        id: lesson._id,
+        title: lesson.title,
+        description: lesson.description,
+        duration: lesson.duration,
+        videoUrl: videoUrl,
+        thumbnailUrl: lesson.thumbnailUrl,
+        pdfUrl: lesson.pdfUrl,
+        order: lesson.order,
+        isPublished: lesson.isPublished,
+        views: lesson.views,
+        createdAt: lesson.createdAt,
+        updatedAt: lesson.updatedAt
+      };
+    });
     res.status(200).json({
       lessons: formattedLessons,
       course: {

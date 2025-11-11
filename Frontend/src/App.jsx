@@ -1,8 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+// Make toast available globally for Socket.IO notifications
+window.toast = toast;
 import UserRoutes from "../Routes/userRoutes"
 import TutorRoutes from "../Routes/tutorRoutes";
 import LandingProtection from "./components/RouteProtection/LandingProtection";
@@ -44,10 +47,10 @@ const GlobalGuard = ({ children }) => {
 function App() {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Initialize socket service globally
   useSocket();
-  
+
   // Restore auth state from localStorage on app start
   useEffect(() => {
     dispatch(restoreUser());

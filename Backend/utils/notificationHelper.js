@@ -2,6 +2,14 @@ import User from '../Model/usermodel.js';
 import Tutor from '../Model/TutorModel.js';
 import Admin from '../Model/AdminModel.js';
 
+// Global Socket.IO instance for real-time notifications
+let io = null;
+
+// Set Socket.IO instance
+export const setSocketIO = (socketInstance) => {
+  io = socketInstance;
+};
+
 // Simple notification helper functions
 export const createNotification = async (recipientType, recipientId, title, body) => {
   try {
@@ -47,6 +55,17 @@ export const createNotification = async (recipientType, recipientId, title, body
       { new: true }
     );
 
+    // Send real-time notification via Socket.IO
+    if (io) {
+      const notificationRoom = `notifications_${recipientType}_${recipientId}`;
+      io.to(notificationRoom).emit('new_notification', {
+        title: title,
+        body: body,
+        timestamp: new Date(),
+        read: false
+      });
+    }
+
     return true;
   } catch (error) {
     return false;
@@ -60,7 +79,7 @@ export const notifyAdminNewOrder = async (orderId, amount, userEmail) => {
       await createNotification(
         'admin',
         admin._id,
-        '🛒 New Order Received',
+        ' New Order Received',
         `New order #${orderId} for $${amount} from ${userEmail}`
       );
     }
@@ -74,7 +93,7 @@ export const notifyTutorWalletCredit = async (tutorId, amount, reason) => {
     await createNotification(
       'tutor',
       tutorId,
-      '💰 Wallet Credited',
+      ' Wallet Credited',
       `Your wallet has been credited with $${amount}. Reason: ${reason}`
     );
   } catch (error) {
@@ -92,7 +111,7 @@ export const notifyUsersNewLesson = async (courseId, lessonTitle) => {
       await createNotification(
         'user',
         user._id,
-        '📚 New Lesson Available',
+        ' New Lesson Available',
         `New lesson "${lessonTitle}" has been added to your course!`
       );
     }

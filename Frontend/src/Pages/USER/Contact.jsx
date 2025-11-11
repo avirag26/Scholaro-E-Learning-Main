@@ -3,6 +3,7 @@ import { Mail, Phone, MapPin, Clock, Send, MessageCircle, HelpCircle, Users } fr
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
+import  { userAPI } from '../../api/axiosConfig';
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -64,7 +65,9 @@ const Contact = () => {
         message: '',
         category: 'general'
       });
+      await userAPI.post('/api/users/contact',formData)
     } catch (error) {
+      console.log(error.message)
       toast.error('Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);

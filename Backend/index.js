@@ -26,6 +26,10 @@ const io = initializeSocket(server);
 
 app.set('io', io);
 
+// Connect Socket.IO to notification system
+import { setSocketIO } from './utils/notificationHelper.js';
+setSocketIO(io);
+
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173', 

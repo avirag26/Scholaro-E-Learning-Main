@@ -11,7 +11,8 @@ import {
   logoutUser,
   forgotPassword,
   resetPassword,
-  checkUserStatus
+  checkUserStatus,
+  contact
 } from "../Controllers/user/authController.js";
 import {
   getUserProfile,
@@ -151,6 +152,8 @@ import { markLessonComplete, getLessonProgress } from '../Controllers/user/lesso
 
 // Coupon validation
 import { validateCoupon, getPublicCoupons } from '../Controllers/common/couponController.js';
+
+// Lesson routes
 router.post('/lessons/:lessonId/complete', protectUser, markLessonComplete);
 router.get('/courses/:courseId/lesson-progress', protectUser, getLessonProgress);
 
@@ -188,4 +191,5 @@ router.put('/notifications/:notificationId/read', protectUser, markAsRead);
 router.get('/notifications/unread-count', protectUser, getUnreadCount);
 router.delete('/notifications/clear-all', protectUser, clearAllNotifications);
 
+router.post('/contact',protectUser,contact)
 export default router;

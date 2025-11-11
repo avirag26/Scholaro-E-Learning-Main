@@ -24,9 +24,9 @@ export default function LandingPage(){
                         {}
                         <nav className="hidden md:flex space-x-8">
                             <Link to="/" className="text-gray-700 hover:text-teal-600 transition-colors">Home</Link>
-                            <Link to="/courses" className="text-gray-700 hover:text-teal-600 transition-colors">Courses</Link>
-                            <Link to="/about" className="text-gray-700 hover:text-teal-600 transition-colors">About</Link>
-                            <Link to="/contact" className="text-gray-700 hover:text-teal-600 transition-colors">Contact</Link>
+                            <Link to="/user/login" className="text-gray-700 hover:text-teal-600 transition-colors">Courses</Link>
+                            <Link to="/user/login" className="text-gray-700 hover:text-teal-600 transition-colors">About</Link>
+                            <Link to="/user/login" className="text-gray-700 hover:text-teal-600 transition-colors">Contact</Link>
                         </nav>
                         {}
                         <div className="hidden md:flex items-center space-x-4">
@@ -194,8 +194,8 @@ export default function LandingPage(){
             {}
             <CategoryCards />
             {}
-            <Testimonials />
-            {}
+            
+            
             <TeamSection />
                <section className="py-20 bg-gray-900 text-white">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

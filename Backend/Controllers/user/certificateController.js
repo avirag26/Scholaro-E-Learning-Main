@@ -7,7 +7,7 @@ import puppeteer from 'puppeteer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { uploadToCloudinary, deleteFromCloudinary, isCloudinaryConfigured } from '../../config/cloudinary.js';
+// Removed Cloudinary imports - using local files only
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,7 +32,7 @@ const serveLocalFile = (filePath, certificate, res) => {
     }
 
     const fileStats = fs.statSync(filePath);
-    
+
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Length', fileStats.size);
@@ -130,9 +130,8 @@ export const generateCertificate = async (req, res) => {
         throw new Error('Certificate file generation failed');
       }
 
-      // Update certificate with Cloudinary URL and public ID
+      // Update certificate with local file URL
       certificate.certificateUrl = certificateResult.url;
-      certificate.cloudinaryPublicId = certificateResult.publicId;
       await certificate.save();
     } catch (fileError) {
       // If file generation fails, delete the certificate record and return error
@@ -177,8 +176,8 @@ const generateCertificatePDF = async (certificate) => {
       browser = await puppeteer.launch({
         headless: 'new',
         args: [
-          '--no-sandbox', 
-          '--disable-setuid-sandbox', 
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
           '--disable-gpu',
           '--disable-web-security',
@@ -194,9 +193,9 @@ const generateCertificatePDF = async (certificate) => {
     // Create certificate HTML
     const certificateHTML = createCertificateHTML(certificate);
 
-    await page.setContent(certificateHTML, { 
+    await page.setContent(certificateHTML, {
       waitUntil: 'networkidle0',
-      timeout: 30000 
+      timeout: 30000
     });
 
     // Generate PDF - optimized for single page
@@ -223,26 +222,7 @@ const generateCertificatePDF = async (certificate) => {
       throw new Error('Generated PDF is empty');
     }
 
-    // Try Cloudinary first if configured
-    if (isCloudinaryConfigured()) {
-      try {
-        const uploadResult = await uploadToCloudinary(pdfBuffer, {
-          public_id: `certificate_${certificate.certificateId}`,
-          resource_type: 'raw',
-          format: 'pdf',
-          folder: 'certificates'
-        });
-
-        return {
-          url: uploadResult.secure_url,
-          publicId: uploadResult.public_id
-        };
-      } catch (cloudinaryError) {
-        // Fallback to local storage if Cloudinary fails
-      }
-    }
-
-    // Fallback to local storage
+    // Save PDF locally
     return await saveCertificateLocally(pdfBuffer, certificate.certificateId, 'pdf');
   } catch (error) {
     return await generateHTMLCertificate(certificate);
@@ -254,13 +234,13 @@ const saveCertificateLocally = async (content, certificateId, format = 'html') =
   try {
     const fileName = `certificate_${certificateId}.${format}`;
     const filePath = path.join(certificatesDir, fileName);
-    
+
     if (format === 'pdf') {
       fs.writeFileSync(filePath, content);
     } else {
       fs.writeFileSync(filePath, content, 'utf8');
     }
-    
+
     // Return relative path for storage in database
     return {
       url: `uploads/certificates/${fileName}`,
@@ -276,28 +256,8 @@ const saveCertificateLocally = async (content, certificateId, format = 'html') =
 const generateHTMLCertificate = async (certificate) => {
   try {
     const htmlContent = createCertificateHTML(certificate);
-    const htmlBuffer = Buffer.from(htmlContent, 'utf8');
 
-    // Try Cloudinary first if configured
-    if (isCloudinaryConfigured()) {
-      try {
-        const uploadResult = await uploadToCloudinary(htmlBuffer, {
-          public_id: `certificate_${certificate.certificateId}_html`,
-          resource_type: 'raw',
-          format: 'html',
-          folder: 'certificates'
-        });
-
-        return {
-          url: uploadResult.secure_url,
-          publicId: uploadResult.public_id
-        };
-      } catch (cloudinaryError) {
-        // Fallback to local storage if Cloudinary fails
-      }
-    }
-
-    // Fallback to local storage
+    // Save HTML locally
     return await saveCertificateLocally(htmlContent, certificate.certificateId, 'html');
 
   } catch (error) {
@@ -606,6 +566,8 @@ export const getUserCertificates = async (req, res) => {
   }
 };
 
+// Removed proxy download function - using local files only
+
 // Download certificate
 export const downloadCertificate = async (req, res) => {
   try {
@@ -628,17 +590,16 @@ export const downloadCertificate = async (req, res) => {
     // Record download
     await certificate.recordDownload();
 
-    // If no certificate URL exists, regenerate it
+    // If no certificate URL exists, generate it
     if (!certificate.certificateUrl) {
       try {
         const certificateResult = await generateCertificatePDF(certificate);
-        
+
         if (!certificateResult || !certificateResult.url) {
           throw new Error('Certificate generation returned invalid result');
         }
-        
+
         certificate.certificateUrl = certificateResult.url;
-        certificate.cloudinaryPublicId = certificateResult.publicId;
         await certificate.save();
       } catch (error) {
         return res.status(500).json({
@@ -648,80 +609,36 @@ export const downloadCertificate = async (req, res) => {
       }
     }
 
-    // For Cloudinary URLs, return the download URL
-    if (certificate.certificateUrl && certificate.certificateUrl.includes('cloudinary.com')) {
-      // Create proper Cloudinary download URL
-      let downloadUrl = certificate.certificateUrl;
-      
-      // Add download flag to Cloudinary URL
-      if (!downloadUrl.includes('fl_attachment')) {
-        downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment/');
-      }
-      
-      return res.status(200).json({
-        success: true,
-        message: 'Certificate download URL',
-        downloadUrl: downloadUrl,
-        fileName: `certificate_${certificate.studentName.replace(/\s+/g, '_')}_${certificate.courseName.replace(/\s+/g, '_')}.pdf`
-      });
-    }
-
     // Handle local files
     if (certificate.certificateUrl && !certificate.certificateUrl.startsWith('http')) {
       const filePath = path.join(__dirname, '../../', certificate.certificateUrl);
 
-      if (!fs.existsSync(filePath)) {
+      if (fs.existsSync(filePath)) {
+        return serveLocalFile(filePath, certificate, res);
+      } else {
         // Try to regenerate the certificate
         try {
           const certificateResult = await generateCertificatePDF(certificate);
           certificate.certificateUrl = certificateResult.url;
-          certificate.cloudinaryPublicId = certificateResult.publicId;
           await certificate.save();
-          
-          // If it's still a local file, serve it
-          if (!certificateResult.url.startsWith('http')) {
-            const newFilePath = path.join(__dirname, '../../', certificateResult.url);
-            if (fs.existsSync(newFilePath)) {
-              return serveLocalFile(newFilePath, certificate, res);
-            }
-          } else {
-            // If it's now a Cloudinary URL, redirect
-            const downloadUrl = certificateResult.url.includes('fl_attachment') 
-              ? certificateResult.url 
-              : certificateResult.url.replace('/upload/', '/upload/fl_attachment/');
-            
-            return res.status(200).json({
-              success: true,
-              message: 'Certificate regenerated and available for download',
-              downloadUrl: downloadUrl,
-              fileName: `certificate_${certificate.studentName.replace(/\s+/g, '_')}_${certificate.courseName.replace(/\s+/g, '_')}.pdf`
-            });
+
+          const newFilePath = path.join(__dirname, '../../', certificateResult.url);
+          if (fs.existsSync(newFilePath)) {
+            return serveLocalFile(newFilePath, certificate, res);
           }
         } catch (regenError) {
-          return res.status(404).json({
-            success: false,
-            message: 'Certificate file not found and regeneration failed'
-          });
+          // Fall through to HTML generation
         }
       }
-
-      return serveLocalFile(filePath, certificate, res);
     }
 
-    // If we reach here, generate a simple HTML certificate on-the-fly
-    try {
-      const htmlContent = createCertificateHTML(certificate);
-      
-      res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Content-Disposition', `attachment; filename="certificate_${certificate.studentName.replace(/\s+/g, '_')}.html"`);
-      
-      return res.send(htmlContent);
-    } catch (htmlError) {
-      return res.status(500).json({
-        success: false,
-        message: 'Certificate file not accessible and fallback failed'
-      });
-    }
+    // Generate HTML certificate on-the-fly as fallback
+    const htmlContent = createCertificateHTML(certificate);
+
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Disposition', `attachment; filename="certificate_${certificate.studentName.replace(/\s+/g, '_')}.html"`);
+
+    return res.send(htmlContent);
 
   } catch (error) {
     res.status(500).json({

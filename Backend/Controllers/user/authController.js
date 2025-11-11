@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { generateAccessToken, generateRefreshToken } from "../../utils/generateToken.js";
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
-import { sendPasswordResetEmail } from "../../utils/emailService.js";
+import { sendContact, sendPasswordResetEmail } from "../../utils/emailService.js";
 import { OAuth2Client } from 'google-auth-library';
 import { sendOtpToEmail, verifyEmailOtp, sendOtpWithData, verifyOtpWithData } from '../../utils/otpService.js';
 
@@ -357,6 +357,30 @@ const checkUserStatus = async (req, res) => {
   }
 };
 
+const contact = async (req, res) => {
+  try {
+    console.log("contact page hit");
+
+    const { name, email, subject, message } = req.body;
+
+    const emailHtml = `
+      <h2>New Contact Form Submission</h2>
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Subject:</strong> ${subject}</p>
+      <p><strong>Message:</strong><br>${message}</p>
+    `;
+
+    // Send the mail to your support inbox (or admin)
+    await sendContact(process.env.EMAIL_USERNAME, subject, emailHtml);
+
+    res.status(200).json({ success: true, message: "Message sent successfully!" });
+  } catch (err) {
+    console.error("Mail error:", err.message);
+    res.status(500).json({ success: false, message: "Failed to send message" });
+  }
+};
+
 export {
   registerUser,
   loginUser,
@@ -367,5 +391,6 @@ export {
   logoutUser,
   forgotPassword,
   resetPassword,
-  checkUserStatus
+  checkUserStatus,
+  contact
 };

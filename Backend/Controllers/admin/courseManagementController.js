@@ -604,7 +604,22 @@ const getLessonDetails = async (req, res) => {
       _id: lesson._id,
       title: lesson.title,
       description: lesson.description,
-      videoUrl: lesson.videoUrl,
+      videoUrl: (() => {
+        if (!lesson.videoUrl) return lesson.videoUrl;
+        
+        try {
+          const { extractPublicIdFromUrl, generateSignedVideoUrl } = require('../../config/cloudinary.js');
+          const publicId = extractPublicIdFromUrl(lesson.videoUrl);
+          if (publicId) {
+            return generateSignedVideoUrl(publicId, {
+              expires_at: Math.floor(Date.now() / 1000) + (2 * 60 * 60), // 2 hours
+            });
+          }
+        } catch (error) {
+          console.error('Error generating signed URL for admin lesson view:', lesson._id, error);
+        }
+        return lesson.videoUrl;
+      })(),
       thumbnailUrl: lesson.thumbnailUrl,
       pdfUrl: lesson.pdfUrl,
       duration: lesson.duration,

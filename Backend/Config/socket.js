@@ -89,6 +89,10 @@ export const initializeSocket = (server) => {
       user: socket.user
     });
 
+    // Join user-specific notification room
+    const notificationRoom = `notifications_${socket.userType}_${socket.userId}`;
+    socket.join(notificationRoom);
+
     // Handle joining chat rooms
     socket.on('join_chat', async (data) => {
       try {

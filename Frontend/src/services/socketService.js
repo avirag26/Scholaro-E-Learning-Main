@@ -117,6 +117,22 @@ class SocketService {
       this.store.dispatch(setReconnecting(false));
     });
 
+    // Notification events
+    this.socket.on('new_notification', (notification) => {
+      // Show toast notification
+      if (typeof window !== 'undefined' && window.toast) {
+        window.toast.info(notification.body, {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      }
+      
+      // Update notification count
+      if (typeof window !== 'undefined' && window.updateNotificationCount) {
+        window.updateNotificationCount();
+      }
+    });
+
     // Chat events
     this.socket.on('message_received', (message) => {
       this.store.dispatch(addMessage(message));

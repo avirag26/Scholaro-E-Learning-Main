@@ -366,7 +366,7 @@ const ExamResults = () => {
       {/* Action Buttons */}
       <div className="flex space-x-4">
         <button
-          onClick={() => navigate(`/course/${result.course._id}`)}
+          onClick={() => navigate(`/user/courses`)}
           className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           Back to Course
@@ -381,19 +381,14 @@ const ExamResults = () => {
           </button>
         )}
 
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
-        >
-          Dashboard
-        </button>
+        
       </div>
 
       {/* Feedback Section */}
       {!result.passed && (
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-blue-800 mb-2">
-            💡 Study Recommendations
+             Study Recommendations
           </h3>
           <p className="text-blue-700 mb-4">
             Don't worry! Here are some tips to help you improve:

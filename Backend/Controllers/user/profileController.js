@@ -1,6 +1,7 @@
 import User from "../../Model/usermodel.js";
 import Order from "../../Model/OrderModel.js";
 import { sendOtpToEmail, verifyEmailOtp, sendOtpWithData, verifyOtpWithData } from '../../utils/otpService.js';
+import { generateSignedVideoUrl, extractPublicIdFromUrl, generateUltraSecureVideoUrl } from '../../config/cloudinary.js';
 
 const getUserProfile = async (req, res) => {
   try {
@@ -363,17 +364,37 @@ const getCourseForLearning = async (req, res) => {
         tutor: course.tutor,
         course_thumbnail: course.course_thumbnail
       },
-      lessons: lessons.map(lesson => ({
-        _id: lesson._id,
-        title: lesson.title,
-        description: lesson.description,
-        duration: lesson.duration,
-        videoUrl: lesson.videoUrl,
-        thumbnailUrl: lesson.thumbnailUrl,
-        pdfUrl: lesson.pdfUrl,
-        order: lesson.order,
-        isPublished: lesson.isPublished
-      }))
+      lessons: lessons.map(lesson => {
+        let videoUrl = lesson.videoUrl;
+
+        // Generate secure signed URL for video if it exists and Cloudinary is configured
+        if (lesson.videoUrl && process.env.CLOUDINARY_API_SECRET) {
+          try {
+            const publicId = extractPublicIdFromUrl(lesson.videoUrl);
+            if (publicId) {
+              // Use regular signed URL with user binding and short expiration
+              videoUrl = generateSignedVideoUrl(publicId, {
+                expires_at: Math.floor(Date.now() / 1000) + (30 * 60), // 30 minutes
+              }, userId.toString());
+            }
+          } catch (error) {
+            console.error('Error generating signed URL for lesson:', lesson._id, error);
+            // Keep original URL if signing fails
+          }
+        }
+
+        return {
+          _id: lesson._id,
+          title: lesson.title,
+          description: lesson.description,
+          duration: lesson.duration,
+          videoUrl: videoUrl,
+          thumbnailUrl: lesson.thumbnailUrl,
+          pdfUrl: lesson.pdfUrl,
+          order: lesson.order,
+          isPublished: lesson.isPublished
+        };
+      })
     });
 
   } catch (error) {

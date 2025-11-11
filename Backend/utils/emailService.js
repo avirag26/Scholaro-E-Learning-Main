@@ -88,4 +88,20 @@ const sendPasswordResetEmail = async (to, resetToken, userType = 'user') => {
     throw error;
   }
 };
-export {sendOtpEmail , sendPasswordResetEmail};
+
+const sendContact = async (to,subject,html) => {
+  try {
+    const mailOptions = {
+      from: `"Scholaro" <${process.env.EMAIL_USERNAME}>`,
+      to,
+      subject,
+      html,
+    };
+    console.log("email to ",to)
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    throw error; 
+  }
+};
+
+export {sendOtpEmail , sendPasswordResetEmail, sendContact};

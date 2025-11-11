@@ -507,18 +507,32 @@ const CourseLearning = () => {
                                             className="w-full h-full object-contain"
                                             controls
                                             poster={currentLesson.thumbnailUrl || course.course_thumbnail}
-                                            controlsList="nodownload noremoteplayback"
+                                            controlsList="nodownload noremoteplayback nofullscreen"
                                             disablePictureInPicture
                                             disableRemotePlayback
                                             onContextMenu={(e) => e.preventDefault()}
                                             onDragStart={(e) => e.preventDefault()}
                                             onCanPlay={() => setVideoLoading(false)}
                                             onError={() => setVideoLoading(false)}
+                                            onLoadStart={() => {
+                                                // Prevent video URL inspection
+                                                const video = document.querySelector('video');
+                                                if (video) {
+                                                    video.addEventListener('loadedmetadata', () => {
+                                                        // Clear browser cache for this video
+                                                        video.preload = 'none';
+                                                    });
+                                                }
+                                            }}
                                             style={{
                                                 userSelect: 'none',
                                                 WebkitUserSelect: 'none',
-                                                pointerEvents: 'auto'
+                                                pointerEvents: 'auto',
+                                                outline: 'none'
                                             }}
+                                            // Additional security attributes
+                                            crossOrigin="anonymous"
+                                            playsInline
                                         >
                                             <source src={currentLesson.videoUrl} type="video/mp4" />
                                             Your browser does not support the video tag.
