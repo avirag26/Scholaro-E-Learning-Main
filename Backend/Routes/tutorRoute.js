@@ -123,7 +123,7 @@ router.patch("/lessons/:lessonId/toggle-publish", protectTutor, toggleLessonPubl
 router.post("/submit-course/:courseId", submitCourse);
 router.get("/courses/category/:categoryId", getCourseByCategory);
 
-// Exam management routes
+
 router.post("/courses/:courseId/exam", protectTutor, createExam);
 router.get("/courses/:courseId/exam", protectTutor, getExam);
 router.put("/exams/:examId", protectTutor, updateExam);
@@ -132,12 +132,12 @@ router.get("/exams/:examId/attempts", protectTutor, getExamAttempts);
 router.put("/courses/:courseId/final-lesson", protectTutor, setFinalLesson);
 router.put("/courses/:courseId/exam-settings", protectTutor, updateExamSettings);
 
-// Order management routes
+
 router.get("/orders", protectTutor, getTutorOrders);
 router.get("/orders/stats", protectTutor, getTutorOrderStats);
 router.get("/orders/:orderId", protectTutor, getTutorOrderDetails);
 
-// Chat routes
+
 router.get("/chats", protectTutor, getUserChats);
 router.post("/chats", protectTutor, createOrGetChatByTutor);
 router.get("/chats/:chatId/messages", protectTutor, getChatMessages);
@@ -146,18 +146,18 @@ router.delete("/chats/:chatId/clear", protectTutor, clearChatMessages);
 
 router.get("/students", protectTutor, getTutorStudents);
 
-// Wallet routes
+
 router.get("/wallet", protectTutor, getWallet);
 router.get("/wallet/transactions", protectTutor, getWalletTransactions);
 router.put("/wallet/bank-details", protectTutor, updateBankDetails);
 router.post("/wallet/withdraw", protectTutor, requestWithdrawal);
 
-// Notification routes
+
 router.get('/notifications', protectTutor, getUserNotifications);
 router.put('/notifications/:notificationId/read', protectTutor, markAsRead);
 router.get('/notifications/unread-count', protectTutor, getUnreadCount);
 
-// Coupon routes
+
 router.post('/coupons', protectTutor, createCoupon);
 router.get('/coupons', protectTutor, getTutorCoupons);
 router.put('/coupons/:couponId', protectTutor, updateCoupon);

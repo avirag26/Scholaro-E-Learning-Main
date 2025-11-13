@@ -49,7 +49,7 @@ export const createOrder = async (req, res) => {
       const discountedPrice = course.price - (course.price * (course.offer_percentage || 0) / 100);
       return total + discountedPrice;
     }, 0);
-    
+
     // Calculate coupon discounts
     let totalCouponDiscount = 0;
     if (Object.keys(appliedCoupons).length > 0) {
@@ -59,7 +59,7 @@ export const createOrder = async (req, res) => {
     }
 
     const subtotalAfterCoupons = Math.max(0, totalAmount - totalCouponDiscount);
-    
+
     if (subtotalAfterCoupons <= 0) {
       return res.status(400).json({
         success: false,
@@ -88,7 +88,7 @@ export const createOrder = async (req, res) => {
     const razorpayOrder = await razorpay.orders.create({
       amount: amountInPaise,
       currency: 'INR',
-      receipt: `ord_${Math.random().toString(36).substring(2, 8)}`, 
+      receipt: `ord_${Math.random().toString(36).substring(2, 8)}`,
       notes: {
         userId: userId.toString(),
         tempOrderId: tempOrderId,
@@ -192,7 +192,7 @@ export const verifyPayment = async (req, res) => {
     // Get applied coupons from Razorpay order notes
     let appliedCoupons = {};
     let totalCouponDiscount = 0;
-    
+
     if (razorpayOrderDetails.notes.appliedCoupons) {
       try {
         appliedCoupons = JSON.parse(razorpayOrderDetails.notes.appliedCoupons);
@@ -330,9 +330,10 @@ const createPaymentDistribution = async (order) => {
       }
     });
 
-
     const tutorGroups = {};
+    const appliedCoupons = order.appliedCoupons || {};
 
+    // First pass: Group courses by tutor and calculate totals
     for (const item of orderWithCourses.items) {
       const tutorId = item.course.tutor._id.toString();
 
@@ -340,29 +341,44 @@ const createPaymentDistribution = async (order) => {
         tutorGroups[tutorId] = {
           tutor: item.course.tutor,
           courses: [],
-          totalAmount: 0
+          totalOriginalAmount: 0,
+          couponDiscount: appliedCoupons[tutorId]?.discountAmount || 0
         };
       }
 
+      const courseOriginalAmount = item.discountedPrice; // After course offer discount
       tutorGroups[tutorId].courses.push({
         courseId: item.course._id,
-        amount: item.discountedPrice
+        originalAmount: courseOriginalAmount
       });
-      tutorGroups[tutorId].totalAmount += item.discountedPrice;
+      tutorGroups[tutorId].totalOriginalAmount += courseOriginalAmount;
     }
 
+    // Validate total distribution doesn't exceed order subtotal
+    const totalDistributionAmount = Object.values(tutorGroups).reduce((sum, group) => {
+      return sum + Math.max(0, group.totalOriginalAmount - group.couponDiscount);
+    }, 0);
 
+    // Second pass: Calculate actual amounts after coupon discounts
     for (const tutorId in tutorGroups) {
       const tutorGroup = tutorGroups[tutorId];
+      const totalOriginal = tutorGroup.totalOriginalAmount;
+      const totalCouponDiscount = tutorGroup.couponDiscount;
+
+      // Calculate actual amount after coupon discount (before tax)
+      const totalActualAmount = Math.max(0, totalOriginal - totalCouponDiscount);
 
       const distributionData = {
         orderId: order.orderId,
         razorpayOrderId: order.razorpayOrderId,
         razorpayPaymentId: order.razorpayPaymentId,
-        totalAmount: tutorGroup.totalAmount,
+        totalAmount: totalActualAmount, // Use actual amount after coupons (BEFORE tax)
         tutor: tutorId,
         user: order.user,
-        courses: tutorGroup.courses
+        courses: tutorGroup.courses.map(course => ({
+          courseId: course.courseId,
+          amount: course.originalAmount // Individual course amounts
+        }))
       };
 
       await PaymentDistribution.createDistribution(distributionData);

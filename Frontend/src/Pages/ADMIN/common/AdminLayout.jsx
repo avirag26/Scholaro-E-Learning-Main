@@ -158,13 +158,7 @@ export default function AdminLayout({ children, title, subtitle }) {
                                 <Wallet className="w-5 h-5 mr-3" />
                                 Wallet
                             </button>
-                            <button
-                                onClick={() => navigate('/admin/coupon')}
-                                className={getButtonClasses('/admin/coupon')}
-                            >
-                                <DollarSign className="w-5 h-5 mr-3" />
-                                Coupon
-                            </button>
+                            
                             <button
                                 onClick={() => navigate('/admin/courses')}
                                 className={getButtonClasses('/admin/courses')}

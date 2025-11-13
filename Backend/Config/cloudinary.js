@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Configure Cloudinary
+
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dzkqp5fxh',
     api_key: process.env.CLOUDINARY_API_KEY || '776795823326575',
@@ -11,13 +11,12 @@ cloudinary.config({
     secure: true
 });
 
-// Check if Cloudinary is properly configured
+
 export const isCloudinaryConfigured = () => {
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'dzkqp5fxh';
     const apiKey = process.env.CLOUDINARY_API_KEY || '776795823326575';
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-    // For signed URLs, we need the API secret
     if (!apiSecret) {
         console.warn('CLOUDINARY_API_SECRET is missing. Signed URLs will not work.');
         return false;
@@ -26,9 +25,9 @@ export const isCloudinaryConfigured = () => {
     return !!(cloudName && apiKey && apiSecret);
 };
 
-// Upload buffer to Cloudinary
+
 export const uploadToCloudinary = async (buffer, options = {}) => {
-    // Check if Cloudinary is configured
+ 
     if (!isCloudinaryConfigured()) {
         throw new Error('Cloudinary is not properly configured. Missing API credentials.');
     }
@@ -54,16 +53,16 @@ export const uploadToCloudinary = async (buffer, options = {}) => {
     });
 };
 
-// Dedicated PDF upload function
+
 export const uploadPDFToCloudinary = async (buffer, options = {}) => {
-    // Check if Cloudinary is configured
+ 
     if (!isCloudinaryConfigured()) {
         throw new Error('Cloudinary is not properly configured. Missing API credentials.');
     }
 
     return new Promise((resolve, reject) => {
         const uploadOptions = {
-            resource_type: 'raw', // Use 'raw' for PDFs to ensure proper handling
+            resource_type: 'raw', 
             folder: 'certificates',
             format: 'pdf',
             use_filename: true,
@@ -136,7 +135,6 @@ export const generateSignedVideoUrl = (publicId, options = {}, userId = null) =>
     }
 };
 
-// Generate extremely secure URL with multiple restrictions
 export const generateUltraSecureVideoUrl = (publicId, userId, sessionId, options = {}) => {
     try {
         if (!isCloudinaryConfigured()) {
@@ -145,11 +143,10 @@ export const generateUltraSecureVideoUrl = (publicId, userId, sessionId, options
 
         const secureOptions = {
             resource_type: 'video',
-            type: 'upload', // Use upload type for compatibility
+            type: 'upload',
             sign_url: true,
-            expires_at: Math.floor(Date.now() / 1000) + (15 * 60), // Very short: 15 minutes
             secure: true,
-            // Add basic transformation for security
+            
             transformation: [
                 { quality: 'auto' },
                 { fetch_format: 'auto' }
@@ -165,17 +162,17 @@ export const generateUltraSecureVideoUrl = (publicId, userId, sessionId, options
     }
 };
 
-// Extract public ID from Cloudinary URL
+
 export const extractPublicIdFromUrl = (cloudinaryUrl) => {
     try {
         if (!cloudinaryUrl) return null;
 
-        // Handle both http and https URLs
+      
         const urlPattern = /(?:https?:\/\/)?(?:res\.cloudinary\.com\/[^\/]+\/)?(?:video|image)\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/;
         const match = cloudinaryUrl.match(urlPattern);
 
         if (match && match[1]) {
-            // Remove file extension if present
+            
             return match[1].replace(/\.[^.]+$/, '');
         }
 

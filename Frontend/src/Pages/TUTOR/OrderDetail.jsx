@@ -242,16 +242,64 @@ const TutorOrderDetail = () => {
                   <span className="font-medium">{formatCurrency(order.payment.subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Discount Given</span>
+                  <span className="text-gray-600">Course Discount</span>
                   <span className="font-medium text-red-600">-{formatCurrency(order.payment.discount)}</span>
                 </div>
-                <div className="border-t pt-4">
+                
+                {/* Coupon Discount Section */}
+                {order.payment.couponDiscount > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-lg font-semibold">Your Earnings</span>
-                    <span className="text-lg font-semibold text-green-600">{formatCurrency(order.payment.total)}</span>
+                    <span className="text-gray-600">Coupon Discount</span>
+                    <span className="font-medium text-red-600">-{formatCurrency(order.payment.couponDiscount)}</span>
                   </div>
+                )}
+                
+                <div className="border-t pt-4">
+                  {(() => {
+                    // Use actualTotal if available, otherwise calculate manually
+                    const actualAmount = order.payment.actualTotal || (order.payment.total - (order.payment.couponDiscount || 0));
+                    const tutorEarnings = actualAmount * 0.9;
+                    const platformFee = actualAmount * 0.1;
+                    
+                    return (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-lg font-semibold">Your Earnings (90%)</span>
+                          <span className="text-lg font-semibold text-green-600">{formatCurrency(tutorEarnings)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-500 mt-1">
+                          <span>Platform Fee (10%)</span>
+                          <span>-{formatCurrency(platformFee)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-400 mt-1">
+                          <span>Actual Revenue</span>
+                          <span>{formatCurrency(actualAmount)}</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
+
+              {/* Applied Coupon Section */}
+              {order.payment.appliedCoupons && order.payment.appliedCoupons[order.courses[0]?.tutor?.id] && (
+                <div className="mt-6 pt-6 border-t">
+                  <h3 className="font-medium text-gray-900 mb-3">Applied Coupon</h3>
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium text-orange-800">
+                          {order.payment.appliedCoupons[order.courses[0]?.tutor?.id]?.couponCode || 'Coupon Applied'}
+                        </p>
+                        <p className="text-sm text-orange-600">Student used your coupon</p>
+                      </div>
+                      <span className="text-orange-700 font-medium">
+                        -{formatCurrency(order.payment.couponDiscount)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="mt-6 pt-6 border-t">
                 <h3 className="font-medium text-gray-900 mb-3">Payment Details</h3>

@@ -45,7 +45,6 @@ const getCoursesByCategory = async (req, res) => {
       matchStage.isActive = true;
       matchStage.isBanned = false;
     } else {
-      // For 'all', show all courses but exclude banned ones
       matchStage.isBanned = false;
     }
 

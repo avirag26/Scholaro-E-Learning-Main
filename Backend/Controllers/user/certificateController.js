@@ -81,7 +81,7 @@ export const generateCertificate = async (req, res) => {
       });
     }
 
-    // Check if certificate already exists
+  
     const existingCertificate = await Certificate.findOne({
       userId,
       examAttemptId,
@@ -96,12 +96,12 @@ export const generateCertificate = async (req, res) => {
       });
     }
 
-    // Get user and tutor details
+
     const user = await User.findById(userId);
     const course = examAttempt.courseId;
     const tutor = await Tutor.findById(course.tutor);
 
-    // Create certificate record
+
     const certificate = new Certificate({
       userId,
       courseId: course._id,
@@ -122,7 +122,7 @@ export const generateCertificate = async (req, res) => {
 
     await certificate.save();
 
-    // Generate PDF certificate
+
     try {
       const certificateResult = await generateCertificatePDF(certificate);
 
@@ -130,11 +130,9 @@ export const generateCertificate = async (req, res) => {
         throw new Error('Certificate file generation failed');
       }
 
-      // Update certificate with local file URL
       certificate.certificateUrl = certificateResult.url;
       await certificate.save();
     } catch (fileError) {
-      // If file generation fails, delete the certificate record and return error
       await Certificate.findByIdAndDelete(certificate._id);
       throw new Error(`Certificate generation failed: ${fileError.message}`);
     }
@@ -190,7 +188,6 @@ const generateCertificatePDF = async (certificate) => {
 
     const page = await browser.newPage();
 
-    // Create certificate HTML
     const certificateHTML = createCertificateHTML(certificate);
 
     await page.setContent(certificateHTML, {
@@ -198,7 +195,7 @@ const generateCertificatePDF = async (certificate) => {
       timeout: 30000
     });
 
-    // Generate PDF - optimized for single page
+ 
     const pdfBuffer = await page.pdf({
       format: 'A4',
       landscape: true,
@@ -217,19 +214,16 @@ const generateCertificatePDF = async (certificate) => {
 
     await browser.close();
 
-    // Validate PDF buffer
     if (!pdfBuffer || pdfBuffer.length === 0) {
       throw new Error('Generated PDF is empty');
     }
 
-    // Save PDF locally
     return await saveCertificateLocally(pdfBuffer, certificate.certificateId, 'pdf');
   } catch (error) {
     return await generateHTMLCertificate(certificate);
   }
 };
 
-// Save certificate to local file system
 const saveCertificateLocally = async (content, certificateId, format = 'html') => {
   try {
     const fileName = `certificate_${certificateId}.${format}`;
@@ -241,7 +235,6 @@ const saveCertificateLocally = async (content, certificateId, format = 'html') =
       fs.writeFileSync(filePath, content, 'utf8');
     }
 
-    // Return relative path for storage in database
     return {
       url: `uploads/certificates/${fileName}`,
       publicId: null,
@@ -252,12 +245,10 @@ const saveCertificateLocally = async (content, certificateId, format = 'html') =
   }
 };
 
-// HTML certificate generator (fallback when Puppeteer fails)
 const generateHTMLCertificate = async (certificate) => {
   try {
     const htmlContent = createCertificateHTML(certificate);
 
-    // Save HTML locally
     return await saveCertificateLocally(htmlContent, certificate.certificateId, 'html');
 
   } catch (error) {
@@ -265,7 +256,6 @@ const generateHTMLCertificate = async (certificate) => {
   }
 };
 
-// Create modern certificate HTML template
 const createCertificateHTML = (certificate) => {
   return `
     <!DOCTYPE html>

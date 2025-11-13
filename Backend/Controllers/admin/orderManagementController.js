@@ -116,6 +116,9 @@ const getAllOrders = async (req, res) => {
         }
       })),
       totalAmount: order.totalAmount,
+      couponDiscount: order.couponDiscount || 0,
+      appliedCoupons: order.appliedCoupons || null,
+      subtotalAfterCoupons: order.subtotalAfterCoupons || order.totalAmount,
       taxAmount: order.taxAmount,
       finalAmount: order.finalAmount,
       status: order.status,
@@ -281,6 +284,9 @@ const getOrderDetails = async (req, res) => {
       // Payment details
       payment: {
         subtotal: order.totalAmount,
+        couponDiscount: order.couponDiscount || 0,
+        appliedCoupons: order.appliedCoupons || null,
+        subtotalAfterCoupons: order.subtotalAfterCoupons || order.totalAmount,
         tax: order.taxAmount,
         total: order.finalAmount,
         status: order.status,

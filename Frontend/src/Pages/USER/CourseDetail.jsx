@@ -222,14 +222,7 @@ const CourseDetail = () => {
                                     course={selectedCourse}
                                     className="mb-6" 
                                 />
-                                <div className="text-center mb-8">
-                                    <p className="text-sm text-gray-600 mb-2">
-                                        💰 30-Day Money-Back Guarantee
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        Full refund if you're not satisfied
-                                    </p>
-                                </div>
+                               
                                 <div className="border-t pt-6">
                                     <h3 className="font-bold text-gray-900 mb-4 text-lg">This course includes:</h3>
                                     <div className="space-y-3">

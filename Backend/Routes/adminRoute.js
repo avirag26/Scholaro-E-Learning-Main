@@ -102,21 +102,21 @@ router.put('/categories/:id', protectAdmin, updateCategory);
 router.delete('/categories/:id', protectAdmin, deleteCategory);
 router.patch('/categories/:id/toggle-visibility', protectAdmin, toggleCategoryVisibility);
 
-// Order management routes
+
 router.get('/orders', protectAdmin, getAllOrders);
 router.get('/orders/stats', protectAdmin, getOrderStats);
 router.get('/orders/:orderId', protectAdmin, getOrderDetails);
 router.patch('/orders/:orderId/status', protectAdmin, updateOrderStatus);
 
-// Cart cleanup route
+
 router.delete('/carts/cleanup-unavailable', protectAdmin, cleanupUnavailableCourses);
 
-// Wallet routes
+
 router.get('/wallet', protectAdmin, getWallet);
 router.get('/wallet/transactions', protectAdmin, getWalletTransactions);
 router.get('/wallet/statistics', protectAdmin, getWalletStatistics);
 
-// Notification routes
+
 router.get('/notifications', protectAdmin, getUserNotifications);
 router.put('/notifications/:notificationId/read', protectAdmin, markAsRead);
 router.get('/notifications/unread-count', protectAdmin, getUnreadCount);

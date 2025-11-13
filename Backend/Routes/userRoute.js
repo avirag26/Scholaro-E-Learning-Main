@@ -132,7 +132,7 @@ router.delete("/chats/:chatId/clear", protectUser, clearChatMessages);
 
 router.get("/available-tutors", protectUser, getAvailableTutors);
 
-// Exam routes
+
 import {
   checkExamEligibility,
   getExamForStudent,
@@ -147,21 +147,20 @@ router.post('/exams/:examId/start', protectUser, startExamAttempt);
 router.post('/exams/:examId/submit', protectUser, submitExamAttempt);
 router.get('/exam-attempts/:attemptId/result', protectUser, getExamAttemptResult);
 
-// Lesson completion tracking
+
 import { markLessonComplete, getLessonProgress } from '../Controllers/user/lessonController.js';
 
-// Coupon validation
+
 import { validateCoupon, getPublicCoupons } from '../Controllers/common/couponController.js';
 
-// Lesson routes
+
 router.post('/lessons/:lessonId/complete', protectUser, markLessonComplete);
 router.get('/courses/:courseId/lesson-progress', protectUser, getLessonProgress);
 
-// Coupon routes
-router.post('/validate-coupon', protectUser, validateCoupon);
-router.get('/coupons/public', getPublicCoupons); // Public endpoint - no auth needed
 
-// Certificate routes
+router.post('/validate-coupon', protectUser, validateCoupon);
+router.get('/coupons/public', getPublicCoupons); 
+
 import {
   generateCertificate,
   getUserCertificates,
@@ -172,7 +171,7 @@ router.post('/certificates/generate', protectUser, generateCertificate);
 router.get('/certificates', protectUser, getUserCertificates);
 router.get('/certificates/:certificateId/download', protectUser, downloadCertificate);
 
-// Home page data
+
 import {
   getUserDashboardData,
   getFeaturedCourses,
@@ -185,7 +184,7 @@ router.get('/featured-courses', getFeaturedCourses);
 router.get('/featured-tutors', getFeaturedTutors);
 router.get('/popular-categories', getPopularCategories);
 
-// Notification routes
+
 router.get('/notifications', protectUser, getUserNotifications);
 router.put('/notifications/:notificationId/read', protectUser, markAsRead);
 router.get('/notifications/unread-count', protectUser, getUnreadCount);

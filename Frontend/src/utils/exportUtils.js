@@ -77,11 +77,11 @@ export const exportToPDF = (data, title = 'Dashboard Report') => {
           if (headers.includes('Course Name') && headers.includes('Price')) {
             // Courses table - custom widths
             columnWidths = [
-              availableWidth * 0.4,  // Course Name - 40%
-              availableWidth * 0.15, // Students - 15%
-              availableWidth * 0.15, // Rating - 15%
-              availableWidth * 0.15, // Price - 15%
-              availableWidth * 0.15  // Status - 15%
+              availableWidth * 0.4,
+              availableWidth * 0.15,
+              availableWidth * 0.15,
+              availableWidth * 0.15,
+              availableWidth * 0.15
             ];
           } else {
             // Default equal distribution
@@ -131,7 +131,7 @@ export const exportToPDF = (data, title = 'Dashboard Report') => {
             let currentX = margin;
             let maxRowHeight = 0;
 
-            // First pass: calculate row height needed for wrapping
+
             row.forEach((cell, index) => {
               const colWidth = columnWidths[index] || (availableWidth / numColumns);
               const cellText = String(cell);
@@ -139,14 +139,14 @@ export const exportToPDF = (data, title = 'Dashboard Report') => {
               maxRowHeight = Math.max(maxRowHeight, lines.length);
             });
 
-            // Second pass: render the text
+
             currentX = margin;
             row.forEach((cell, index) => {
               const colWidth = columnWidths[index] || (availableWidth / numColumns);
               const cellText = String(cell);
               const lines = wrapText(cellText, colWidth - 2, 9);
 
-              // Render each line
+
               lines.forEach((line, lineIndex) => {
                 doc.text(line, currentX, currentY + (lineIndex * 4));
               });
@@ -154,7 +154,7 @@ export const exportToPDF = (data, title = 'Dashboard Report') => {
               currentX += colWidth;
             });
 
-            // Move to next row position
+
             currentY += Math.max(6, maxRowHeight * 4);
             currentY += 6;
           });
@@ -164,12 +164,11 @@ export const exportToPDF = (data, title = 'Dashboard Report') => {
       }
     };
 
-    // Add title
+
     doc.setFontSize(20);
     doc.setTextColor(40, 40, 40);
     doc.text(title, 20, 20);
 
-    // Add date and time
     doc.setFontSize(12);
     doc.setTextColor(100, 100, 100);
     const currentDate = new Date();
@@ -178,12 +177,37 @@ export const exportToPDF = (data, title = 'Dashboard Report') => {
 
     let yPosition = 50;
 
-    // Add statistics section
+    // Add executive summary
+    if (data.stats && typeof data.stats === 'object') {
+      doc.setFontSize(16);
+      doc.setTextColor(40, 40, 40);
+      doc.text('Executive Summary', 20, yPosition);
+      yPosition += 15;
+
+      doc.setFontSize(11);
+      doc.setTextColor(60, 60, 60);
+
+      const summaryText = [
+        `Total Platform Users: ${(data.stats.totalUsers || 0).toLocaleString()}`,
+        `Active Courses: ${(data.stats.activeCourses || 0).toLocaleString()}`,
+        `Total Revenue: Rs.${(data.stats.totalRevenue || 0).toLocaleString()}`,
+        `Total Orders: ${(data.stats.totalOrders || 0).toLocaleString()}`
+      ];
+
+      summaryText.forEach(text => {
+        doc.text(text, 25, yPosition);
+        yPosition += 6;
+      });
+
+      yPosition += 15;
+    }
+
+
     if (data.stats && typeof data.stats === 'object') {
 
       doc.setFontSize(16);
       doc.setTextColor(40, 40, 40);
-      doc.text('Statistics Overview', 20, yPosition);
+      doc.text('Detailed Statistics', 20, yPosition);
       yPosition += 10;
 
       const statsData = Object.entries(data.stats)
@@ -284,7 +308,7 @@ export const exportToPDF = (data, title = 'Dashboard Report') => {
 
       const coursesTableData = data.coursesData
         .filter(course => course && typeof course === 'object')
-        .slice(0, 20) // Limit to first 20 courses to avoid PDF size issues
+        .slice(0, 20)
         .map(course => [
           (course.title || course.name || 'Untitled').substring(0, 30) +
           ((course.title || course.name || '').length > 30 ? '...' : ''),
@@ -296,7 +320,7 @@ export const exportToPDF = (data, title = 'Dashboard Report') => {
         ]);
 
       if (coursesTableData.length > 0) {
-        safeAutoTable({
+        yPosition = safeAutoTable({
           startY: yPosition,
           head: [['Course Name', 'Students', 'Rating', 'Price', 'Status']],
           body: coursesTableData,
@@ -322,6 +346,63 @@ export const exportToPDF = (data, title = 'Dashboard Report') => {
             2: { cellWidth: 18, halign: 'center' },
             3: { cellWidth: 22, halign: 'right' },
             4: { cellWidth: 18, halign: 'center' }
+          }
+        }) + 20;
+      }
+    }
+
+    // Add orders summary if available
+    if (data.ordersData && Array.isArray(data.ordersData) && data.ordersData.length > 0) {
+      // Check if we need a new page
+      if (yPosition > 200) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setFontSize(16);
+      doc.setTextColor(40, 40, 40);
+      doc.text('Recent Orders Summary', 20, yPosition);
+      yPosition += 10;
+
+      const ordersTableData = data.ordersData
+        .filter(order => order && typeof order === 'object')
+        .slice(0, 15) // Limit to recent orders
+        .map(order => [
+          (order.orderId || 'N/A').substring(0, 15),
+          (order.user?.name || 'Unknown').substring(0, 20),
+          order.items?.length || 0,
+          `Rs.${(order.finalAmount || 0).toLocaleString()}`,
+          order.status || 'N/A',
+          order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'
+        ]);
+
+      if (ordersTableData.length > 0) {
+        safeAutoTable({
+          startY: yPosition,
+          head: [['Order ID', 'Customer', 'Items', 'Amount', 'Status', 'Date']],
+          body: ordersTableData,
+          theme: 'striped',
+          headStyles: {
+            fillColor: [59, 130, 246],
+            textColor: [255, 255, 255],
+            fontSize: 10,
+            fontStyle: 'bold'
+          },
+          bodyStyles: {
+            fontSize: 8,
+            textColor: [40, 40, 40]
+          },
+          alternateRowStyles: {
+            fillColor: [245, 245, 245]
+          },
+          margin: { left: 20, right: 20 },
+          columnStyles: {
+            0: { cellWidth: 25 },
+            1: { cellWidth: 35 },
+            2: { cellWidth: 15, halign: 'center' },
+            3: { cellWidth: 25, halign: 'right' },
+            4: { cellWidth: 20, halign: 'center' },
+            5: { cellWidth: 25, halign: 'center' }
           }
         });
       }
@@ -515,7 +596,7 @@ export const exportToExcel = (data, filename = 'dashboard-report') => {
       }
     }
 
-    // Orders sheet (if available)
+
     if (data.ordersData && Array.isArray(data.ordersData) && data.ordersData.length > 0) {
 
       const ordersData = data.ordersData
@@ -534,12 +615,11 @@ export const exportToExcel = (data, filename = 'dashboard-report') => {
 
         // Set column widths
         ordersSheet['!cols'] = [
-          { width: 25 }, // Order ID
-          { width: 20 }, // User
-          { width: 12 }, // Amount
-          { width: 15 }, // Amount Formatted
-          { width: 12 }, // Status
-          { width: 15 }  // Date
+          { width: 25 },
+          { width: 20 },
+          { width: 12 },
+          { width: 12 },
+          { width: 15 }
         ];
 
         XLSX.utils.book_append_sheet(workbook, ordersSheet, 'Orders');
@@ -548,7 +628,7 @@ export const exportToExcel = (data, filename = 'dashboard-report') => {
     }
 
     if (!hasData) {
-      // Create a sheet with a message if no data is available
+
       const noDataSheet = XLSX.utils.json_to_sheet([
         { Message: 'No data available for export' },
         { Message: 'Please ensure you have data to export' }
@@ -573,9 +653,6 @@ export const exportToExcel = (data, filename = 'dashboard-report') => {
   }
 };
 
-/**
- * Format currency for display
- */
 export const formatCurrency = (amount) => {
   if (amount >= 10000000) {
     return `Rs.${(amount / 10000000).toFixed(1)}Cr`;
@@ -589,20 +666,17 @@ export const formatCurrency = (amount) => {
 
 
 
-/**
- * Generate chart data for revenue trends
- */
 export const generateRevenueChartData = (orders) => {
   const monthlyData = {};
   const currentYear = new Date().getFullYear();
 
-  // Initialize 12 months
+
   for (let i = 0; i < 12; i++) {
     const month = new Date(currentYear, i, 1).toLocaleDateString('en-US', { month: 'short' });
     monthlyData[month] = { revenue: 0, orders: 0 };
   }
 
-  // Process orders
+
   orders.forEach(order => {
     if (order.status === 'paid' && order.createdAt) {
       const orderDate = new Date(order.createdAt);
@@ -620,6 +694,6 @@ export const generateRevenueChartData = (orders) => {
     month,
     revenue: data.revenue,
     orders: data.orders,
-    profit: Math.round(data.revenue * 0.7) // Assuming 70% profit margin
+    profit: Math.round(data.revenue * 0.7)
   }));
 };

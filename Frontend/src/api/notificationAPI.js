@@ -23,7 +23,6 @@ export const getNotifications = async (userType = 'user', limit = 10) => {
   } 
 
 
-// Mark notification as read
 export const markNotificationAsRead = async (userType = 'user', notificationId) => {
  
     let api, apiPath;
@@ -46,7 +45,6 @@ export const markNotificationAsRead = async (userType = 'user', notificationId) 
   } 
 
 
-// Get unread notification count
 export const getUnreadCount = async (userType = 'user') => {
 
     let api, apiPath;
@@ -68,7 +66,6 @@ export const getUnreadCount = async (userType = 'user') => {
     return response.data;
   } 
 
-// Clear all notifications
 export const clearAllNotifications = async (userType = 'user') => {
 
     let api, apiPath;

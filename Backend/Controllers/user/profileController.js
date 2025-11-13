@@ -256,42 +256,90 @@ const getMyCourses = async (req, res) => {
       ]
     });
 
-    // Extract all courses from orders - all purchased courses are considered enrolled
     const enrolledCourses = [];
+    const courseIds = new Set();
 
     orders.forEach(order => {
       order.items.forEach(item => {
-        if (item.course) {
-          // Calculate progress (mock data for now - you can implement actual lesson completion tracking)
-          const totalLessons = item.course.lessons?.length || 0;
-          // Generate more realistic progress based on course ID for consistency
-          const courseIdNum = parseInt(item.course._id.toString().slice(-2), 16) || 1;
-          const progressSeed = (courseIdNum * 7) % 101; // Generate consistent progress between 0-100
-          const progress = totalLessons > 0 ? Math.min(100, progressSeed) : 0;
-
-          const courseData = {
-            _id: item.course._id,
-            title: item.course.title,
-            course_thumbnail: item.course.course_thumbnail,
-            tutor: item.course.tutor,
-            average_rating: item.course.average_rating || 0,
-            total_ratings: item.course.total_ratings || 0,
-            lessons: item.course.lessons || [],
-            duration: item.course.duration,
-            category: item.course.category?.name || 'Uncategorized',
-            progress: progress,
+        if (item.course && !courseIds.has(item.course._id.toString())) {
+          courseIds.add(item.course._id.toString());
+          enrolledCourses.push({
+            courseId: item.course._id,
+            courseData: item.course,
             enrolledAt: order.createdAt
-          };
-
-          enrolledCourses.push(courseData);
+          });
         }
       });
     });
 
+    const coursesWithProgress = await Promise.all(
+      enrolledCourses.map(async ({ courseId, courseData, enrolledAt }) => {
+        try {
+          const user = await User.findById(userId);
+          const courseEnrollment = user.courses.find(c => c.course.toString() === courseId.toString());
+          
+          if (courseEnrollment) {
+            const totalLessons = courseData.lessons?.length || 0;
+            const completedLessonsCount = courseEnrollment.completedLessons?.length || 0;
+            const calculatedProgress = totalLessons > 0 ? Math.round((completedLessonsCount / totalLessons) * 100) : 0;
+            const storedProgress = Math.round(courseEnrollment.progress || 0);
+            const progress = Math.max(calculatedProgress, storedProgress);
+            
+            return {
+              _id: courseData._id,
+              title: courseData.title,
+              course_thumbnail: courseData.course_thumbnail,
+              tutor: courseData.tutor,
+              average_rating: courseData.average_rating || 0,
+              total_ratings: courseData.total_ratings || 0,
+              lessons: courseData.lessons || [],
+              duration: courseData.duration,
+              category: courseData.category?.name || 'Uncategorized',
+              progress: progress,
+              enrolledAt: enrolledAt
+            };
+          } else {
+            const progress = 0;
+
+            return {
+              _id: courseData._id,
+              title: courseData.title,
+              course_thumbnail: courseData.course_thumbnail,
+              tutor: courseData.tutor,
+              average_rating: courseData.average_rating || 0,
+              total_ratings: courseData.total_ratings || 0,
+              lessons: courseData.lessons || [],
+              duration: courseData.duration,
+              category: courseData.category?.name || 'Uncategorized',
+              progress: progress,
+              enrolledAt: enrolledAt
+            };
+          }
+        } catch (error) {
+          return {
+            _id: courseData._id,
+            title: courseData.title,
+            course_thumbnail: courseData.course_thumbnail,
+            tutor: courseData.tutor,
+            average_rating: courseData.average_rating || 0,
+            total_ratings: courseData.total_ratings || 0,
+            lessons: courseData.lessons || [],
+            duration: courseData.duration,
+            category: courseData.category?.name || 'Uncategorized',
+            progress: 0,
+            enrolledAt: enrolledAt
+          };
+        }
+      })
+    );
+
+    const completedCourses = coursesWithProgress.filter(course => course.progress >= 100);
+    const inProgressCourses = coursesWithProgress.filter(course => course.progress < 100);
+
     res.status(200).json({
       success: true,
-      enrolledCourses,
-      completedCourses: [] // For now, no completed courses logic
+      enrolledCourses: inProgressCourses,
+      completedCourses: completedCourses
     });
 
   } catch (error) {

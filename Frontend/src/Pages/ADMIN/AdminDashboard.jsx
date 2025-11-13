@@ -12,6 +12,10 @@ import { toast } from 'react-toastify';
 
 export default function AdminDashboard() {
     const [dateFilter, setDateFilter] = useState('This Month');
+    const [customDateRange, setCustomDateRange] = useState({
+        startDate: '',
+        endDate: ''
+    });
     const [stats, setStats] = useState({
         totalUsers: 0,
         totalTutors: 0,
@@ -55,11 +59,10 @@ export default function AdminDashboard() {
         try {
             setLoading(true);
 
-            // Fetch dashboard stats
             const statsResponse = await adminAPI.get('/api/admin/dashboard-stats');
             setStats(statsResponse.data);
 
-            // Fetch recent orders for revenue chart
+          
             try {
                 const ordersResponse = await adminAPI.get('/api/admin/orders?limit=100');
                 const orders = ordersResponse.data.orders || [];
@@ -108,12 +111,12 @@ export default function AdminDashboard() {
 
     const handleSearch = (e) => {
         setSearchTerm(e.target.value);
-        setCurrentPage(1); // Reset to first page when searching
+        setCurrentPage(1); 
     };
 
     const handleStatusFilter = (status) => {
         setStatusFilter(status);
-        setCurrentPage(1); // Reset to first page when filtering
+        setCurrentPage(1);
     };
 
     const handlePageChange = (page) => {
@@ -134,11 +137,18 @@ export default function AdminDashboard() {
 
     const handleDownloadPDF = async () => {
         try {
+            // Fetch additional order data for comprehensive report
+            const ordersResponse = await adminAPI.get('/api/admin/orders?limit=100');
+            const orderStatsResponse = await adminAPI.get('/api/admin/orders/stats');
+            
             const exportData = {
                 stats,
                 revenueData,
-                coursesData: coursesData
+                coursesData: coursesData,
+                ordersData: ordersResponse.data.orders || [],
+                orderStats: orderStatsResponse.data.stats || {}
             };
+            
             exportToPDF(exportData, 'Admin Dashboard Report');
             toast.success('PDF report downloaded successfully!');
         } catch (error) {
@@ -148,11 +158,18 @@ export default function AdminDashboard() {
 
     const handleDownloadExcel = async () => {
         try {
+            // Fetch additional order data for comprehensive report
+            const ordersResponse = await adminAPI.get('/api/admin/orders?limit=100');
+            const orderStatsResponse = await adminAPI.get('/api/admin/orders/stats');
+            
             const exportData = {
                 stats,
                 revenueData,
-                coursesData: coursesData
+                coursesData: coursesData,
+                ordersData: ordersResponse.data.orders || [],
+                orderStats: orderStatsResponse.data.stats || {}
             };
+            
             exportToExcel(exportData, 'admin-dashboard-report');
             toast.success('Excel report downloaded successfully!');
         } catch (error) {
@@ -196,19 +213,38 @@ export default function AdminDashboard() {
                     </div>
                     { }
                     <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2 text-sm">
+                            <input
+                                type="date"
+                                value={customDateRange.startDate}
+                                onChange={(e) => setCustomDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                                className="px-2 py-1 border border-gray-300 rounded text-xs"
+                                placeholder="Start Date"
+                            />
+                            <span className="text-gray-500">to</span>
+                            <input
+                                type="date"
+                                value={customDateRange.endDate}
+                                onChange={(e) => setCustomDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                                className="px-2 py-1 border border-gray-300 rounded text-xs"
+                                placeholder="End Date"
+                            />
+                        </div>
                         <Button
                             onClick={handleDownloadPDF}
                             className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2"
+                            title="Download comprehensive PDF report"
                         >
                             <FileText className="w-4 h-4" />
-                            <span>PDF</span>
+                            <span>PDF Report</span>
                         </Button>
                         <Button
                             onClick={handleDownloadExcel}
                             className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2"
+                            title="Download detailed Excel workbook"
                         >
                             <Download className="w-4 h-4" />
-                            <span>Excel</span>
+                            <span>Excel Report</span>
                         </Button>
                     </div>
                 </div>
@@ -218,7 +254,7 @@ export default function AdminDashboard() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-gray-600 text-sm">Active Students</p>
-                                <p className="text-2xl font-bold text-gray-800">{loading ? '...' : stats.activeUsers}</p>
+                                <p className="text-2xl font-bold text-gray-800">{loading ? '...' : stats.activeUsers || stats.totalUsers - stats.blockedUsers}</p>
                                 <p className="text-xs text-gray-500">Total: {loading ? '...' : stats.totalUsers}</p>
                             </div>
                             <Users className="w-8 h-8 text-sky-500" />

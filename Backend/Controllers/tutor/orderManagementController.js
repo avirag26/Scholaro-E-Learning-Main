@@ -163,6 +163,9 @@ const getTutorOrders = async (req, res) => {
         }
       })),
       totalAmount: order.totalAmount,
+      couponDiscount: order.couponDiscount || 0,
+      appliedCoupons: order.appliedCoupons || null,
+      subtotalAfterCoupons: order.subtotalAfterCoupons || order.totalAmount,
       taxAmount: order.taxAmount,
       finalAmount: order.finalAmount,
       status: order.status,
@@ -361,7 +364,18 @@ const getTutorOrderDetails = async (req, res) => {
       payment: {
         subtotal: tutorCourses.reduce((sum, item) => sum + item.price, 0),
         discount: tutorCourses.reduce((sum, item) => sum + (item.price - item.discountedPrice), 0),
-        total: tutorCourses.reduce((sum, item) => sum + item.discountedPrice, 0),
+        couponDiscount: order.appliedCoupons && order.appliedCoupons[req.tutor._id.toString()] 
+          ? order.appliedCoupons[req.tutor._id.toString()].discountAmount || 0 
+          : 0,
+        appliedCoupons: order.appliedCoupons || null,
+        total: tutorCourses.reduce((sum, item) => sum + item.discountedPrice, 0), // Before coupon discount
+        actualTotal: (() => {
+          const beforeCoupon = tutorCourses.reduce((sum, item) => sum + item.discountedPrice, 0);
+          const couponDiscount = order.appliedCoupons && order.appliedCoupons[req.tutor._id.toString()] 
+            ? order.appliedCoupons[req.tutor._id.toString()].discountAmount || 0 
+            : 0;
+          return beforeCoupon - couponDiscount;
+        })(), // After coupon discount (actual amount for distribution)
         status: order.status,
         paymentMethod: 'Razorpay',
         transactionId: order.razorpayPaymentId

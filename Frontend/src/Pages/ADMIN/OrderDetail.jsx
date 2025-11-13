@@ -266,17 +266,54 @@ const OrderDetail = () => {
                   <span className="text-gray-600">Subtotal</span>
                   <span className="font-medium">{formatCurrency(order.payment.subtotal)}</span>
                 </div>
+                
+                {/* Coupon Discount Section */}
+                {order.payment.couponDiscount > 0 && (
+                  <>
+                    <div className="flex justify-between text-green-600">
+                      <span>Coupon Discount</span>
+                      <span className="font-medium">-{formatCurrency(order.payment.couponDiscount)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">After Discount</span>
+                      <span className="font-medium">{formatCurrency(order.payment.subtotalAfterCoupons)}</span>
+                    </div>
+                  </>
+                )}
+                
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tax (3%)</span>
                   <span className="font-medium">{formatCurrency(order.payment.tax)}</span>
                 </div>
                 <div className="border-t pt-4">
                   <div className="flex justify-between">
-                    <span className="text-lg font-semibold">Total</span>
+                    <span className="text-lg font-semibold">Total Paid</span>
                     <span className="text-lg font-semibold">{formatCurrency(order.payment.total)}</span>
                   </div>
                 </div>
               </div>
+
+              {/* Applied Coupons Section */}
+              {order.payment.appliedCoupons && Object.keys(order.payment.appliedCoupons).length > 0 && (
+                <div className="mt-6 pt-6 border-t">
+                  <h3 className="font-medium text-gray-900 mb-3">Applied Coupons</h3>
+                  <div className="space-y-3">
+                    {Object.entries(order.payment.appliedCoupons).map(([tutorId, couponInfo]) => (
+                      <div key={tutorId} className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-green-800">{couponInfo.couponCode}</p>
+                            <p className="text-sm text-green-600">{couponInfo.tutorName}</p>
+                          </div>
+                          <span className="text-green-700 font-medium">
+                            -{formatCurrency(couponInfo.discountAmount)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-6 pt-6 border-t">
                 <h3 className="font-medium text-gray-900 mb-3">Payment Details</h3>

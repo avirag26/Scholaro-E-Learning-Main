@@ -10,7 +10,7 @@ const MyCourses = () => {
     const [enrolledCourses, setEnrolledCourses] = useState([]);
     const [completedCourses, setCompletedCourses] = useState([]);
     const [loading, setLoading] = useState(true);
-    
+
     // Search state
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -18,7 +18,7 @@ const MyCourses = () => {
         fetchMyCourses();
     }, []);
 
-    // Keyboard shortcut for search (Ctrl/Cmd + K)
+
     useEffect(() => {
         const handleKeyDown = (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -38,7 +38,9 @@ const MyCourses = () => {
             if (response.data.success) {
                 const enrolled = response.data.enrolledCourses || [];
                 const completed = response.data.completedCourses || [];
-                
+
+
+
                 setEnrolledCourses(enrolled);
                 setCompletedCourses(completed);
             }
@@ -49,16 +51,15 @@ const MyCourses = () => {
         }
     };
 
-    // Filter and search logic
-    // Search logic
+
     const filterCourses = (courses) => {
         if (!searchTerm) return courses;
-        
+
         return courses.filter(course => {
             const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                course.tutor?.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                course.category?.toLowerCase().includes(searchTerm.toLowerCase());
-            
+                course.tutor?.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                course.category?.toLowerCase().includes(searchTerm.toLowerCase());
+
             return matchesSearch;
         });
     };
@@ -92,10 +93,30 @@ const MyCourses = () => {
                         }}
                     />
                     {isCompleted && (
-                        <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                            <Award className="w-3 h-3" />
-                            Completed
-                        </div>
+                        <>
+                            <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                                <Award className="w-3 h-3" />
+                                Completed
+                            </div>
+                            <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => window.location.href = `/user/learn/${course._id}`}
+                                        className="bg-white text-gray-900 px-3 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-gray-100 text-sm"
+                                    >
+                                        <BookOpen className="w-4 h-4" />
+                                        Review
+                                    </button>
+                                    <button
+                                        onClick={() => window.location.href = `/user/course/${course._id}/exam`}
+                                        className="bg-green-500 text-white px-3 py-2 rounded-lg font-medium flex items-center gap-2 hover:bg-green-600 text-sm"
+                                    >
+                                        <Award className="w-4 h-4" />
+                                        Certificate
+                                    </button>
+                                </div>
+                            </div>
+                        </>
                     )}
                     {!isCompleted && (
                         <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
@@ -119,13 +140,7 @@ const MyCourses = () => {
                         By {course.tutor?.full_name || 'Unknown Instructor'}
                     </p>
 
-                    {course.category && (
-                        <div className="mb-3">
-                            <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">
-                                {course.category}
-                            </span>
-                        </div>
-                    )}
+
 
                     <div className="flex items-center gap-2 mb-3">
                         <div className="flex items-center gap-1">
@@ -136,7 +151,7 @@ const MyCourses = () => {
                         </span>
                     </div>
 
-                    {/* Progress Bar - Same style as course learning page */}
+
                     {!isCompleted && (
                         <div className="mb-4">
                             <div className="flex items-center justify-between mb-2">
@@ -147,9 +162,9 @@ const MyCourses = () => {
                             </div>
                             <div className="flex items-center gap-3">
                                 <div className="flex-1 bg-gray-200 rounded-full h-2 lesson-progress-bar">
-                                    <div 
+                                    <div
                                         className="h-2 rounded-full lesson-progress-fill bg-green-500"
-                                        style={{ 
+                                        style={{
                                             width: `${Math.min(100, Math.max(0, course.progress || 0))}%`
                                         }}
                                     ></div>
@@ -276,7 +291,7 @@ const MyCourses = () => {
                                     Try adjusting your search terms or filters to find your courses.
                                 </p>
                                 <button
-                                    onClick={clearFilters}
+                                    onClick={() => setSearchTerm('')}
                                     className="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 transition-colors"
                                 >
                                     Clear Filters
@@ -292,31 +307,37 @@ const MyCourses = () => {
                     </div>
 
                     {/* Completed Courses */}
-                    {completedCourses.length > 0 && (
-                        <div className="mb-12">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900">Completed Courses</h2>
-                                <span className="text-sm text-gray-600">
-                                    {getFilteredCourses(completedCourses).length} of {completedCourses.length} courses
-                                </span>
-                            </div>
-                            
-                            {getFilteredCourses(completedCourses).length === 0 ? (
-                                <div className="text-center py-8 bg-white rounded-lg border">
-                                    <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                    <p className="text-gray-600">
-                                        No completed courses match your current filters.
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {getFilteredCourses(completedCourses).map((course, index) => (
-                                        <CourseCard key={course._id || index} course={course} isCompleted={true} />
-                                    ))}
-                                </div>
-                            )}
+                    <div className="mb-12">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900">Completed Courses</h2>
+                            <span className="text-sm text-gray-600">
+                                {getFilteredCourses(completedCourses).length} of {completedCourses.length} courses
+                            </span>
                         </div>
-                    )}
+
+                        {completedCourses.length === 0 ? (
+                            <div className="text-center py-8 bg-white rounded-lg border">
+                                <Award className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">No completed courses yet</h3>
+                                <p className="text-gray-600">
+                                    Complete all lessons in a course to see it here with your certificate.
+                                </p>
+                            </div>
+                        ) : getFilteredCourses(completedCourses).length === 0 ? (
+                            <div className="text-center py-8 bg-white rounded-lg border">
+                                <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                <p className="text-gray-600">
+                                    No completed courses match your current filters.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {getFilteredCourses(completedCourses).map((course, index) => (
+                                    <CourseCard key={course._id || index} course={course} isCompleted={true} />
+                                ))}
+                            </div>
+                        )}
+                    </div>
 
 
                 </div>
