@@ -9,6 +9,7 @@ import { getCart, clearCart, clearRemovedItems } from '../../Redux/cartSlice';
 import { createOrder, verifyPayment } from '../../Redux/paymentSlice';
 import { userAPI } from '../../api/axiosConfig';
 import AvailableCoupons from '../../components/Coupons/AvailableCoupons';
+import { handleRazorpayError, buildFailureUrl, PAYMENT_ERROR_CODES } from '../../utils/paymentErrorHandler';
 
 function Checkout() {
     const dispatch = useDispatch();
@@ -293,12 +294,28 @@ function Checkout() {
                         toast.success('Payment successful! You are now enrolled in the courses.');
                         navigate(`/user/order-success/${orderData.order.orderId}`);
                     } catch (error) {
-                        toast.error('Payment verification failed. Please contact support if amount was deducted.');
+                        // Payment verification failed - redirect to failure page
+                        const errorMessage = error.message || 'Payment verification failed';
+                        const failureUrl = buildFailureUrl(
+                            PAYMENT_ERROR_CODES.VERIFICATION_FAILED,
+                            errorMessage,
+                            orderData.order.orderId,
+                            response.razorpay_payment_id
+                        );
+                        navigate(failureUrl);
                     }
                 },
                 modal: {
                     ondismiss: function() {
-                        toast.info('Payment cancelled. No charges were made.');
+                        // User cancelled payment - redirect to failure page
+                        const failureUrl = buildFailureUrl(
+                            PAYMENT_ERROR_CODES.USER_CANCELLED,
+                            'Payment was cancelled by user'
+                        );
+                        navigate(failureUrl);
+                    },
+                    onhidden: function() {
+                        // Modal was closed without payment completion
                     }
                 },
                 prefill: {
@@ -312,10 +329,21 @@ function Checkout() {
             };
 
             const rzp = new window.Razorpay(options);
+            
+            // Handle Razorpay errors
+            rzp.on('payment.failed', function (response) {
+                handleRazorpayError(response.error, navigate, orderData.order.orderId);
+            });
+            
             rzp.open();
         } catch (error) {
+            // Order creation failed - redirect to failure page
             const errorMessage = error.message || error || 'Failed to initiate payment';
-            toast.error(`Payment Error: ${errorMessage}`);
+            const failureUrl = buildFailureUrl(
+                PAYMENT_ERROR_CODES.ORDER_CREATION_FAILED,
+                errorMessage
+            );
+            navigate(failureUrl);
         }
     };
 

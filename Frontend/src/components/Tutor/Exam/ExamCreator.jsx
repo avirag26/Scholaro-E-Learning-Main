@@ -508,7 +508,7 @@ const ExamCreator = ({ courseId, onExamCreated, onExamUpdated, existingExam = nu
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Explanation (Optional)
                 </label>
@@ -519,7 +519,7 @@ const ExamCreator = ({ courseId, onExamCreated, onExamUpdated, existingExam = nu
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Explain why this is the correct answer"
                 />
-              </div>
+              </div> */}
             </div>
           </div>
 

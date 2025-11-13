@@ -83,12 +83,12 @@ export const createOrder = async (req, res) => {
     }
 
     // Generate a temporary order ID for tracking
-    const tempOrderId = `ORD_${uuidv4()}`;
+    const tempOrderId = `ORD_${uuidv4().split('-')[0]}`;
 
     const razorpayOrder = await razorpay.orders.create({
       amount: amountInPaise,
       currency: 'INR',
-      receipt: `ord_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`, // Max 40 chars
+      receipt: `ord_${Math.random().toString(36).substring(2, 8)}`, 
       notes: {
         userId: userId.toString(),
         tempOrderId: tempOrderId,

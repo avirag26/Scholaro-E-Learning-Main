@@ -16,6 +16,7 @@ import Cart from '../src/Pages/USER/Cart';
 import Wishlist from '../src/Pages/USER/Wishlist';
 import Checkout from '../src/Pages/USER/Checkout';
 import OrderSuccess from '../src/Pages/USER/OrderSuccess';
+import PaymentFailure from '../src/Pages/USER/PaymentFailure';
 import MyOrders from '../src/Pages/USER/MyOrders';
 import MyCourses from '../src/Pages/USER/MyCourses';
 import CourseLearning from '../src/Pages/USER/CourseLearningSimple';
@@ -116,6 +117,11 @@ const UserRoutes = () => {
             <Route path='order-success/:orderId' element={
                 <ProtectedRoute userType="user">
                     <OrderSuccess />
+                </ProtectedRoute>
+            } />
+            <Route path='payment-failure' element={
+                <ProtectedRoute userType="user">
+                    <PaymentFailure />
                 </ProtectedRoute>
             } />
             <Route path='orders' element={

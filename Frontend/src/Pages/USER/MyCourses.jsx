@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Star, Clock, BookOpen, Award, Play } from 'lucide-react';
+import { Star, Clock, BookOpen, Award, Play, Search, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
@@ -10,9 +10,25 @@ const MyCourses = () => {
     const [enrolledCourses, setEnrolledCourses] = useState([]);
     const [completedCourses, setCompletedCourses] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    // Search state
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         fetchMyCourses();
+    }, []);
+
+    // Keyboard shortcut for search (Ctrl/Cmd + K)
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                document.querySelector('input[placeholder*="Search courses"]')?.focus();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
     }, []);
 
     const fetchMyCourses = async () => {
@@ -20,14 +36,35 @@ const MyCourses = () => {
             setLoading(true);
             const response = await userAPI.get('/api/users/my-courses');
             if (response.data.success) {
-                setEnrolledCourses(response.data.enrolledCourses || []);
-                setCompletedCourses(response.data.completedCourses || []);
+                const enrolled = response.data.enrolledCourses || [];
+                const completed = response.data.completedCourses || [];
+                
+                setEnrolledCourses(enrolled);
+                setCompletedCourses(completed);
             }
         } catch (error) {
             toast.error('Failed to fetch courses');
         } finally {
             setLoading(false);
         }
+    };
+
+    // Filter and search logic
+    // Search logic
+    const filterCourses = (courses) => {
+        if (!searchTerm) return courses;
+        
+        return courses.filter(course => {
+            const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                course.tutor?.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                course.category?.toLowerCase().includes(searchTerm.toLowerCase());
+            
+            return matchesSearch;
+        });
+    };
+
+    const getFilteredCourses = (courses) => {
+        return filterCourses(courses);
     };
 
     const renderStars = (rating) => {
@@ -82,6 +119,14 @@ const MyCourses = () => {
                         By {course.tutor?.full_name || 'Unknown Instructor'}
                     </p>
 
+                    {course.category && (
+                        <div className="mb-3">
+                            <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs">
+                                {course.category}
+                            </span>
+                        </div>
+                    )}
+
                     <div className="flex items-center gap-2 mb-3">
                         <div className="flex items-center gap-1">
                             {renderStars(course.average_rating || 0)}
@@ -90,6 +135,28 @@ const MyCourses = () => {
                             ({course.total_ratings || 0} Ratings)
                         </span>
                     </div>
+
+                    {/* Progress Bar - Same style as course learning page */}
+                    {!isCompleted && (
+                        <div className="mb-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium text-gray-900">Progress</span>
+                                <span className="text-xs text-gray-600 font-semibold">
+                                    {course.progress || 0}%
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1 bg-gray-200 rounded-full h-2 lesson-progress-bar">
+                                    <div 
+                                        className="h-2 rounded-full lesson-progress-fill bg-green-500"
+                                        style={{ 
+                                            width: `${Math.min(100, Math.max(0, course.progress || 0))}%`
+                                        }}
+                                    ></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="flex items-center justify-between text-sm text-gray-500">
                         <div className="flex items-center gap-1">
@@ -124,9 +191,64 @@ const MyCourses = () => {
 
                     </div>
 
+                    {/* Search and Filter Section */}
+                    <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
+                        {/* Search Bar */}
+                        <div className="relative mb-4">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <input
+                                type="text"
+                                placeholder="Search courses by title, instructor, or category... (Ctrl+K)"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            )}
+                        </div>
+
+
+
+                    </div>
+
+                    {/* Search Results Summary */}
+                    {searchTerm && (
+                        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-blue-800 font-medium">
+                                        Showing {getFilteredCourses([...enrolledCourses, ...completedCourses]).length} of {enrolledCourses.length + completedCourses.length} courses
+                                    </p>
+                                    <div className="flex items-center gap-2 mt-1 text-sm text-blue-600">
+                                        <span className="bg-blue-100 px-2 py-1 rounded">
+                                            Search: "{searchTerm}"
+                                        </span>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                                >
+                                    Clear Search
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Enrolled Courses */}
                     <div className="mb-12">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Enrolled Courses</h2>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900">Enrolled Courses</h2>
+                            <span className="text-sm text-gray-600">
+                                {getFilteredCourses(enrolledCourses).length} of {enrolledCourses.length} courses
+                            </span>
+                        </div>
 
                         {enrolledCourses.length === 0 ? (
                             <div className="text-center py-12 bg-white rounded-lg border">
@@ -144,9 +266,25 @@ const MyCourses = () => {
                                     Browse Courses
                                 </button>
                             </div>
+                        ) : getFilteredCourses(enrolledCourses).length === 0 ? (
+                            <div className="text-center py-12 bg-white rounded-lg border">
+                                <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                    No courses match your filters
+                                </h3>
+                                <p className="text-gray-600 mb-4">
+                                    Try adjusting your search terms or filters to find your courses.
+                                </p>
+                                <button
+                                    onClick={clearFilters}
+                                    className="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 transition-colors"
+                                >
+                                    Clear Filters
+                                </button>
+                            </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {enrolledCourses.map((course, index) => (
+                                {getFilteredCourses(enrolledCourses).map((course, index) => (
                                     <CourseCard key={course._id || index} course={course} />
                                 ))}
                             </div>
@@ -156,12 +294,27 @@ const MyCourses = () => {
                     {/* Completed Courses */}
                     {completedCourses.length > 0 && (
                         <div className="mb-12">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6">Completed Courses</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {completedCourses.map((course, index) => (
-                                    <CourseCard key={course._id || index} course={course} isCompleted={true} />
-                                ))}
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900">Completed Courses</h2>
+                                <span className="text-sm text-gray-600">
+                                    {getFilteredCourses(completedCourses).length} of {completedCourses.length} courses
+                                </span>
                             </div>
+                            
+                            {getFilteredCourses(completedCourses).length === 0 ? (
+                                <div className="text-center py-8 bg-white rounded-lg border">
+                                    <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                    <p className="text-gray-600">
+                                        No completed courses match your current filters.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {getFilteredCourses(completedCourses).map((course, index) => (
+                                        <CourseCard key={course._id || index} course={course} isCompleted={true} />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 

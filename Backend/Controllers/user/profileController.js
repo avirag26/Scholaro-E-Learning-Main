@@ -244,10 +244,16 @@ const getMyCourses = async (req, res) => {
       ]
     }).populate({
       path: 'items.course',
-      populate: {
-        path: 'tutor',
-        select: 'full_name'
-      }
+      populate: [
+        {
+          path: 'tutor',
+          select: 'full_name'
+        },
+        {
+          path: 'category',
+          select: 'name'
+        }
+      ]
     });
 
     // Extract all courses from orders - all purchased courses are considered enrolled
@@ -256,6 +262,13 @@ const getMyCourses = async (req, res) => {
     orders.forEach(order => {
       order.items.forEach(item => {
         if (item.course) {
+          // Calculate progress (mock data for now - you can implement actual lesson completion tracking)
+          const totalLessons = item.course.lessons?.length || 0;
+          // Generate more realistic progress based on course ID for consistency
+          const courseIdNum = parseInt(item.course._id.toString().slice(-2), 16) || 1;
+          const progressSeed = (courseIdNum * 7) % 101; // Generate consistent progress between 0-100
+          const progress = totalLessons > 0 ? Math.min(100, progressSeed) : 0;
+
           const courseData = {
             _id: item.course._id,
             title: item.course.title,
@@ -264,7 +277,10 @@ const getMyCourses = async (req, res) => {
             average_rating: item.course.average_rating || 0,
             total_ratings: item.course.total_ratings || 0,
             lessons: item.course.lessons || [],
-            duration: item.course.duration
+            duration: item.course.duration,
+            category: item.course.category?.name || 'Uncategorized',
+            progress: progress,
+            enrolledAt: order.createdAt
           };
 
           enrolledCourses.push(courseData);
