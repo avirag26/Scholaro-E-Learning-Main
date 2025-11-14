@@ -202,9 +202,14 @@ function Checkout() {
 
     const calculateFinalTotal = () => {
         const subtotal = calculateAvailableTotal();
-        const tax = subtotal * 0.03;
         const couponDiscount = getTotalCouponDiscount();
-        return Math.max(0, subtotal + tax - couponDiscount);
+        const subtotalAfterCoupons = Math.max(0, subtotal - couponDiscount);
+        const tax = subtotalAfterCoupons * 0.03; // Tax calculated AFTER coupon discount
+        const finalAmount = subtotalAfterCoupons + tax;
+        
+        // Apply same rounding as backend (convert to paise and back)
+        const amountInPaise = Math.round(finalAmount * 100);
+        return amountInPaise / 100;
     };
 
     const handleProceedToCheckout = async () => {
@@ -479,7 +484,7 @@ function Checkout() {
 
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Tax (3%)</span>
-                                    <span className="font-medium">₹{(calculateAvailableTotal() * 0.03).toFixed(2)}</span>
+                                    <span className="font-medium">₹{((Math.max(0, calculateAvailableTotal() - getTotalCouponDiscount())) * 0.03).toFixed(2)}</span>
                                 </div>
 
                                 {/* Coupon Discounts */}

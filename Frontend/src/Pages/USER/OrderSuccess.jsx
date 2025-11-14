@@ -30,7 +30,8 @@ export default function OrderSuccess() {
           orderId: orderData.orderId,
           date: new Date(orderData.createdAt).toLocaleDateString(),
           amount: orderData.finalAmount,
-          subtotal: orderData.totalAmount,
+          subtotal: orderData.subtotalAfterCoupons || orderData.totalAmount,
+          couponDiscount: orderData.couponDiscount || 0,
           tax: orderData.taxAmount,
           status: orderData.status,
           courses: orderData.items.map(item => ({
@@ -188,6 +189,12 @@ Start learning and advance your career.
               <p className="text-sm text-gray-600">Subtotal</p>
               <p className="font-semibold text-gray-900">₹{order.subtotal?.toLocaleString()}</p>
             </div>
+            {order.couponDiscount > 0 && (
+              <div>
+                <p className="text-sm text-gray-600">Coupon Discount</p>
+                <p className="font-semibold text-green-600">-₹{order.couponDiscount?.toLocaleString()}</p>
+              </div>
+            )}
             <div>
               <p className="text-sm text-gray-600">Tax (3%)</p>
               <p className="font-semibold text-gray-900">₹{order.tax?.toLocaleString()}</p>

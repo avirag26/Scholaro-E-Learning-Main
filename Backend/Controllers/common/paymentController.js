@@ -75,8 +75,12 @@ export const createOrder = async (req, res) => {
       throw new Error('Razorpay credentials not configured');
     }
 
-    // Create Razorpay order
+    // Create Razorpay order with proper rounding
     const amountInPaise = Math.round(finalAmount * 100);
+    const actualFinalAmount = amountInPaise / 100;
+    
+    // Recalculate tax to match the actual final amount
+    const actualTaxAmount = actualFinalAmount - subtotalAfterCoupons;
 
     if (amountInPaise < 100) {
       throw new Error('Amount too small for Razorpay (minimum 1 INR)');
@@ -206,6 +210,8 @@ export const verifyPayment = async (req, res) => {
     const taxAmount = subtotalAfterCoupons * 0.03;
     const finalAmount = subtotalAfterCoupons + taxAmount;
     const amountInPaise = Math.round(finalAmount * 100);
+    const actualFinalAmount = amountInPaise / 100;
+    const actualTaxAmount = actualFinalAmount - subtotalAfterCoupons;
 
     // Verify payment amount matches
     if (razorpayOrderDetails.amount !== amountInPaise) {
@@ -250,8 +256,8 @@ export const verifyPayment = async (req, res) => {
       couponDiscount: totalCouponDiscount,
       appliedCoupons: Object.keys(appliedCoupons).length > 0 ? appliedCoupons : undefined,
       subtotalAfterCoupons,
-      taxAmount,
-      finalAmount,
+      taxAmount: actualTaxAmount,
+      finalAmount: actualFinalAmount,
       status: 'paid' // Order is created only after successful payment
     });
 
