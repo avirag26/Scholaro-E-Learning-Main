@@ -111,7 +111,8 @@ const ExamInterface = () => {
           selectedOption
         })),
         startedAt: startTimeRef.current,
-        timeSpent
+        timeSpent,
+        questionMapping: exam.questionMapping // Include mapping for shuffled exams
       };
 
       const response = await userAPI.post(

@@ -173,12 +173,49 @@ export const getExamForStudent = async (req, res) => {
       });
     }
 
+    // Prepare questions with optional shuffling
+    let questionsToSend = exam.questions.map((q, originalIndex) => ({
+      originalIndex,
+      question: q.question,
+      options: [...q.options],
+      points: q.points,
+      correctAnswer: q.correctAnswer
+    }));
+
+    // Shuffle options if enabled
+    if (exam.settings?.shuffleOptions) {
+      questionsToSend = questionsToSend.map(q => {
+        const optionsWithIndex = q.options.map((option, index) => ({ option, originalIndex: index }));
+        
+        // Simple shuffle
+        for (let i = optionsWithIndex.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [optionsWithIndex[i], optionsWithIndex[j]] = [optionsWithIndex[j], optionsWithIndex[i]];
+        }
+        
+        const shuffledOptions = optionsWithIndex.map(item => item.option);
+        const newCorrectIndex = optionsWithIndex.findIndex(item => item.originalIndex === q.correctAnswer);
+        
+        return {
+          ...q,
+          options: shuffledOptions,
+          correctAnswer: newCorrectIndex
+        };
+      });
+    }
+
+    // Shuffle questions if enabled
+    if (exam.settings?.shuffleQuestions) {
+      questionsToSend = questionsToSend.sort(() => Math.random() - 0.5);
+    }
+
     // Remove correct answer info from response (students shouldn't see this)
     const studentExam = {
       _id: exam._id,
       title: exam.title,
       description: exam.description,
-      questions: exam.questions.map((q, index) => ({
+      questions: questionsToSend.map((q, index) => ({
+        originalIndex: q.originalIndex,
         question: q.question,
         options: q.options,
         points: q.points
@@ -187,7 +224,13 @@ export const getExamForStudent = async (req, res) => {
         timeLimit: exam.settings.timeLimit,
         passingScore: exam.settings.passingScore
       },
-      totalPoints: exam.totalPoints
+      totalPoints: exam.totalPoints,
+      // Store mapping for answer validation
+      questionMapping: questionsToSend.map((q, displayIndex) => ({
+        displayIndex,
+        originalIndex: q.originalIndex,
+        correctAnswer: q.correctAnswer
+      }))
     };
 
     res.status(200).json({
@@ -246,7 +289,7 @@ export const startExamAttempt = async (req, res) => {
 export const submitExamAttempt = async (req, res) => {
   try {
     const { examId } = req.params;
-    const { answers, startedAt, timeSpent } = req.body;
+    const { answers, startedAt, timeSpent, questionMapping } = req.body;
     const userId = req.user._id;
 
     const exam = await Exam.findById(examId);
@@ -266,19 +309,32 @@ export const submitExamAttempt = async (req, res) => {
       });
     }
 
-    // Calculate score
+    // Calculate score using question mapping if provided (for shuffled exams)
     let earnedPoints = 0;
     const processedAnswers = [];
 
     answers.forEach((answer, index) => {
-      const question = exam.questions[answer.questionIndex];
+      let questionIndex = answer.questionIndex;
+      let correctAnswer;
+      
+      // If we have question mapping (shuffled exam), use it
+      if (questionMapping && questionMapping[index]) {
+        const mapping = questionMapping[index];
+        questionIndex = mapping.originalIndex;
+        correctAnswer = mapping.correctAnswer;
+      } else {
+        // Original logic for non-shuffled exams
+        correctAnswer = exam.questions[questionIndex]?.correctAnswer;
+      }
+      
+      const question = exam.questions[questionIndex];
       if (question) {
-        const isCorrect = answer.selectedOption === question.correctAnswer;
+        const isCorrect = answer.selectedOption === correctAnswer;
         const points = isCorrect ? question.points : 0;
         
         earnedPoints += points;
         processedAnswers.push({
-          questionIndex: answer.questionIndex,
+          questionIndex: questionIndex,
           selectedOption: answer.selectedOption,
           isCorrect,
           points
