@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { CheckCircle, Download, BookOpen, Clock, Users, Star } from 'lucide-react';
 import { userAPI } from '../../api/axiosConfig';
+import { fetchUserProfile } from '../../Redux/currentUserSlice';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
 
@@ -10,16 +12,19 @@ import Footer from '../../components/Common/Footer';
 export default function OrderSuccess() {
   const { orderId } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (orderId) {
       fetchOrderDetails();
+      // Refresh user data to ensure enrollment status is updated
+      dispatch(fetchUserProfile());
     } else {
       navigate('/user/courses');
     }
-  }, [orderId]);
+  }, [orderId, dispatch]);
 
   const fetchOrderDetails = async () => {
     try {

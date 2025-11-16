@@ -155,11 +155,21 @@ const CategoryCourses = () => {
                 placeholder="Search Courses"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 w-80"
+                className="pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 w-80"
               />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
             </div>
             <div className="relative" ref={filterDropdownRef}>
-              <button 
+              <button
                 onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                 className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
@@ -168,7 +178,7 @@ const CategoryCourses = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              
+
               {showFilterDropdown && (
                 <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                   <div className="p-4 space-y-4">
@@ -182,25 +192,12 @@ const CategoryCourses = () => {
                         <option value="all">All Courses</option>
                         <option value="listed">Listed Only</option>
                         <option value="unlisted">Unlisted Only</option>
-                        <option value="active">Active Only</option>
+
                       </select>
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
-                      <select
-                        value={ratingFilter}
-                        onChange={(e) => setRatingFilter(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
-                      >
-                        <option value="all">All Ratings</option>
-                        <option value="4+">4+ Stars</option>
-                        <option value="3+">3+ Stars</option>
-                        <option value="2+">2+ Stars</option>
-                        <option value="1+">1+ Stars</option>
-                      </select>
-                    </div>
-                    
+
+
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
                       <div className="flex gap-2">
@@ -225,11 +222,11 @@ const CategoryCourses = () => {
                           />
                         </div>
                       </div>
-                     
+
                     </div>
-                    
+
                     <div className="flex gap-2 pt-2">
-                      <button 
+                      <button
                         onClick={() => {
                           setStatusFilter("all");
                           setRatingFilter("all");
@@ -241,7 +238,7 @@ const CategoryCourses = () => {
                       >
                         Clear All
                       </button>
-                      <button 
+                      <button
                         onClick={() => setShowFilterDropdown(false)}
                         className="flex-1 px-3 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm"
                       >

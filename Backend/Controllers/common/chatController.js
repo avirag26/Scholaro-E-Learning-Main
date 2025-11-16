@@ -5,7 +5,7 @@ import Tutor from '../../Model/TutorModel.js';
 import { Course } from '../../Model/CourseModel.js';
 import mongoose from 'mongoose';
 
-// Get user's chat list
+
 export const getUserChats = async (req, res) => {
   try {
     const userId = req.user?._id || req.tutor?._id;
@@ -20,17 +20,17 @@ export const getUserChats = async (req, res) => {
 
     const chats = await Chat.getUserChats(userId, userType);
 
-    // Format chats for response
+
     const formattedChats = await Promise.all(chats.map(async (chat) => {
-      // Get the other participant in the chat
+
       const otherParticipant = chat.getOtherParticipant(userId.toString());
       
       if (!otherParticipant) {
-        return null; // Skip invalid chats
+        return null; 
       }
       
       if (otherParticipant.user.toString() === userId.toString()) {
-        return null; // Skip self-chats
+        return null; 
       }
       
 
@@ -46,10 +46,10 @@ export const getUserChats = async (req, res) => {
         }
       }
 
-      // Get all courses user has with this participant
+
       let participantCourses = [];
       if (participantInfo && userType === 'User') {
-        // For users, get all courses they have with this tutor
+ 
         const userWithCourses = await User.findById(userId).populate('courses.course');
         participantCourses = userWithCourses.courses
           .filter(enrollment => enrollment.course && enrollment.course.tutor.toString() === otherParticipant.user.toString())
@@ -59,7 +59,7 @@ export const getUserChats = async (req, res) => {
             thumbnail: enrollment.course.course_thumbnail
           }));
       } else if (participantInfo && userType === 'Tutor') {
-        // For tutors, get courses the student is enrolled in
+
         const studentWithCourses = await User.findById(otherParticipant.user).populate('courses.course');
         participantCourses = studentWithCourses.courses
           .filter(enrollment => enrollment.course && enrollment.course.tutor.toString() === userId.toString())
@@ -91,7 +91,7 @@ export const getUserChats = async (req, res) => {
       };
     }));
 
-    // Filter out null chats (invalid chats)
+ 
     const validChats = formattedChats.filter(chat => chat !== null);
 
     res.status(200).json({
@@ -108,7 +108,7 @@ export const getUserChats = async (req, res) => {
   }
 };
 
-// Create or get existing chat (for users)
+
 export const createOrGetChat = async (req, res) => {
   try {
     const { tutorId } = req.body;
@@ -121,7 +121,7 @@ export const createOrGetChat = async (req, res) => {
       });
     }
 
-    // Prevent user from chatting with themselves
+
     if (tutorId === userId.toString()) {
       return res.status(400).json({
         success: false,
@@ -129,7 +129,6 @@ export const createOrGetChat = async (req, res) => {
       });
     }
 
-    // Verify tutor exists
     const tutor = await Tutor.findById(tutorId);
     if (!tutor) {
       return res.status(404).json({
@@ -138,7 +137,7 @@ export const createOrGetChat = async (req, res) => {
       });
     }
 
-    // Check if user has purchased any course from this tutor
+
     const user = await User.findById(userId).populate('courses.course');
     const tutorCourses = user.courses.filter(enrollment => 
       enrollment.course && enrollment.course.tutor.toString() === tutorId
@@ -151,10 +150,8 @@ export const createOrGetChat = async (req, res) => {
       });
     }
 
-    // Use the first course for the chat (since it's one chat per tutor now)
     const firstCourse = tutorCourses[0].course;
 
-    // Check if chat already exists between user and tutor
     let chat = await Chat.findOne({
       'participants.user': { $all: [userId, tutorId] }
     });
@@ -178,11 +175,10 @@ export const createOrGetChat = async (req, res) => {
       await chat.save();
     }
 
-    // Populate chat details
+
     await chat.populate('course', 'title course_thumbnail');
     await chat.populate('participants.user', 'full_name email profileImage');
 
-    // Format the response to match getUserChats format
     const otherParticipant = chat.getOtherParticipant(userId);
     let participantInfo = null;
     

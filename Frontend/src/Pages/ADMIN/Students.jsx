@@ -113,7 +113,7 @@ const Students = () => {
   }
   return (
     <AdminLayout title="Students" subtitle="Manage all registered students">
-      {}
+      { }
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
@@ -137,7 +137,7 @@ const Students = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center">
             <div className="text-2xl text-red-500 mr-3"></div>
@@ -150,9 +150,9 @@ const Students = () => {
           </div>
         </div>
       </div>
-      {}
+      { }
       <div className="bg-white rounded-lg shadow">
-        {}
+        { }
         <div className="p-4 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -170,13 +170,25 @@ const Students = () => {
               </select>
             </div>
             <div className="flex items-center gap-3">
-              <input
-                type="text"
-                placeholder="Search students..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500 w-64"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search students..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500 w-64"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
               <button
                 onClick={() => dispatch(fetchUsers({
                   page: currentPage,
@@ -190,7 +202,7 @@ const Students = () => {
             </div>
           </div>
         </div>
-        {}
+        { }
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -276,14 +288,14 @@ const Students = () => {
             </tbody>
           </table>
         </div>
-        {}
+        { }
         {pagination && (pagination.totalUsers > 0 || pagination.totalPages > 0) && (
           <div className="px-6 py-4 border-t border-gray-200">
             <div className="flex items-center justify-between">
               <span></span>
               {pagination.totalPages > 1 && (
                 <div className="flex items-center space-x-2">
-                  {}
+                  { }
                   <button
                     onClick={() => handlePageChange(pagination.currentPage - 1)}
                     disabled={!pagination.hasPrev}
@@ -294,7 +306,7 @@ const Students = () => {
                   >
                     Previous
                   </button>
-                  {}
+                  { }
                   <div className="flex space-x-1">
                     {pagination.totalPages > 1 && Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
                       <button
@@ -309,7 +321,7 @@ const Students = () => {
                       </button>
                     ))}
                   </div>
-                  {}
+                  { }
                   <button
                     onClick={() => handlePageChange(pagination.currentPage + 1)}
                     disabled={!pagination.hasNext}

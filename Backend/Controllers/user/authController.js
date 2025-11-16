@@ -88,7 +88,7 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate('courses.course', '_id title');
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
@@ -112,7 +112,8 @@ const loginUser = async (req, res) => {
       name: user.full_name,
       email: user.email,
       phone: user.phone,
-      profileImage: user.profileImage
+      profileImage: user.profileImage,
+      courses: user.courses || []
     };
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -126,6 +127,7 @@ const loginUser = async (req, res) => {
       user: userInfo
     });
   } catch (error) {
+    console.error('Error during login:', error);
     res.status(500).json({ message: "Server error during login" });
   }
 };
@@ -133,7 +135,7 @@ const loginUser = async (req, res) => {
 const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate('courses.course', '_id title');
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -152,7 +154,8 @@ const verifyOtp = async (req, res) => {
       name: user.full_name,
       email: user.email,
       phone: user.phone,
-      profileImage: user.profileImage
+      profileImage: user.profileImage,
+      courses: user.courses || []
     };
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -166,6 +169,7 @@ const verifyOtp = async (req, res) => {
       user: userInfo
     });
   } catch (error) {
+    console.error('Error during OTP verification:', error);
     res.status(500).json({ message: "Server error during verification" });
   }
 };
@@ -197,7 +201,7 @@ const googleAuth = async (req, res) => {
     });
     const payload = ticket.getPayload();
     const { email, name, picture } = payload;
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email }).populate('courses.course', '_id title');
     if (user && user.is_blocked) {
       return res.status(403).json({ message: "Your account has been blocked" });
     }
@@ -229,7 +233,8 @@ const googleAuth = async (req, res) => {
       name: user.full_name,
       email: user.email,
       phone: user.phone,
-      profileImage: user.profileImage
+      profileImage: user.profileImage,
+      courses: user.courses || []
     };
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -243,6 +248,7 @@ const googleAuth = async (req, res) => {
       user: userInfo
     });
   } catch (error) {
+    console.error('Error during Google authentication:', error);
     res.status(500).json({ message: "Google authentication failed" });
   }
 };

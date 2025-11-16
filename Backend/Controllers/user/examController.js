@@ -173,16 +173,14 @@ export const getExamForStudent = async (req, res) => {
       });
     }
 
-    // Prepare exam for student (without correct answers)
+    // Remove correct answer info from response (students shouldn't see this)
     const studentExam = {
       _id: exam._id,
       title: exam.title,
       description: exam.description,
       questions: exam.questions.map((q, index) => ({
-        index,
         question: q.question,
-        options: exam.settings.shuffleOptions ? 
-          exam.getShuffledOptions(q).options : q.options,
+        options: q.options,
         points: q.points
       })),
       settings: {
@@ -191,11 +189,6 @@ export const getExamForStudent = async (req, res) => {
       },
       totalPoints: exam.totalPoints
     };
-
-    // Shuffle questions if enabled
-    if (exam.settings.shuffleQuestions) {
-      studentExam.questions = studentExam.questions.sort(() => Math.random() - 0.5);
-    }
 
     res.status(200).json({
       success: true,
@@ -224,37 +217,20 @@ export const startExamAttempt = async (req, res) => {
       });
     }
 
-    // Check if user can attempt
-    const attemptCount = await ExamAttempt.getAttemptCount(userId, examId);
-    const canAttempt = attemptCount < exam.settings.maxAttempts;
-    
-    if (!canAttempt) {
-      const bestAttempt = await ExamAttempt.getBestAttempt(userId, examId);
-      const hasPassed = bestAttempt && bestAttempt.passed;
-      
+    // Check attempt limits
+    const attemptCount = await ExamAttempt.countDocuments({ userId, examId });
+    if (attemptCount >= exam.settings.maxAttempts) {
       return res.status(403).json({
         success: false,
-        attemptsExhausted: true,
-        message: hasPassed 
-          ? `You have already passed this exam with ${bestAttempt.score}%`
-          : `All attempts completed (${exam.settings.maxAttempts}/${exam.settings.maxAttempts}). No more attempts available.`
+        message: 'Maximum attempts reached'
       });
     }
-
-    // Create attempt session (you might want to store this in Redis or similar)
-    const attemptSession = {
-      userId,
-      examId,
-      startedAt: new Date(),
-      timeLimit: exam.settings.timeLimit * 60 * 1000, // Convert to milliseconds
-      questions: exam.settings.shuffleQuestions ? exam.getShuffledQuestions() : exam.questions
-    };
 
     res.status(200).json({
       success: true,
       message: 'Exam attempt started',
       sessionId: `${userId}_${examId}_${Date.now()}`,
-      startedAt: attemptSession.startedAt,
+      startedAt: new Date(),
       timeLimit: exam.settings.timeLimit,
       totalQuestions: exam.questions.length
     });

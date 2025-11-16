@@ -1,4 +1,4 @@
-// Utility functions for cart and wishlist components
+
 
 export const calculateDiscountedPrice = (price, offerPercentage) => {
     if (!offerPercentage || offerPercentage === 0) return price;

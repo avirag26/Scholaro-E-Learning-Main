@@ -7,7 +7,7 @@ import { addToCart } from '../Redux/cartSlice';
 import { addToWishlist, removeFromWishlist } from '../Redux/wishlistSlice';
 import { createOrGetChat } from '../Redux/chatSlice';
 
-const CourseDetailActions = ({ courseId, course, className = "" }) => {
+const CourseDetailActions = ({ courseId, course, isPurchased: propIsPurchased, className = "" }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [loading, setLoading] = useState({ cart: false, wishlist: false, chat: false });
@@ -19,10 +19,15 @@ const CourseDetailActions = ({ courseId, course, className = "" }) => {
   const isInCart = cartItems?.some(item => item.course._id === courseId);
   const isInWishlist = wishlistItems?.some(item => item.course._id === courseId);
   
-  // Check if user has purchased this course
-  const isPurchased = user?.courses?.some(c => c.course === courseId);
+  // Use prop if provided, otherwise check user courses (handle populated course objects)
+  const isPurchased = propIsPurchased !== undefined 
+    ? propIsPurchased 
+    : user?.courses?.some(c => {
+        const courseId_in_user = c.course?._id || c.course;
+        return courseId_in_user?.toString() === courseId;
+      });
+  
   const tutorId = course?.tutor?._id || course?.tutor;
-
   const handleAddToCart = async () => {
     if (isInCart) return;
     
@@ -100,10 +105,13 @@ const CourseDetailActions = ({ courseId, course, className = "" }) => {
         </>
       ) : (
         <>
-          <div className="flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-green-100 text-green-800 font-medium">
+          <button
+            onClick={() => navigate(`/user/learn/${courseId}`)}
+            className="flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-green-600 text-white hover:bg-green-700 font-medium transition-colors"
+          >
             <CheckCircle className="w-5 h-5" />
-            Enrolled
-          </div>
+            Go to Course
+          </button>
           
           <button
             onClick={handleChatWithTutor}
@@ -112,7 +120,7 @@ const CourseDetailActions = ({ courseId, course, className = "" }) => {
             title="Chat with Tutor"
           >
             <MessageCircle className="w-5 h-5" />
-            {loading.chat ? 'Starting...' : 'Chat with Tutor'}
+            {loading.chat ? 'Starting...' : 'Chat'}
           </button>
         </>
       )}

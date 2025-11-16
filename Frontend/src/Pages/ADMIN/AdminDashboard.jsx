@@ -62,7 +62,7 @@ export default function AdminDashboard() {
             const statsResponse = await adminAPI.get('/api/admin/dashboard-stats');
             setStats(statsResponse.data);
 
-          
+
             try {
                 const ordersResponse = await adminAPI.get('/api/admin/orders?limit=100');
                 const orders = ordersResponse.data.orders || [];
@@ -111,7 +111,7 @@ export default function AdminDashboard() {
 
     const handleSearch = (e) => {
         setSearchTerm(e.target.value);
-        setCurrentPage(1); 
+        setCurrentPage(1);
     };
 
     const handleStatusFilter = (status) => {
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
             // Fetch additional order data for comprehensive report
             const ordersResponse = await adminAPI.get('/api/admin/orders?limit=100');
             const orderStatsResponse = await adminAPI.get('/api/admin/orders/stats');
-            
+
             const exportData = {
                 stats,
                 revenueData,
@@ -148,7 +148,7 @@ export default function AdminDashboard() {
                 ordersData: ordersResponse.data.orders || [],
                 orderStats: orderStatsResponse.data.stats || {}
             };
-            
+
             exportToPDF(exportData, 'Admin Dashboard Report');
             toast.success('PDF report downloaded successfully!');
         } catch (error) {
@@ -161,7 +161,7 @@ export default function AdminDashboard() {
             // Fetch additional order data for comprehensive report
             const ordersResponse = await adminAPI.get('/api/admin/orders?limit=100');
             const orderStatsResponse = await adminAPI.get('/api/admin/orders/stats');
-            
+
             const exportData = {
                 stats,
                 revenueData,
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
                 ordersData: ordersResponse.data.orders || [],
                 orderStats: orderStatsResponse.data.stats || {}
             };
-            
+
             exportToExcel(exportData, 'admin-dashboard-report');
             toast.success('Excel report downloaded successfully!');
         } catch (error) {
@@ -348,15 +348,25 @@ export default function AdminDashboard() {
                                         placeholder="Search courses..."
                                         value={searchTerm}
                                         onChange={handleSearch}
-                                        className="pl-8 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                        className="pl-8 pr-10 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                                     />
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
                                     </div>
+                                    {searchTerm && (
+                                        <button
+                                            onClick={() => setSearchTerm('')}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    )}
                                 </div>
-                               
+
                             </div>
                         </div>
                     </div>
@@ -373,7 +383,7 @@ export default function AdminDashboard() {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Lessons
                                     </th>
-                                   
+
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Notice
                                     </th>
@@ -410,7 +420,7 @@ export default function AdminDashboard() {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {course.lessons_count || 0}
                                             </td>
-                                           
+
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 ₹{course.price || 0}
                                             </td>

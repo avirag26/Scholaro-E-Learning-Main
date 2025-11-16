@@ -187,8 +187,7 @@ const CourseListing = () => {
     { value: 'oldest', label: 'Oldest First' },
     { value: 'price_low', label: 'Price: Low to High' },
     { value: 'price_high', label: 'Price: High to Low' },
-    { value: 'rating', label: 'Highest Rated' },
-    { value: 'popular', label: 'Most Popular' }
+
   ];
   if (loading && courses.length === 0) {
     return <Loading />;
@@ -218,8 +217,17 @@ const CourseListing = () => {
                   placeholder="Search courses..."
                   value={localFilters.search}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                 />
+                {localFilters.search && (
+                  <button
+                    type="button"
+                    onClick={() => handleFilterChange('search', '')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
               </div>
             </form>
             <div className="relative">
@@ -449,10 +457,11 @@ const CourseCard = ({ course, onClick, onChatClick, user }) => {
     ));
   };
 
-  // Check if user has purchased this course
-  const hasPurchased = user?.courses?.some(enrollment => 
-    enrollment.course === course.id
-  );
+  // Check if user has purchased this course (handle populated course objects)
+  const hasPurchased = user?.courses?.some(enrollment => {
+    const courseId_in_user = enrollment.course?._id || enrollment.course;
+    return courseId_in_user?.toString() === (course._id || course.id);
+  });
 
   const handleChatClick = (e) => {
     e.stopPropagation();
@@ -485,14 +494,7 @@ const CourseCard = ({ course, onClick, onChatClick, user }) => {
               {course.tutor?.full_name}
             </span>
           </div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="flex">
-              {renderStars(course.average_rating)}
-            </div>
-            <span className="text-sm text-gray-600">
-              {course.average_rating?.toFixed(1) || '0.0'} ({course.total_reviews || 0})
-            </span>
-          </div>
+         
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Users className="w-4 h-4" />
@@ -505,9 +507,9 @@ const CourseCard = ({ course, onClick, onChatClick, user }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Chat button - only show if user has purchased the course */}
-      {hasPurchased && (
+      {/* {hasPurchased && (
         <div className="px-4 pb-4">
           <button
             onClick={handleChatClick}
@@ -517,7 +519,7 @@ const CourseCard = ({ course, onClick, onChatClick, user }) => {
             Chat with Tutor
           </button>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

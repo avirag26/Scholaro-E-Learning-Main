@@ -190,13 +190,10 @@ export default function LandingPage(){
             {}
             <AboutSection />
             {}
-            <StatsSection />
-            {}
-            <CategoryCards />
-            {}
+        
             
             
-            <TeamSection />
+          
                <section className="py-20 bg-gray-900 text-white">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h2 className="text-3xl md:text-4xl font-bold mb-6">
@@ -259,8 +256,8 @@ export default function LandingPage(){
                             <div className="text-gray-400 space-y-2">
                                 <p>123 Main Street</p>
                                 <p>Anytown, CA 12345</p>
-                                <p>+1 (123) 456-7890</p>
-                                <p>hello@scholaro.com</p>
+                                <p>7012334610</p>
+                                <p>scholaro@gmail.com</p>
                             </div>
                         </div>
                     </div>

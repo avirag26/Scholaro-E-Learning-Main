@@ -1,6 +1,4 @@
-/**
- * Default values and constants used across the application
- */
+
 export const DEFAULT_IMAGES = {
   PROFILE: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face",
   COURSE_THUMBNAIL: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop"

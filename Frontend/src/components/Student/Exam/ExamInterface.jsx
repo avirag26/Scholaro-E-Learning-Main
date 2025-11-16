@@ -75,7 +75,6 @@ const ExamInterface = () => {
   const startExam = async () => {
     try {
       const response = await userAPI.post(`/api/users/exams/${exam._id}/start`);
-      setAttemptId(response.data.attemptId);
       setExamStarted(true);
       startTimeRef.current = Date.now();
       toast.success('Exam started! Good luck!');
@@ -334,6 +333,7 @@ const ExamInterface = () => {
               <li>• Your progress is automatically saved</li>
               <li>• Submit your exam before time runs out</li>
               <li>• You need {exam?.settings.passingScore}% to pass and receive a certificate</li>
+
             </ul>
           </div>
 

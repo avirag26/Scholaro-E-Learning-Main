@@ -20,9 +20,7 @@ const ExamCreator = ({ courseId, onExamCreated, onExamUpdated, existingExam = nu
     settings: {
       passingScore: 90,
       timeLimit: 60,
-      maxAttempts: 3,
-      shuffleQuestions: true,
-      shuffleOptions: true
+      maxAttempts: 3
     }
   });
 
@@ -51,9 +49,7 @@ const ExamCreator = ({ courseId, onExamCreated, onExamUpdated, existingExam = nu
         settings: {
           passingScore: existingExam.settings?.passingScore || 90,
           timeLimit: existingExam.settings?.timeLimit || 60,
-          maxAttempts: existingExam.settings?.maxAttempts || 3,
-          shuffleQuestions: existingExam.settings?.shuffleQuestions ?? true,
-          shuffleOptions: existingExam.settings?.shuffleOptions ?? true
+          maxAttempts: existingExam.settings?.maxAttempts || 3
         }
       });
     }
@@ -380,6 +376,8 @@ const ExamCreator = ({ courseId, onExamCreated, onExamUpdated, existingExam = nu
             />
           </div>
         </div>
+
+
       
       </div>
     </div>

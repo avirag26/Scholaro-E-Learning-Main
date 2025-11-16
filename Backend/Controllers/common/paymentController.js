@@ -9,19 +9,18 @@ import Coupon from '../../Model/CouponModel.js';
 import { v4 as uuidv4 } from 'uuid';
 import { notifyAdminNewOrder, notifyTutorWalletCredit } from '../../utils/notificationHelper.js';
 
-// Initialize Razorpay
+
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Create temporary Razorpay order (no database order yet)
 export const createOrder = async (req, res) => {
   try {
     const userId = req.user._id;
     const { appliedCoupons = {} } = req.body;
 
-    // Get user's cart
+
     const cart = await Cart.findOne({ user: userId }).populate('items.course');
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({
@@ -30,7 +29,7 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Filter available courses only
+
     const availableItems = cart.items.filter(item => {
       const course = item.course;
       return course && course.listed && course.isActive && !course.isBanned;
@@ -43,14 +42,14 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Calculate amounts for available items only
+
     const totalAmount = availableItems.reduce((total, item) => {
       const course = item.course;
       const discountedPrice = course.price - (course.price * (course.offer_percentage || 0) / 100);
       return total + discountedPrice;
     }, 0);
 
-    // Calculate coupon discounts
+
     let totalCouponDiscount = 0;
     if (Object.keys(appliedCoupons).length > 0) {
       totalCouponDiscount = Object.values(appliedCoupons).reduce((total, couponInfo) => {
@@ -70,23 +69,23 @@ export const createOrder = async (req, res) => {
     const taxAmount = subtotalAfterCoupons * 0.03; // 3% tax
     const finalAmount = subtotalAfterCoupons + taxAmount;
 
-    // Validate Razorpay credentials
+
     if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
       throw new Error('Razorpay credentials not configured');
     }
 
-    // Create Razorpay order with proper rounding
+
     const amountInPaise = Math.round(finalAmount * 100);
     const actualFinalAmount = amountInPaise / 100;
     
-    // Recalculate tax to match the actual final amount
+
     const actualTaxAmount = actualFinalAmount - subtotalAfterCoupons;
 
     if (amountInPaise < 100) {
       throw new Error('Amount too small for Razorpay (minimum 1 INR)');
     }
 
-    // Generate a temporary order ID for tracking
+ 
     const tempOrderId = `ORD_${uuidv4().split('-')[0]}`;
 
     const razorpayOrder = await razorpay.orders.create({
@@ -113,7 +112,7 @@ export const createOrder = async (req, res) => {
         id: razorpayOrder.id,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
-        orderId: tempOrderId // This will be used for success page navigation
+        orderId: tempOrderId
       },
       key: process.env.RAZORPAY_KEY_ID
     });
@@ -127,13 +126,13 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// Verify payment and create actual order
+
 export const verifyPayment = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     const userId = req.user._id;
 
-    // Verify signature
+
     const sign = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSign = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -147,7 +146,7 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Get Razorpay order details to retrieve stored data
+    
     const razorpayOrderDetails = await razorpay.orders.fetch(razorpay_order_id);
     if (!razorpayOrderDetails) {
       return res.status(404).json({
@@ -156,7 +155,7 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Verify the user matches
+    
     if (razorpayOrderDetails.notes.userId !== userId.toString()) {
       return res.status(403).json({
         success: false,
@@ -164,7 +163,7 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Get user's cart at the time of payment verification
+
     const cart = await Cart.findOne({ user: userId }).populate('items.course');
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({
@@ -173,7 +172,6 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Filter available courses only (re-check availability)
     const availableItems = cart.items.filter(item => {
       const course = item.course;
       return course && course.listed && course.isActive && !course.isBanned;
@@ -186,14 +184,14 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Calculate amounts (re-verify amounts match payment)
+
     const totalAmount = availableItems.reduce((total, item) => {
       const course = item.course;
       const discountedPrice = course.price - (course.price * (course.offer_percentage || 0) / 100);
       return total + discountedPrice;
     }, 0);
 
-    // Get applied coupons from Razorpay order notes
+
     let appliedCoupons = {};
     let totalCouponDiscount = 0;
 
@@ -213,7 +211,7 @@ export const verifyPayment = async (req, res) => {
     const actualFinalAmount = amountInPaise / 100;
     const actualTaxAmount = actualFinalAmount - subtotalAfterCoupons;
 
-    // Verify payment amount matches
+
     if (razorpayOrderDetails.amount !== amountInPaise) {
       return res.status(400).json({
         success: false,
@@ -221,7 +219,7 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Track coupon usage before creating order
+
     const couponUsagePromises = [];
     if (Object.keys(appliedCoupons).length > 0) {
       for (const [tutorId, couponInfo] of Object.entries(appliedCoupons)) {
@@ -229,7 +227,7 @@ export const verifyPayment = async (req, res) => {
           couponUsagePromises.push(
             Coupon.findById(couponInfo.couponId).then(coupon => {
               if (coupon) {
-                return coupon.useCoupon(userId, null, couponInfo.discountAmount); // orderId will be updated later
+                return coupon.useCoupon(userId, null, couponInfo.discountAmount); 
               }
             })
           );
@@ -237,10 +235,9 @@ export const verifyPayment = async (req, res) => {
       }
     }
 
-    // Wait for all coupon usage tracking to complete
     await Promise.all(couponUsagePromises);
 
-    // NOW create the actual order in database (only after successful payment)
+
     const order = new Order({
       user: userId,
       orderId: razorpayOrderDetails.notes.tempOrderId || `ORD_${uuidv4()}`,
@@ -258,12 +255,11 @@ export const verifyPayment = async (req, res) => {
       subtotalAfterCoupons,
       taxAmount: actualTaxAmount,
       finalAmount: actualFinalAmount,
-      status: 'paid' // Order is created only after successful payment
+      status: 'paid' 
     });
 
     await order.save();
 
-    // Update coupon usage with actual order ID
     if (Object.keys(appliedCoupons).length > 0) {
       for (const [tutorId, couponInfo] of Object.entries(appliedCoupons)) {
         if (couponInfo.couponId) {
@@ -276,7 +272,6 @@ export const verifyPayment = async (req, res) => {
       }
     }
 
-    // Enroll user in courses
     const user = await User.findById(userId);
 
     await notifyAdminNewOrder(order.orderId, order.finalAmount, user.email);
@@ -293,10 +288,10 @@ export const verifyPayment = async (req, res) => {
     }
     await user.save();
 
-    // Create payment distribution record for wallet system
+
     await createPaymentDistribution(order);
 
-    // Clear user's cart
+
     await Cart.findOneAndUpdate(
       { user: userId },
       {
@@ -323,10 +318,10 @@ export const verifyPayment = async (req, res) => {
   }
 };
 
-// Helper function to create payment distribution
+
 const createPaymentDistribution = async (order) => {
   try {
-    // Get course details with tutor information
+
     const orderWithCourses = await Order.findById(order._id).populate({
       path: 'items.course',
       select: 'title tutor',
@@ -339,7 +334,7 @@ const createPaymentDistribution = async (order) => {
     const tutorGroups = {};
     const appliedCoupons = order.appliedCoupons || {};
 
-    // First pass: Group courses by tutor and calculate totals
+  
     for (const item of orderWithCourses.items) {
       const tutorId = item.course.tutor._id.toString();
 
@@ -352,7 +347,7 @@ const createPaymentDistribution = async (order) => {
         };
       }
 
-      const courseOriginalAmount = item.discountedPrice; // After course offer discount
+      const courseOriginalAmount = item.discountedPrice; 
       tutorGroups[tutorId].courses.push({
         courseId: item.course._id,
         originalAmount: courseOriginalAmount
@@ -360,30 +355,28 @@ const createPaymentDistribution = async (order) => {
       tutorGroups[tutorId].totalOriginalAmount += courseOriginalAmount;
     }
 
-    // Validate total distribution doesn't exceed order subtotal
     const totalDistributionAmount = Object.values(tutorGroups).reduce((sum, group) => {
       return sum + Math.max(0, group.totalOriginalAmount - group.couponDiscount);
     }, 0);
 
-    // Second pass: Calculate actual amounts after coupon discounts
     for (const tutorId in tutorGroups) {
       const tutorGroup = tutorGroups[tutorId];
       const totalOriginal = tutorGroup.totalOriginalAmount;
       const totalCouponDiscount = tutorGroup.couponDiscount;
 
-      // Calculate actual amount after coupon discount (before tax)
+
       const totalActualAmount = Math.max(0, totalOriginal - totalCouponDiscount);
 
       const distributionData = {
         orderId: order.orderId,
         razorpayOrderId: order.razorpayOrderId,
         razorpayPaymentId: order.razorpayPaymentId,
-        totalAmount: totalActualAmount, // Use actual amount after coupons (BEFORE tax)
+        totalAmount: totalActualAmount, 
         tutor: tutorId,
         user: order.user,
         courses: tutorGroup.courses.map(course => ({
           courseId: course.courseId,
-          amount: course.originalAmount // Individual course amounts
+          amount: course.originalAmount 
         }))
       };
 
@@ -394,7 +387,6 @@ const createPaymentDistribution = async (order) => {
   }
 };
 
-// Get order details
 export const getOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -403,7 +395,7 @@ export const getOrder = async (req, res) => {
     const order = await Order.findOne({
       orderId,
       user: userId,
-      status: 'paid' // Only return paid orders
+      status: 'paid' 
     }).populate('items.course', 'title course_thumbnail')
       .populate('user', 'full_name email phone profileImage');
 
@@ -428,7 +420,7 @@ export const getOrder = async (req, res) => {
   }
 };
 
-// Generate invoice for order
+
 export const generateInvoice = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -447,7 +439,7 @@ export const generateInvoice = async (req, res) => {
       });
     }
 
-    // Generate invoice content
+
     const invoiceData = {
       orderId: order.orderId,
       date: order.createdAt.toLocaleDateString(),
@@ -477,16 +469,15 @@ export const generateInvoice = async (req, res) => {
   }
 };
 
-// Get user's orders
+
 export const getUserOrders = async (req, res) => {
   try {
     const userId = req.user._id;
     const { page = 1, limit = 10, sort = 'newest' } = req.query;
 
-    // Build query - only get paid orders since we only save successful payments
     const query = { user: userId, status: 'paid' };
 
-    // Build sort options
+
     let sortOptions = {};
     switch (sort) {
       case 'oldest':
@@ -526,6 +517,249 @@ export const getUserOrders = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching orders',
+      error: error.message
+    });
+  }
+};
+
+// Direct course enrollment (single course purchase)
+export const createDirectOrder = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { courseId, appliedCoupon = null } = req.body;
+
+    // Validate course
+    const course = await Course.findById(courseId);
+    if (!course || !course.listed || !course.isActive || course.isBanned) {
+      return res.status(400).json({
+        success: false,
+        message: 'Course is not available for purchase'
+      });
+    }
+
+    // Check if user already enrolled
+    const user = await User.findById(userId);
+    const isEnrolled = user.courses.some(c => c.course.toString() === courseId);
+    if (isEnrolled) {
+      return res.status(400).json({
+        success: false,
+        message: 'You are already enrolled in this course'
+      });
+    }
+
+    // Calculate price
+    const discountedPrice = course.price - (course.price * (course.offer_percentage || 0) / 100);
+    let totalAmount = discountedPrice;
+
+    // Apply coupon if provided
+    let couponDiscount = 0;
+    let couponData = null;
+    if (appliedCoupon && appliedCoupon.couponId) {
+      try {
+        const coupon = await Coupon.findById(appliedCoupon.couponId);
+        if (coupon && coupon.tutor.toString() === course.tutor.toString()) {
+          // Validate coupon
+          const validation = await coupon.validateForUser(userId, [courseId], totalAmount);
+          if (validation.isValid) {
+            couponDiscount = appliedCoupon.discountAmount;
+            couponData = appliedCoupon;
+          }
+        }
+      } catch (error) {
+        console.error('Coupon validation error:', error);
+      }
+    }
+
+    const subtotalAfterCoupons = Math.max(0, totalAmount - couponDiscount);
+    
+    if (subtotalAfterCoupons <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid course price after discounts'
+      });
+    }
+
+    const taxAmount = subtotalAfterCoupons * 0.03; // 3% tax
+    const finalAmount = subtotalAfterCoupons + taxAmount;
+
+    // Create Razorpay order
+    const amountInPaise = Math.round(finalAmount * 100);
+    const actualFinalAmount = amountInPaise / 100;
+    const actualTaxAmount = actualFinalAmount - subtotalAfterCoupons;
+
+    if (amountInPaise < 100) {
+      throw new Error('Amount too small for Razorpay (minimum 1 INR)');
+    }
+
+    const tempOrderId = `ORD_${uuidv4().split('-')[0]}`;
+
+    const razorpayOrder = await razorpay.orders.create({
+      amount: amountInPaise,
+      currency: 'INR',
+      receipt: `ord_${Math.random().toString(36).substring(2, 8)}`,
+      notes: {
+        userId: userId.toString(),
+        tempOrderId: tempOrderId,
+        courseId: courseId,
+        totalAmount: totalAmount.toString(),
+        couponDiscount: couponDiscount.toString(),
+        subtotalAfterCoupons: subtotalAfterCoupons.toString(),
+        taxAmount: taxAmount.toString(),
+        finalAmount: finalAmount.toString(),
+        appliedCoupon: couponData ? JSON.stringify(couponData) : '',
+        isDirect: 'true'
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      order: {
+        id: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        orderId: tempOrderId
+      },
+      key: process.env.RAZORPAY_KEY_ID
+    });
+  } catch (error) {
+    console.error('Error creating direct order:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating order',
+      error: error.message
+    });
+  }
+};
+
+// Verify direct enrollment payment
+export const verifyDirectPayment = async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const userId = req.user._id;
+
+    // Verify signature
+    const sign = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSign = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(sign.toString())
+      .digest("hex");
+
+    if (razorpay_signature !== expectedSign) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payment signature'
+      });
+    }
+
+    // Get Razorpay order details
+    const razorpayOrderDetails = await razorpay.orders.fetch(razorpay_order_id);
+    if (!razorpayOrderDetails || razorpayOrderDetails.notes.userId !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized payment verification'
+      });
+    }
+
+    // Validate course
+    const courseId = razorpayOrderDetails.notes.courseId;
+    const course = await Course.findById(courseId);
+    if (!course || !course.listed || !course.isActive || course.isBanned) {
+      return res.status(400).json({
+        success: false,
+        message: 'Course is no longer available'
+      });
+    }
+
+    // Check if user already enrolled
+    const user = await User.findById(userId);
+    const isEnrolled = user.courses.some(c => c.course.toString() === courseId);
+    if (isEnrolled) {
+      return res.status(400).json({
+        success: false,
+        message: 'You are already enrolled in this course'
+      });
+    }
+
+    // Parse payment details
+    const totalAmount = parseFloat(razorpayOrderDetails.notes.totalAmount);
+    const couponDiscount = parseFloat(razorpayOrderDetails.notes.couponDiscount || '0');
+    const subtotalAfterCoupons = parseFloat(razorpayOrderDetails.notes.subtotalAfterCoupons);
+    const finalAmount = parseFloat(razorpayOrderDetails.notes.finalAmount);
+    const actualTaxAmount = finalAmount - subtotalAfterCoupons;
+
+    // Handle coupon usage
+    let appliedCoupon = null;
+    if (razorpayOrderDetails.notes.appliedCoupon) {
+      try {
+        appliedCoupon = JSON.parse(razorpayOrderDetails.notes.appliedCoupon);
+        if (appliedCoupon.couponId) {
+          const coupon = await Coupon.findById(appliedCoupon.couponId);
+          if (coupon) {
+            await coupon.useCoupon(userId, null, couponDiscount);
+          }
+        }
+      } catch (e) {
+        console.error('Error processing coupon:', e);
+      }
+    }
+
+    // Create order
+    const order = new Order({
+      user: userId,
+      orderId: razorpayOrderDetails.notes.tempOrderId || `ORD_${uuidv4()}`,
+      razorpayOrderId: razorpay_order_id,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpaySignature: razorpay_signature,
+      items: [{
+        course: courseId,
+        price: course.price,
+        discountedPrice: totalAmount
+      }],
+      totalAmount,
+      couponDiscount,
+      appliedCoupons: appliedCoupon ? { [course.tutor]: appliedCoupon } : undefined,
+      subtotalAfterCoupons,
+      taxAmount: actualTaxAmount,
+      finalAmount,
+      status: 'paid'
+    });
+
+    await order.save();
+
+    // Update coupon with order ID
+    if (appliedCoupon && appliedCoupon.couponId) {
+      await Coupon.findByIdAndUpdate(
+        appliedCoupon.couponId,
+        { $set: { "usageHistory.$[elem].orderId": order._id } },
+        { arrayFilters: [{ "elem.userId": userId, "elem.orderId": { $exists: false } }] }
+      );
+    }
+
+    // Enroll user in course
+    user.courses.push({
+      course: courseId,
+      enrollmentDate: new Date(),
+      progress: 0,
+      completionStatus: false
+    });
+    await user.save();
+
+    // Create payment distribution
+    await createPaymentDistribution(order);
+
+    // Send notifications
+    await notifyAdminNewOrder(order.orderId, order.finalAmount, user.email);
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment verified successfully and course enrolled',
+      orderId: order.orderId
+    });
+  } catch (error) {
+    console.error('Error verifying direct payment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error verifying payment',
       error: error.message
     });
   }

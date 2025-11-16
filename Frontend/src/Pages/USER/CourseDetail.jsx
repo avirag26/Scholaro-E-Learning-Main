@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Play, Clock, Users, Star, Globe, Award, CheckCircle, PlayCircle } from 'lucide-react';
+import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
 import PriceDisplay from '../../components/PriceDisplay';
@@ -9,6 +10,7 @@ import CourseDetailActions from '../../components/CourseDetailActions';
 import Loading from '../../ui/Loading';
 import { fetchCourseDetails } from '../../Redux/userCourseSlice';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { addToCart } from '../../Redux/cartSlice';
 const CourseDetail = () => {
     const { courseId } = useParams();
     const navigate = useNavigate();
@@ -46,6 +48,32 @@ const CourseDetail = () => {
     if (!selectedCourse) {
         return <Loading />;
     }
+    
+     // Check if user has purchased this course (handle both populated and non-populated course objects)
+     const isPurchased = user?.courses?.some(c => {
+       const courseId_in_user = c.course?._id || c.course;
+       return courseId_in_user?.toString() === courseId;
+     });
+
+    const handleEnrollNow = async () => {
+        if (!selectedCourse) {
+            toast.error('Course not found');
+            return;
+        }
+
+        if (isPurchased) {
+            toast.info('You are already enrolled in this course');
+            return;
+        }
+
+        // Navigate to checkout with course data in state (bypassing cart)
+        navigate('/user/checkout', {
+            state: {
+                directEnrollment: true,
+                course: selectedCourse
+            }
+        });
+    };
     return (
         <div className="min-h-screen bg-gray-50">
             <Header />
@@ -212,17 +240,30 @@ const CourseDetail = () => {
                                         </p>
                                     )}
                                 </div>
-                                <button className="w-full bg-gradient-to-r from-teal-600 to-teal-700 text-white py-4 px-6 rounded-lg font-bold text-lg hover:from-teal-700 hover:to-teal-800 transition-all transform hover:scale-105 mb-4 shadow-lg">
-                                    Enroll Now
-                                </button>
-                                
+                                {!isPurchased ? (
+                                    <button 
+                                        onClick={handleEnrollNow}
+                                        className="w-full bg-gradient-to-r from-teal-600 to-teal-700 text-white py-4 px-6 rounded-lg font-bold text-lg hover:from-teal-700 hover:to-teal-800 transition-all transform hover:scale-105 mb-4 shadow-lg"
+                                    >
+                                        Enroll Now
+                                    </button>
+                                ) : (
+                                    <button 
+                                        onClick={() => navigate(`/user/learn/${courseId}`)}
+                                        className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-6 rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all transform hover:scale-105 mb-4 shadow-lg"
+                                    >
+                                        Continue Learning
+                                    </button>
+                                )}
+
+
                                 {/* Cart and Wishlist Actions */}
                                 <CourseDetailActions 
                                     courseId={selectedCourse.id || selectedCourse._id} 
                                     course={selectedCourse}
+                                    isPurchased={isPurchased}
                                     className="mb-6" 
                                 />
-                               
                                 <div className="border-t pt-6">
                                     <h3 className="font-bold text-gray-900 mb-4 text-lg">This course includes:</h3>
                                     <div className="space-y-3">

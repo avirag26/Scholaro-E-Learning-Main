@@ -31,7 +31,7 @@ const UserRoutes = () => {
 
     return (
         <Routes>
-            {/* Public routes - accessible without authentication */}
+            
             <Route path="forgot-password" element={
                 <GuestRoute userType="user">
                     <UserForgotPassword />
@@ -53,7 +53,7 @@ const UserRoutes = () => {
                 </GuestRoute>
             } />
 
-            {/* Protected routes - require user authentication */}
+        
             <Route path="home" element={
                 <ProtectedRoute userType="user">
                     <HomePage />
@@ -157,9 +157,7 @@ const UserRoutes = () => {
             <Route path='test-exam-result' element={
                 <ProtectedRoute userType="user">
                     <div className="p-8 text-center">
-                        <h1 className="text-2xl font-bold mb-4">Test Exam Results Page</h1>
-                        <p>This is a test page to verify routing works.</p>
-                        <p>The actual exam results page should work at: /user/exam-result/[attemptId]</p>
+                        
                     </div>
                 </ProtectedRoute>
             } />

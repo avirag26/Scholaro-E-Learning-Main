@@ -112,6 +112,7 @@ export const addToCart = async (req, res) => {
     // Check if user already enrolled in this course
     const user = await User.findById(userId);
     const isEnrolled = user.courses.some(c => c.course.toString() === courseId);
+    console.log(isEnrolled)
     if (isEnrolled) {
       return res.status(400).json({
         success: false,

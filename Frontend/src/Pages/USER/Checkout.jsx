@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Tag, X } from 'lucide-react';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
 import { getCart, clearCart, clearRemovedItems } from '../../Redux/cartSlice';
-import { createOrder, verifyPayment } from '../../Redux/paymentSlice';
+import { createOrder, verifyPayment, createDirectOrder, verifyDirectPayment } from '../../Redux/paymentSlice';
 import { userAPI } from '../../api/axiosConfig';
 import AvailableCoupons from '../../components/Coupons/AvailableCoupons';
 import { handleRazorpayError, buildFailureUrl, PAYMENT_ERROR_CODES } from '../../utils/paymentErrorHandler';
@@ -14,9 +14,14 @@ import { handleRazorpayError, buildFailureUrl, PAYMENT_ERROR_CODES } from '../..
 function Checkout() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const { items, loading: cartLoading, removedItems } = useSelector(state => state.cart);
     const { loading: paymentLoading } = useSelector(state => state.payment);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    
+    // Handle direct enrollment
+    const directEnrollment = location.state?.directEnrollment;
+    const directCourse = location.state?.course;
     
     // Coupon state - now supports multiple coupons (one per tutor)
     const [couponCode, setCouponCode] = useState('');
@@ -27,8 +32,11 @@ function Checkout() {
 
 
     useEffect(() => {
-        dispatch(getCart());
-    }, [dispatch]);
+        // Only fetch cart if not doing direct enrollment
+        if (!directEnrollment) {
+            dispatch(getCart());
+        }
+    }, [dispatch, directEnrollment]);
 
     // Show message for removed unavailable courses (only once)
     useEffect(() => {
@@ -65,6 +73,11 @@ function Checkout() {
     };
 
     const calculateTotalSavings = () => {
+        if (directEnrollment && directCourse) {
+            const originalPrice = directCourse.price;
+            const discountedPrice = calculateDiscountedPrice(originalPrice, directCourse.offer_percentage);
+            return originalPrice - discountedPrice;
+        }
         return items.reduce((total, item) => {
             const originalPrice = item.course.price;
             const discountedPrice = calculateDiscountedPrice(originalPrice, item.course.offer_percentage);
@@ -73,6 +86,13 @@ function Checkout() {
     };
 
     const getAvailableItems = () => {
+        if (directEnrollment && directCourse) {
+            // For direct enrollment, create a cart-like item structure
+            return [{
+                _id: 'direct-' + (directCourse.id || directCourse._id),
+                course: directCourse
+            }];
+        }
         return items.filter(item => {
             const course = item.course;
             return course.listed && course.isActive && !course.isBanned;
@@ -80,6 +100,9 @@ function Checkout() {
     };
 
     const calculateAvailableTotal = () => {
+        if (directEnrollment && directCourse) {
+            return calculateDiscountedPrice(directCourse.price, directCourse.offer_percentage);
+        }
         return getAvailableItems().reduce((total, item) => {
             const discountedPrice = calculateDiscountedPrice(item.course.price, item.course.offer_percentage);
             return total + discountedPrice;
@@ -213,17 +236,34 @@ function Checkout() {
     };
 
     const handleProceedToCheckout = async () => {
-        if (items.length === 0) {
+        // Check if we have items (either from cart or direct enrollment)
+        if (!directEnrollment && items.length === 0) {
             toast.error('Your cart is empty');
+            return;
+        }
+
+        if (directEnrollment && !directCourse) {
+            toast.error('No course selected for enrollment');
             return;
         }
 
         // Check for unavailable courses
         const availableItems = getAvailableItems();
-        const unavailableItems = items.filter(item => {
-            const course = item.course;
-            return !course || !course.listed || !course.isActive || course.isBanned;
-        });
+        let unavailableItems = [];
+        
+        if (!directEnrollment) {
+            unavailableItems = items.filter(item => {
+                const course = item.course;
+                return !course || !course.listed || !course.isActive || course.isBanned;
+            });
+        } else {
+            // For direct enrollment, the course is already validated by the public API
+            // If we have a course object, it means it's available for enrollment
+            if (!directCourse || !directCourse.id && !directCourse._id) {
+                toast.error('Invalid course data for enrollment');
+                return;
+            }
+        }
 
         if (availableItems.length === 0) {
             toast.error('All courses in your cart are currently unavailable. Please go back to your cart and remove them.');
@@ -270,7 +310,19 @@ function Checkout() {
             } : {};
 
             // Create temporary Razorpay order (no database order created yet)
-            const orderData = await dispatch(createOrder(couponData)).unwrap();
+            let orderData;
+            if (directEnrollment) {
+                // Use direct enrollment API
+                const appliedCoupon = Object.keys(appliedCoupons).length > 0 ? 
+                    Object.values(appliedCoupons)[0] : null; // Take first coupon for direct enrollment
+                orderData = await dispatch(createDirectOrder({
+                    courseId: directCourse.id || directCourse._id,
+                    appliedCoupon
+                })).unwrap();
+            } else {
+                // Use regular cart-based order
+                orderData = await dispatch(createOrder(couponData)).unwrap();
+            }
 
             const options = {
                 key: orderData.key,
@@ -282,21 +334,33 @@ function Checkout() {
                 handler: async function (response) {
                     try {
                         // Verify payment and create actual order in database
-                        await dispatch(verifyPayment({
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature
-                        })).unwrap();
+                        if (directEnrollment) {
+                            await dispatch(verifyDirectPayment({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            })).unwrap();
+                        } else {
+                            await dispatch(verifyPayment({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            })).unwrap();
 
-                        // Clear cart state after successful payment
-                        await dispatch(clearCart()).unwrap();
+                            // Clear cart state after successful payment (only for cart-based checkout)
+                            await dispatch(clearCart()).unwrap();
+                            
+                            // Small delay to ensure backend operation completes
+                            setTimeout(() => {
+                                dispatch(getCart());
+                            }, 500);
+                        }
                         
-                        // Small delay to ensure backend operation completes
-                        setTimeout(() => {
-                            dispatch(getCart());
-                        }, 500);
+                        // Refresh user data to get updated course enrollments
+                        const { fetchUserProfile } = await import('../../Redux/currentUserSlice');
+                        dispatch(fetchUserProfile());
                         
-                        toast.success('Payment successful! You are now enrolled in the courses.');
+                        toast.success('Payment successful! You are now enrolled in the course' + (directEnrollment ? '!' : 's!'));
                         navigate(`/user/order-success/${orderData.order.orderId}`);
                     } catch (error) {
                         // Payment verification failed - redirect to failure page
@@ -371,11 +435,22 @@ function Checkout() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Breadcrumb */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-4">Checkout Page</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                        {directEnrollment ? 'Course Enrollment' : 'Checkout Page'}
+                    </h1>
                     <nav className="flex space-x-4">
-                        <Link to="/user/courses" className="text-gray-600 hover:text-sky-500">Details</Link>
-                        <Link to="/user/cart" className="text-gray-600 hover:text-sky-500">Shopping Cart</Link>
-                        <span className="text-sky-500 font-medium">Checkout</span>
+                        <Link to="/user/courses" className="text-gray-600 hover:text-sky-500">Courses</Link>
+                        {!directEnrollment && (
+                            <Link to="/user/cart" className="text-gray-600 hover:text-sky-500">Shopping Cart</Link>
+                        )}
+                        {directEnrollment && directCourse && (
+                            <Link to={`/user/course/${directCourse.id || directCourse._id}`} className="text-gray-600 hover:text-sky-500">
+                                {directCourse.title}
+                            </Link>
+                        )}
+                        <span className="text-sky-500 font-medium">
+                            {directEnrollment ? 'Enrollment' : 'Checkout'}
+                        </span>
                     </nav>
                 </div>
 
@@ -612,7 +687,7 @@ function Checkout() {
                             {/* Proceed Button */}
                             <button
                                 onClick={handleProceedToCheckout}
-                                disabled={paymentLoading || items.length === 0}
+                                disabled={paymentLoading || (!directEnrollment && items.length === 0) || (directEnrollment && !directCourse)}
                                 className="w-full bg-sky-500 text-white py-3 rounded-lg font-medium hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {paymentLoading ? (

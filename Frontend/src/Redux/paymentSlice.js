@@ -27,6 +27,35 @@ export const verifyPayment = createAsyncThunk(
   }
 );
 
+// Create direct order (single course)
+export const createDirectOrder = createAsyncThunk(
+  'payment/createDirectOrder',
+  async ({ courseId, appliedCoupon = null }, { rejectWithValue }) => {
+    try {
+      const response = await userAPI.post('/api/users/payment/direct-order', {
+        courseId,
+        appliedCoupon
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to create direct order');
+    }
+  }
+);
+
+// Verify direct payment
+export const verifyDirectPayment = createAsyncThunk(
+  'payment/verifyDirectPayment',
+  async (paymentData, { rejectWithValue }) => {
+    try {
+      const response = await userAPI.post('/api/users/payment/verify-direct', paymentData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Direct payment verification failed');
+    }
+  }
+);
+
 // Get user orders
 export const getUserOrders = createAsyncThunk(
   'payment/getUserOrders',
@@ -88,6 +117,36 @@ const paymentSlice = createSlice({
         state.currentOrder = null;
       })
       .addCase(verifyPayment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.paymentStatus = 'failed';
+      })
+      
+      // Create direct order
+      .addCase(createDirectOrder.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createDirectOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentOrder = action.payload.order;
+      })
+      .addCase(createDirectOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // Verify direct payment
+      .addCase(verifyDirectPayment.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyDirectPayment.fulfilled, (state, action) => {
+        state.loading = false;
+        state.paymentStatus = 'success';
+        state.currentOrder = null;
+      })
+      .addCase(verifyDirectPayment.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
         state.paymentStatus = 'failed';

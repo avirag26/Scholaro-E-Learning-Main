@@ -19,7 +19,9 @@ export const addToCart = createAsyncThunk(
   'cart/addToCart',
   async (courseId, { rejectWithValue }) => {
     try {
+     
       const response = await userAPI.post('/api/users/cart/add', { courseId });
+     
       return response.data.cart;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to add to cart');

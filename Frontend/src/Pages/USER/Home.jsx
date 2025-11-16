@@ -345,19 +345,7 @@ export default function UserHomePage() {
                         {course.tutor?.full_name || "Unknown Tutor"}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex text-yellow-400">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-4 h-4 ${i < Math.floor(course.rating || 0) ? "fill-current" : ""}`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-gray-600">
-                        ({course.reviews?.length || 0} reviews)
-                      </span>
-                    </div>
+                    
                     <div className="flex items-center gap-2">
                       <PriceDisplay price={course.price} offerPercentage={course.offer_percentage} />
                     </div>
@@ -405,10 +393,7 @@ export default function UserHomePage() {
                     />
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">{tutor.full_name}</h3>
                     <p className="text-sm text-gray-600 mb-2">{getExpertiseArea(tutor)}</p>
-                    <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-3">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span>{tutor.rating.toFixed(1)} • {tutor.studentCount}+ students</span>
-                    </div>
+                    
                     <Button
                       onClick={() => navigate('/user/teachers')}
                       className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg text-sm"
@@ -443,9 +428,9 @@ export default function UserHomePage() {
           )}
         </div>
       </section>
-      <DynamicCategoryCards />
-      <Testimonials />
-      <TeamSection />
+      
+   
+     
       <Footer />
     </div>
   );

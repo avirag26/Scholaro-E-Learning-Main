@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { Trash2, ShoppingCart, Heart, Filter } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Trash2, ShoppingCart, Heart, Filter, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
 import UserSidebar from '../../components/UserSidebar';
 import { getWishlist, removeFromWishlist, moveToCart, clearWishlist } from '../../Redux/wishlistSlice';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 export default function Wishlist() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { items, loading, error } = useSelector(state => state.wishlist);
+  const { user } = useCurrentUser();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,6 +46,14 @@ export default function Wishlist() {
     } catch (error) {
       toast.error(error.message || 'Failed to move course');
     }
+  };
+
+  // Check if user has purchased a course (handle populated course objects)
+  const isPurchased = (courseId) => {
+    return user?.courses?.some(c => {
+      const courseId_in_user = c.course?._id || c.course;
+      return courseId_in_user?.toString() === courseId;
+    });
   };
 
   const handleClearWishlist = async () => {
@@ -148,13 +159,23 @@ export default function Wishlist() {
                         placeholder="Search wishlist..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
+                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
                       />
                       <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                         <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                       </div>
+                      {searchTerm && (
+                        <button
+                          onClick={() => setSearchTerm('')}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -277,7 +298,15 @@ export default function Wishlist() {
                               </div>
 
                               <div className="flex items-center gap-2">
-                                {!isUnavailable ? (
+                                {isPurchased(course._id) ? (
+                                  <button
+                                    onClick={() => navigate(`/user/learn/${course._id}`)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 transition-colors"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                    Go to Course
+                                  </button>
+                                ) : !isUnavailable ? (
                                   <button
                                     onClick={() => handleMoveToCart(course._id)}
                                     className="flex items-center gap-2 px-4 py-2 bg-sky-500 text-white font-medium rounded-lg hover:bg-sky-600 transition-colors"

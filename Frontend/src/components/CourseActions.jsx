@@ -1,21 +1,30 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation } from 'react-router-dom';
-import { ShoppingCart, Heart, Trash2, ArrowRightLeft } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Heart, Trash2, ArrowRightLeft, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { addToCart, removeFromCart, moveToWishlist, getCart } from '../Redux/cartSlice';
 import { addToWishlist, removeFromWishlist, moveToCart, getWishlist } from '../Redux/wishlistSlice';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 
 const CourseActions = ({ courseId, className = "" }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState({ cart: false, wishlist: false });
   
   const { items: cartItems } = useSelector(state => state.cart);
   const { items: wishlistItems } = useSelector(state => state.wishlist);
+  const { user } = useCurrentUser();
   
   const isInCart = cartItems?.some(item => item.course._id === courseId);
   const isInWishlist = wishlistItems?.some(item => item.course._id === courseId);
+  
+  // Check if user has purchased this course (handle populated course objects)
+  const isPurchased = user?.courses?.some(c => {
+    const courseId_in_user = c.course?._id || c.course;
+    return courseId_in_user?.toString() === courseId;
+  });
   
   // Determine current page context
   const isCartPage = location.pathname.includes('/cart');
@@ -177,6 +186,21 @@ const CourseActions = ({ courseId, className = "" }) => {
   const cartConfig = getCartButtonConfig();
   const wishlistConfig = getWishlistButtonConfig();
   const WishlistIcon = wishlistConfig.icon || Heart;
+
+  // If course is purchased, show different actions
+  if (isPurchased) {
+    return (
+      <div className={`flex gap-3 ${className}`}>
+        <button
+          onClick={() => navigate(`/user/learn/${courseId}`)}
+          className="flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg bg-green-600 text-white hover:bg-green-700 font-medium transition-colors"
+        >
+          <CheckCircle className="w-5 h-5" />
+          Go to Course
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex gap-3 ${className}`}>

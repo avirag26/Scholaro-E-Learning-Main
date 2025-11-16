@@ -5,10 +5,14 @@ import { generateSignedVideoUrl, extractPublicIdFromUrl, generateUltraSecureVide
 
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password -refreshToken');
+    const user = await User.findById(req.user._id)
+      .select('-password -refreshToken')
+      .populate('courses.course', '_id title');
+    
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    
     res.status(200).json({
       user: {
         _id: user._id,
@@ -16,10 +20,12 @@ const getUserProfile = async (req, res) => {
         email: user.email,
         phone: user.phone,
         profileImage: user.profileImage,
-        wallet: user.wallet
+        wallet: user.wallet,
+        courses: user.courses || []
       }
     });
   } catch (error) {
+    console.error('Error fetching user profile:', error);
     res.status(500).json({ message: "Server error" });
   }
 };

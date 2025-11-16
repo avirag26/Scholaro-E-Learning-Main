@@ -123,6 +123,11 @@ router.get("/payment/order/:orderId", protectUser, getOrder);
 router.get("/payment/orders", protectUser, getUserOrders);
 router.get("/payment/invoice/:orderId", protectUser, generateInvoice);
 
+// Direct enrollment routes
+import { createDirectOrder, verifyDirectPayment } from "../Controllers/common/paymentController.js";
+router.post("/payment/direct-order", protectUser, createDirectOrder);
+router.post("/payment/verify-direct", protectUser, verifyDirectPayment);
+
 // Chat routes
 router.get("/chats", protectUser, getUserChats);
 router.post("/chats", protectUser, createOrGetChat);

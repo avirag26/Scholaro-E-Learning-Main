@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trash2, Heart, ShoppingBag } from 'lucide-react';
+import { Trash2, Heart, ShoppingBag, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
 import UserSidebar from '../../components/UserSidebar';
 import { getCart, removeFromCart, clearCart, moveToWishlist, removeUnavailableFromCart } from '../../Redux/cartSlice';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 export default function Cart() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { items, totalItems, loading, error } = useSelector(state => state.cart);
+  const { user } = useCurrentUser();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -86,7 +88,32 @@ export default function Cart() {
   const getAvailableItems = () => {
     return items.filter(item => {
       const course = item.course;
-      return course.listed && course.isActive && !course.isBanned;
+      const isPurchased = user?.courses?.some(c => {
+        const courseId_in_user = c.course?._id || c.course;
+        return courseId_in_user?.toString() === course._id;
+      });
+      return course.listed && course.isActive && !course.isBanned && !isPurchased;
+    });
+  };
+
+  const getPurchasedItems = () => {
+    return items.filter(item => {
+      const course = item.course;
+      return user?.courses?.some(c => {
+        const courseId_in_user = c.course?._id || c.course;
+        return courseId_in_user?.toString() === course._id;
+      });
+    });
+  };
+
+  const getUnavailableItems = () => {
+    return items.filter(item => {
+      const course = item.course;
+      const isPurchased = user?.courses?.some(c => {
+        const courseId_in_user = c.course?._id || c.course;
+        return courseId_in_user?.toString() === course._id;
+      });
+      return !course.listed || !course.isActive || course.isBanned || isPurchased;
     });
   };
 
@@ -156,23 +183,39 @@ export default function Cart() {
                     </div>
                   </div>
 
-                  {/* Unavailable courses notification */}
+                  {/* Unavailable and purchased courses notification */}
                   {items.length > 0 && getAvailableItems().length < items.length && (
-                    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                          <p className="text-sm text-red-800">
-                            <strong>{items.length - getAvailableItems().length}</strong> course{items.length - getAvailableItems().length > 1 ? 's are' : ' is'} no longer available and cannot be purchased.
-                          </p>
+                    <div className="mt-4 space-y-2">
+                      {getPurchasedItems().length > 0 && (
+                        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                              <p className="text-sm text-green-800">
+                                <strong>{getPurchasedItems().length}</strong> course{getPurchasedItems().length > 1 ? 's are' : ' is'} already purchased and will be removed from cart.
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        <button
-                          onClick={handleRemoveUnavailable}
-                          className="text-sm bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors"
-                        >
-                          Remove Unavailable
-                        </button>
-                      </div>
+                      )}
+                      {getUnavailableItems().length > getPurchasedItems().length && (
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              <p className="text-sm text-red-800">
+                                <strong>{getUnavailableItems().length - getPurchasedItems().length}</strong> course{(getUnavailableItems().length - getPurchasedItems().length) > 1 ? 's are' : ' is'} no longer available and cannot be purchased.
+                              </p>
+                            </div>
+                            <button
+                              onClick={handleRemoveUnavailable}
+                              className="text-sm bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors"
+                            >
+                              Remove Unavailable
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

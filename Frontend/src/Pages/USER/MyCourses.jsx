@@ -40,7 +40,6 @@ const MyCourses = () => {
                 const completed = response.data.completedCourses || [];
 
 
-
                 setEnrolledCourses(enrolled);
                 setCompletedCourses(completed);
             }
@@ -216,7 +215,7 @@ const MyCourses = () => {
                                 placeholder="Search courses by title, instructor, or category... (Ctrl+K)"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                             />
                             {searchTerm && (
                                 <button
