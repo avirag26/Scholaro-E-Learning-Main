@@ -212,34 +212,35 @@ const CourseLearning = () => {
         <div className="min-h-screen bg-gray-50 video-protection">
             <Header />
 
-            <div className="flex min-h-screen">
+            <div className="flex flex-col lg:flex-row min-h-screen">
                 {/* Sidebar - Lessons List */}
-                <div className="w-80 bg-white border-r border-gray-200 overflow-y-auto max-h-screen">
+                <div className="w-full lg:w-80 bg-white border-b lg:border-b-0 lg:border-r border-gray-200 overflow-y-auto max-h-screen lg:max-h-screen order-2 lg:order-1">
                     {/* Course Header */}
-                    <div className="p-4 border-b border-gray-200">
+                    <div className="p-3 sm:p-4 border-b border-gray-200">
                         <button
                             onClick={() => navigate('/user/my-courses')}
-                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-3"
+                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-2 sm:mb-3 touch-target"
                         >
                             <ArrowLeft className="w-4 h-4" />
-                            Back to My Courses
+                            <span className="text-sm sm:text-base">Back to My Courses</span>
                         </button>
-                        <h1 className="text-lg font-semibold text-gray-900 mb-2">{course.title}</h1>
-                        <p className="text-sm text-gray-600">
+                        <h1 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2 line-clamp-2">{course.title}</h1>
+                        <p className="text-xs sm:text-sm text-gray-600">
                             By {course.tutor?.full_name || 'Unknown Instructor'}
                         </p>
                     </div>
 
                     {/* Lessons List */}
-                    <div className="p-4">
-                        <div className="mb-4">
+                    <div className="p-3 sm:p-4">
+                        <div className="mb-3 sm:mb-4">
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                                    <BookOpen className="w-4 h-4" />
-                                    Lessons ({lessons.filter(l => l.isPublished).length}/{lessons.length})
+                                <h3 className="text-xs sm:text-sm font-medium text-gray-900 flex items-center gap-1 sm:gap-2">
+                                    <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    <span className="hidden sm:inline">Lessons ({lessons.filter(l => l.isPublished).length}/{lessons.length})</span>
+                                    <span className="sm:hidden">Lessons</span>
                                 </h3>
                                 <span className="text-xs text-gray-500 font-medium">
-                                    {completedLessons.length}/{Math.max(1, lessons.filter(l => l.isPublished).length)} completed
+                                    {completedLessons.length}/{Math.max(1, lessons.filter(l => l.isPublished).length)}
                                 </span>
                             </div>
                             <div className="flex items-center gap-3 mb-1">
@@ -276,7 +277,7 @@ const CourseLearning = () => {
                                     <div
                                         key={lesson._id}
                                         onClick={() => lesson.isPublished ? handleLessonSelect(lesson, index) : null}
-                                        className={`p-3 rounded-lg border transition-all relative ${
+                                        className={`p-2 sm:p-3 rounded-lg border transition-all relative touch-target ${
                                             !lesson.isPublished 
                                                 ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-60' 
                                                 : currentLesson?._id === lesson._id
@@ -298,35 +299,36 @@ const CourseLearning = () => {
                                             </div>
                                         )}
 
-                                        <div className="flex items-start gap-3">
-                                            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                                        <div className="flex items-start gap-2 sm:gap-3">
+                                            <div className={`flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
                                                 !lesson.isPublished
                                                     ? 'bg-gray-300 text-gray-500'
                                                     : currentLesson?._id === lesson._id
                                                         ? 'bg-teal-600 text-white'
                                                         : 'bg-gray-100 text-gray-600'
                                             }`}>
-                                                <Play className="w-3 h-3" />
+                                                <Play className="w-2 h-2 sm:w-3 sm:h-3" />
                                             </div>
 
                                             <div className="flex-1 min-w-0">
-                                                <h4 className={`text-sm font-medium ${
+                                                <h4 className={`text-xs sm:text-sm font-medium line-clamp-2 ${
                                                     !lesson.isPublished
                                                         ? 'text-gray-500'
                                                         : currentLesson?._id === lesson._id
                                                             ? 'text-teal-900'
                                                             : 'text-gray-900'
                                                 }`}>
-                                                    Lesson {index + 1}: {lesson.title}
+                                                    <span className="hidden sm:inline">Lesson {index + 1}: </span>{lesson.title}
                                                 </h4>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <Clock className="w-3 h-3 text-gray-400" />
+                                                <div className="flex items-center gap-1 sm:gap-2 mt-1">
+                                                    <Clock className="w-2 h-2 sm:w-3 sm:h-3 text-gray-400" />
                                                     <span className="text-xs text-gray-500">
                                                         {lesson.duration || 'N/A'}
                                                     </span>
                                                     {!lesson.isPublished && (
-                                                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
-                                                            Unpublished
+                                                        <span className="text-xs bg-gray-200 text-gray-600 px-1 sm:px-2 py-0.5 rounded-full">
+                                                            <span className="hidden sm:inline">Unpublished</span>
+                                                            <span className="sm:hidden">🔒</span>
                                                         </span>
                                                     )}
                                                 </div>
@@ -475,12 +477,12 @@ const CourseLearning = () => {
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col order-1 lg:order-2">
                     {currentLesson ? (
                         <>
                             {/* Video Player */}
                             <div
-                                className="bg-black relative h-100 lg:h-150 xl:h-[600px] video-container"
+                                className="bg-black relative h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[600px] video-container"
                                 style={{
                                     userSelect: 'none',
                                     WebkitUserSelect: 'none',
@@ -560,59 +562,63 @@ const CourseLearning = () => {
                             </div>
 
                             {/* Lesson Info */}
-                            <div className="bg-white border-b border-gray-200 p-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                            <div className="bg-white border-b border-gray-200 p-3 sm:p-4 lg:p-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                                    <div className="flex-1 min-w-0">
+                                        <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1 sm:mb-2 line-clamp-2">
                                             {currentLesson.title}
                                         </h2>
-                                        <p className="text-gray-600">
+                                        <p className="text-sm sm:text-base text-gray-600">
                                             Lesson {currentLessonIndex + 1} of {lessons.length}
                                         </p>
                                     </div>
 
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                                         {!currentLesson.isPublished ? (
                                             <button
                                                 disabled
-                                                className="flex items-center gap-2 px-4 py-2 bg-gray-400 text-white rounded-lg opacity-75 cursor-not-allowed"
+                                                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gray-400 text-white rounded-lg opacity-75 cursor-not-allowed text-sm sm:text-base touch-target"
                                             >
-                                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                                                 </svg>
-                                                Unavailable
+                                                <span className="hidden sm:inline">Unavailable</span>
+                                                <span className="sm:hidden">Locked</span>
                                             </button>
                                         ) : completedLessons.includes(currentLesson._id) ? (
                                             <button
                                                 disabled
-                                                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg opacity-75 cursor-not-allowed"
+                                                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-green-500 text-white rounded-lg opacity-75 cursor-not-allowed text-sm sm:text-base touch-target"
                                             >
-                                                <CheckCircle className="w-4 h-4" />
-                                                Completed ✓
+                                                <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                <span className="hidden sm:inline">Completed ✓</span>
+                                                <span className="sm:hidden">Done</span>
                                             </button>
                                         ) : (
                                             <button
                                                 onClick={() => markLessonComplete(currentLesson._id)}
-                                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base touch-target"
                                             >
-                                                <CheckCircle className="w-4 h-4" />
-                                                Mark Complete
+                                                <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                <span className="hidden sm:inline">Mark Complete</span>
+                                                <span className="sm:hidden">Complete</span>
                                             </button>
                                         )}
                                         <button
                                             onClick={() => navigate('/user/chat')}
-                                            className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                                            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm sm:text-base touch-target"
                                         >
-                                            <MessageCircle className="w-4 h-4" />
-                                            Chat with Tutor
+                                            <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span className="hidden sm:inline">Chat with Tutor</span>
+                                            <span className="sm:hidden">Chat</span>
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Lesson Description */}
-                            <div className="flex-1 bg-gray-50 p-6">
-                                <div className="bg-white rounded-lg p-6">
+                            {/* Lesson Content */}
+                            <div className="flex-1 bg-gray-50 p-3 sm:p-4 lg:p-6">
+                                <div className="bg-white rounded-lg p-4 sm:p-6">
                                     {!currentLesson.isPublished && (
                                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
                                             <div className="flex items-center gap-2 mb-2">
@@ -627,41 +633,49 @@ const CourseLearning = () => {
                                             </p>
                                         </div>
                                     )}
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-4">About this lesson</h3>
-                                    <p className="text-gray-600 leading-relaxed mb-6">
+                                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">About this lesson</h3>
+                                    <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-4 sm:mb-6">
                                         {currentLesson.description || 'No description available for this lesson.'}
                                     </p>
 
                                     {/* PDF Materials Section */}
                                     {currentLesson.pdfUrl && currentLesson.isPublished && (
-                                        <div className="border-t border-gray-200 pt-6">
-                                            <h4 className="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                                <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <div className="border-t border-gray-200 pt-4 sm:pt-6">
+                                            <h4 className="text-sm sm:text-base font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
+                                                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                                                 </svg>
-                                                Lesson Materials
+                                                <span className="hidden sm:inline">Lesson Materials</span>
+                                                <span className="sm:hidden">Materials</span>
                                             </h4>
-                                            <div className="bg-gray-50 rounded-lg p-4">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                                                            <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                                                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                                            <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                                                                 <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                                                             </svg>
                                                         </div>
-                                                        <div>
-                                                            <h5 className="font-medium text-gray-900">Lesson Notes & Materials</h5>
-                                                            <p className="text-sm text-gray-500">PDF Document - Study materials for this lesson</p>
+                                                        <div className="min-w-0 flex-1">
+                                                            <h5 className="font-medium text-gray-900 text-sm sm:text-base truncate">
+                                                                <span className="hidden sm:inline">Lesson Notes & Materials</span>
+                                                                <span className="sm:hidden">Study Materials</span>
+                                                            </h5>
+                                                            <p className="text-xs sm:text-sm text-gray-500 truncate">
+                                                                <span className="hidden sm:inline">PDF Document - Study materials for this lesson</span>
+                                                                <span className="sm:hidden">PDF Document</span>
+                                                            </p>
                                                         </div>
                                                     </div>
-                                                    <PDFViewer
-                                                        pdfUrl={currentLesson.pdfUrl}
-                                                        title={`${currentLesson.title} - Lesson Materials`}
-                                                        filename={`${currentLesson.title}_notes.pdf`}
-                                                        size="sm"
-                                                    />
+                                                    <div className="flex-shrink-0">
+                                                        <PDFViewer
+                                                            pdfUrl={currentLesson.pdfUrl}
+                                                            title={`${currentLesson.title} - Lesson Materials`}
+                                                            filename={`${currentLesson.title}_notes.pdf`}
+                                                            size="sm"
+                                                        />
+                                                    </div>
                                                 </div>
-
                                             </div>
                                         </div>
                                     )}
@@ -669,25 +683,25 @@ const CourseLearning = () => {
                             </div>
                         </>
                     ) : (
-                        <div className="flex-1 flex items-center justify-center">
-                            <div className="text-center">
+                        <div className="flex-1 flex items-center justify-center p-4">
+                            <div className="text-center max-w-md">
                                 {lessons.length === 0 ? (
                                     <>
-                                        <BookOpen className="w-24 h-24 text-gray-300 mx-auto mb-4" />
-                                        <h2 className="text-2xl font-semibold text-gray-900 mb-2">No lessons available yet</h2>
-                                        <p className="text-gray-600">The instructor is still preparing the course content</p>
+                                        <BookOpen className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-gray-300 mx-auto mb-4" />
+                                        <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-2">No lessons available yet</h2>
+                                        <p className="text-sm sm:text-base text-gray-600">The instructor is still preparing the course content</p>
                                     </>
                                 ) : lessons.every(lesson => !lesson.isPublished) ? (
                                     <>
-                                        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <svg className="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <svg className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                                             </svg>
                                         </div>
-                                        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Lessons are being prepared</h2>
-                                        <p className="text-gray-600 mb-4">All lessons are currently unpublished. The instructor is working on making them available.</p>
-                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
-                                            <p className="text-sm text-blue-800">
+                                        <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-2">Lessons are being prepared</h2>
+                                        <p className="text-sm sm:text-base text-gray-600 mb-4">All lessons are currently unpublished. The instructor is working on making them available.</p>
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 max-w-sm sm:max-w-md mx-auto">
+                                            <p className="text-xs sm:text-sm text-blue-800">
                                                 <strong>What does this mean?</strong><br />
                                                 The instructor is still finalizing the lesson content. You'll be notified when lessons become available.
                                             </p>
@@ -695,9 +709,9 @@ const CourseLearning = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <Play className="w-24 h-24 text-gray-300 mx-auto mb-4" />
-                                        <h2 className="text-2xl font-semibold text-gray-900 mb-2">Select a lesson to start learning</h2>
-                                        <p className="text-gray-600">Choose a published lesson from the sidebar to begin</p>
+                                        <Play className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-gray-300 mx-auto mb-4" />
+                                        <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-2">Select a lesson to start learning</h2>
+                                        <p className="text-sm sm:text-base text-gray-600">Choose a published lesson from the sidebar to begin</p>
                                     </>
                                 )}
                             </div>

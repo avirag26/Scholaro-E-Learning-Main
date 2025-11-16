@@ -98,69 +98,74 @@ const TutorOrderDetail = () => {
 
   return (
     <TutorLayout>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center gap-3 sm:gap-4 mb-4">
             <button
               onClick={() => navigate('/tutor/orders')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-target"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Course Sale Details</h1>
-              <p className="text-gray-600">Order ID: {order.orderId}</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">Course Sale Details</h1>
+              <p className="text-sm sm:text-base text-gray-600 truncate">Order ID: {order.orderId}</p>
             </div>
           </div>
 
           {/* Status Display */}
-          <div className="flex items-center justify-between">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border ${getStatusColor()}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border ${getStatusColor()}`}>
               {getStatusIcon()}
-              <span className="font-medium">
-                Course Sale - {getStatusText()}
+              <span className="font-medium text-sm sm:text-base">
+                <span className="hidden sm:inline">Course Sale - </span>{getStatusText()}
               </span>
             </div>
 
-            <div className="text-sm text-gray-600 bg-green-50 px-3 py-2 rounded-lg">
-              ✅ Payment received successfully
+            <div className="text-xs sm:text-sm text-gray-600 bg-green-50 px-2 sm:px-3 py-1 sm:py-2 rounded-lg">
+              ✅ <span className="hidden sm:inline">Payment received successfully</span>
+              <span className="sm:hidden">Payment received</span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6 lg:space-y-8">
             {/* Student Information */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                <User className="w-5 h-5" />
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
                 Student Information
               </h2>
               
-              <div className="flex items-start gap-4">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                 <img
                   src={order.student.profileImage || '/default-avatar.png'}
                   alt={order.student.name}
-                  className="w-16 h-16 rounded-full object-cover"
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
                 />
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium text-gray-900">{order.student.name}</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">{order.student.name}</h3>
                   <div className="mt-2 space-y-2">
                     <div className="flex items-center gap-2 text-gray-600">
-                      <Mail className="w-4 h-4" />
-                      <span>{order.student.email}</span>
+                      <Mail className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                      <span className="text-sm sm:text-base truncate">{order.student.email}</span>
                     </div>
                     {order.student.phone && (
                       <div className="flex items-center gap-2 text-gray-600">
-                        <Phone className="w-4 h-4" />
-                        <span>{order.student.phone}</span>
+                        <Phone className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="text-sm sm:text-base">{order.student.phone}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2 text-gray-600">
-                      <Calendar className="w-4 h-4" />
-                      <span>Member since {formatDate(order.student.memberSince)}</span>
+                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                      <span className="text-sm sm:text-base">
+                        <span className="hidden sm:inline">Member since </span>
+                        <span className="sm:hidden">Since </span>
+                        {formatDate(order.student.memberSince)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -168,26 +173,27 @@ const TutorOrderDetail = () => {
             </div>
 
             {/* Course Details */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                <BookOpen className="w-5 h-5" />
-                Your Courses Purchased
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+                <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Your Courses Purchased</span>
+                <span className="sm:hidden">Courses Sold</span>
               </h2>
               
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {order.courses.map((courseItem, index) => (
-                  <div key={index} className="border rounded-lg p-4">
-                    <div className="flex gap-4">
+                  <div key={index} className="border rounded-lg p-3 sm:p-4">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                       <img
                         src={courseItem.thumbnail || '/default-course.jpg'}
                         alt={courseItem.title}
-                        className="w-20 h-20 rounded-lg object-cover"
+                        className="w-full h-32 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-lg object-cover flex-shrink-0"
                       />
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 mb-2">{courseItem.title}</h3>
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{courseItem.description}</p>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">{courseItem.title}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">{courseItem.description}</p>
                         
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
                           <div>
                             <span className="text-gray-500">Category:</span>
                             <span className="ml-2 font-medium">{courseItem.category.title}</span>
@@ -202,17 +208,17 @@ const TutorOrderDetail = () => {
                           </div>
                         </div>
 
-                        <div className="mt-4 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <span className="text-lg font-semibold text-gray-900">
+                        <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                            <span className="text-base sm:text-lg font-semibold text-gray-900">
                               {formatCurrency(courseItem.discountedPrice)}
                             </span>
                             {courseItem.originalPrice > courseItem.discountedPrice && (
                               <>
-                                <span className="text-sm text-gray-500 line-through">
+                                <span className="text-xs sm:text-sm text-gray-500 line-through">
                                   {formatCurrency(courseItem.originalPrice)}
                                 </span>
-                                <span className="text-sm text-green-600 font-medium">
+                                <span className="text-xs sm:text-sm text-green-600 font-medium">
                                   Saved {formatCurrency(courseItem.savings)}
                                 </span>
                               </>
@@ -228,11 +234,11 @@ const TutorOrderDetail = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Payment Summary */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
                 Your Earnings
               </h2>
               
@@ -357,13 +363,14 @@ const TutorOrderDetail = () => {
             </div>
 
             {/* Success Message */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-                <div>
-                  <h3 className="font-medium text-green-900">Sale Completed!</h3>
-                  <p className="text-sm text-green-700 mt-1">
-                    The student now has access to your course and you've earned {formatCurrency(order.payment.total)} from this sale.
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <h3 className="font-medium text-green-900 text-sm sm:text-base">Sale Completed!</h3>
+                  <p className="text-xs sm:text-sm text-green-700 mt-1">
+                    <span className="hidden sm:inline">The student now has access to your course and you've earned {formatCurrency(order.payment.total)} from this sale.</span>
+                    <span className="sm:hidden">Student has course access. You earned {formatCurrency(order.payment.total)}.</span>
                   </p>
                 </div>
               </div>

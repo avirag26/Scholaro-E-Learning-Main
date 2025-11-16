@@ -159,14 +159,14 @@ const MessageInput = ({ chatId }) => {
 
    
     return (
-        <div className="border-t border-gray-200 bg-white p-4">
+        <div className="border-t border-gray-200 bg-white p-3 sm:p-4">
             {/* Image Preview */}
             {imagePreview && (
                 <div className="mb-3 relative inline-block">
                     <img 
                         src={imagePreview} 
                         alt="Preview" 
-                        className="max-w-32 max-h-32 rounded-lg border border-gray-300"
+                        className="max-w-24 max-h-24 sm:max-w-32 sm:max-h-32 rounded-lg border border-gray-300"
                     />
                     <button
                         type="button"
@@ -178,7 +178,7 @@ const MessageInput = ({ chatId }) => {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="flex items-end space-x-3">
+            <form onSubmit={handleSubmit} className="flex items-end space-x-2 sm:space-x-3">
                 {/* Hidden File Input */}
                 <input
                     ref={fileInputRef}
@@ -192,10 +192,10 @@ const MessageInput = ({ chatId }) => {
                 <button
                     type="button"
                     onClick={handleImageUpload}
-                    className="flex-shrink-0 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="flex-shrink-0 p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     title="Upload image"
                 >
-                    <Image className="h-5 w-5" />
+                    <Image className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
 
                 {/* Message Input Container */}
@@ -207,25 +207,23 @@ const MessageInput = ({ chatId }) => {
                         onKeyDown={handleKeyDown}
                         placeholder={connected ? "Type your message..." : "Connecting..."}
                         disabled={!connected}
-                        className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        className="w-full px-3 sm:px-4 py-2 pr-8 sm:pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 resize-none disabled:bg-gray-100 disabled:cursor-not-allowed text-sm sm:text-base"
                         rows="1"
-                        style={{ minHeight: '40px', maxHeight: '120px' }}
+                        style={{ minHeight: '36px', maxHeight: '120px' }}
                     />
-
-                    
                 </div>
 
                 {/* Send Button */}
                 <button
                     type="submit"
                     disabled={(!message.trim() && !selectedImage) || !connected || uploading}
-                    className="flex-shrink-0 p-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    className="flex-shrink-0 p-1.5 sm:p-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                     title="Send message"
                 >
                     {uploading ? (
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
                     ) : (
-                        <Send className="h-5 w-5" />
+                        <Send className="h-4 w-4 sm:h-5 sm:w-5" />
                     )}
                 </button>
             </form>
@@ -240,10 +238,10 @@ const MessageInput = ({ chatId }) => {
             )}
 
             {/* Character Count (optional) */}
-            {message.length > 1800 && (
+            {message.length > 40 && (
                 <div className="mt-2 text-right">
-                    <span className={`text-xs ${message.length > 2000 ? 'text-red-600' : 'text-gray-500'}`}>
-                        {message.length}/2000
+                    <span className={`text-xs ${message.length > 50 ? 'text-red-600' : 'text-gray-500'}`}>
+                        {message.length}/50
                     </span>
                 </div>
             )}

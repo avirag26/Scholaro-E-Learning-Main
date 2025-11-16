@@ -136,10 +136,10 @@ Thank you for choosing Scholaro!
     <div className="min-h-screen bg-gray-50">
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Breadcrumb */}
-        <nav className="flex mb-6" aria-label="Breadcrumb">
-          <ol className="inline-flex items-center space-x-1 md:space-x-3">
+        <nav className="flex mb-4 sm:mb-6" aria-label="Breadcrumb">
+          <ol className="inline-flex items-center space-x-1 md:space-x-3 text-sm sm:text-base">
             <li className="inline-flex items-center">
               <Link to="/user/home" className="text-gray-700 hover:text-sky-500">
                 Home
@@ -154,34 +154,36 @@ Thank you for choosing Scholaro!
           </ol>
         </nav>
 
-        <div className="flex gap-8">
-          {/* Sidebar */}
-          <UserSidebar activeSection="orders" />
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
+          {/* Sidebar - Hidden on mobile */}
+          <div className="hidden lg:block">
+            <UserSidebar activeSection="orders" />
+          </div>
 
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {/* Header */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 sm:mb-6">
+              <div className="flex flex-col gap-4">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">My Orders</h1>
-                  <p className="text-gray-600">Track and manage your course purchases</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900">My Orders</h1>
+                  <p className="text-sm sm:text-base text-gray-600">Track and manage your course purchases</p>
                 </div>
                 
-                <div className="flex items-center gap-4">
-                  <div className="relative">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <div className="relative flex-1 sm:flex-initial">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <input
                       type="text"
                       placeholder="Search orders..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                      className="w-full pl-10 pr-10 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                     />
                     {searchTerm && (
                       <button
                         onClick={() => setSearchTerm('')}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 touch-target"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -190,19 +192,16 @@ Thank you for choosing Scholaro!
                     )}
                   </div>
                   
-
-                  
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    className="px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
                   >
                     <option value="newest">Newest First</option>
                     <option value="oldest">Oldest First</option>
                     <option value="amount_high">Amount: High to Low</option>
                     <option value="amount_low">Amount: Low to High</option>
                   </select>
-
                 </div>
               </div>
             </div>

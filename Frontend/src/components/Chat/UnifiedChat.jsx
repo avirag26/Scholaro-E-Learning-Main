@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -8,6 +8,7 @@ import useSocket from '../../hooks/useSocket';
 
 const UnifiedChat = () => {
     const navigate = useNavigate();
+    const [showChatArea, setShowChatArea] = useState(false);
 
     // Check both user and tutor authentication
     const userAuth = useSelector(state => state.currentUser);
@@ -62,40 +63,54 @@ const UnifiedChat = () => {
     }
 
     return (
-        <div className="flex flex-col h-full p-4">
+        <div className="flex flex-col h-full p-2 sm:p-4">
             <div className="flex-1 flex bg-white rounded-lg shadow-sm overflow-hidden min-h-0">
-                {/* Chat Sidebar */}
-                <div className="md:w-80 flex-shrink-0 h-full">
-                    <ChatList />
+                {/* Mobile: Show either chat list or chat area */}
+                <div className="md:hidden w-full h-full">
+                    {!showChatArea ? (
+                        <ChatList onChatSelect={() => setShowChatArea(true)} />
+                    ) : (
+                        <div className="flex flex-col h-full">
+                            <ChatArea onBack={() => setShowChatArea(false)} />
+                        </div>
+                    )}
                 </div>
 
-                {/* Main Chat Area */}
-                <div className="flex-1 flex flex-col min-h-0 h-full relative">
-                    <ChatArea />
+                {/* Desktop: Show both side by side */}
+                <div className="hidden md:flex w-full h-full">
+                    {/* Chat Sidebar */}
+                    <div className="w-80 flex-shrink-0 h-full">
+                        <ChatList />
+                    </div>
 
-                    {/* Connection Status Overlay */}
-                    {reconnecting && (
-                        <div className="absolute top-0 left-0 right-0 bg-yellow-500 text-white px-4 py-2 text-center text-sm z-10">
-                            <div className="flex items-center justify-center space-x-2">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                <span>Reconnecting to chat server...</span>
-                            </div>
-                        </div>
-                    )}
+                    {/* Main Chat Area */}
+                    <div className="flex-1 flex flex-col min-h-0 h-full relative">
+                        <ChatArea />
 
-                    {!connected && !reconnecting && (
-                        <div className="absolute top-0 left-0 right-0 bg-red-500 text-white px-4 py-2 text-center text-sm z-10">
-                            <div className="flex items-center justify-center space-x-2">
-                                <span>⚠️ Disconnected from chat server</span>
-                                <button
-                                    onClick={reconnect}
-                                    className="ml-2 underline hover:no-underline"
-                                >
-                                    Retry
-                                </button>
+                        {/* Connection Status Overlay */}
+                        {reconnecting && (
+                            <div className="absolute top-0 left-0 right-0 bg-yellow-500 text-white px-4 py-2 text-center text-sm z-10">
+                                <div className="flex items-center justify-center space-x-2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    <span>Reconnecting to chat server...</span>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+
+                        {!connected && !reconnecting && (
+                            <div className="absolute top-0 left-0 right-0 bg-red-500 text-white px-4 py-2 text-center text-sm z-10">
+                                <div className="flex items-center justify-center space-x-2">
+                                    <span>⚠️ Disconnected from chat server</span>
+                                    <button
+                                        onClick={reconnect}
+                                        className="ml-2 underline hover:no-underline"
+                                    >
+                                        Retry
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

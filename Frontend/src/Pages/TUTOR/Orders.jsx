@@ -143,73 +143,72 @@ const TutorOrders = () => {
 
   return (
     <TutorLayout>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Course Sales</h1>
-            <p className="text-gray-600">Monitor sales of your courses</p>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">My Course Sales</h1>
+            <p className="text-sm sm:text-base text-gray-600">Monitor sales of your courses</p>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6 border">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Sales</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalOrders || 0}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Sales</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{stats.totalOrders || 0}</p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-full">
-                <ShoppingBag className="w-6 h-6 text-blue-600" />
+              <div className="p-2 sm:p-3 bg-blue-100 rounded-full flex-shrink-0">
+                <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-blue-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 border">
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-3xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue || 0)}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Revenue</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{formatCurrency(stats.totalRevenue || 0)}</p>
               </div>
-              <div className="p-3 bg-green-100 rounded-full">
-                <DollarSign className="w-6 h-6 text-green-600" />
+              <div className="p-2 sm:p-3 bg-green-100 rounded-full flex-shrink-0">
+                <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-green-600" />
               </div>
             </div>
           </div>
 
-          
-          <div className="bg-white rounded-lg shadow-sm p-6 border">
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Course Sales</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalOrders || 0}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Course Sales</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">{stats.totalOrders || 0}</p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-full">
-                <Calendar className="w-6 h-6 text-blue-600" />
+              <div className="p-2 sm:p-3 bg-blue-100 rounded-full flex-shrink-0">
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-blue-600" />
               </div>
             </div>
           </div>
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm border mb-6">
-          <div className="p-6">
-            <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <div className="bg-white rounded-lg shadow-sm border mb-4 sm:mb-6">
+          <div className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between">
               {/* Search */}
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <div className="relative flex-1 max-w-full sm:max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
                 <input
                   type="text"
                   placeholder="Search orders..."
                   value={filters.search}
                   onChange={handleSearch}
-                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
                 {filters.search && (
                   <button
                     onClick={() => setFilters(prev => ({ ...prev, search: '', page: 1 }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 touch-target"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -219,21 +218,15 @@ const TutorOrders = () => {
               </div>
 
               {/* Status Filters */}
-              <button className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors 
-                   
-                        bg-teal-600 text-white
-                        
-                    `}>
-              All Sales
-                    
-                    
-                  </button>
+              <button className="px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-teal-600 text-white touch-target">
+                All Sales
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Orders Table */}
-        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+        {/* Orders Table - Desktop */}
+        <div className="hidden lg:block bg-white rounded-lg shadow-sm border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
@@ -413,6 +406,71 @@ const TutorOrders = () => {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Orders Cards - Mobile */}
+        <div className="lg:hidden space-y-4">
+          {orders.map((order) => (
+            <div key={order.id} className="bg-white rounded-lg shadow-sm border p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 truncate">
+                    Order #{order.orderId}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">
+                    {order.razorpayPaymentId?.substring(0, 15)}...
+                  </div>
+                </div>
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor()}`}>
+                  {getStatusText()}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3 mb-3">
+                <img
+                  className="h-8 w-8 rounded-full object-cover flex-shrink-0"
+                  src={order.user.profileImage || '/default-avatar.png'}
+                  alt={order.user.name}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900 truncate">
+                    {order.user.name}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">
+                    {order.user.phone}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <div className="text-sm text-gray-900">
+                  {order.items.length} course{order.items.length > 1 ? 's' : ''}
+                </div>
+                <div className="text-xs text-gray-500 truncate">
+                  {order.items[0]?.course.title}
+                  {order.items.length > 1 && ` +${order.items.length - 1} more`}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-medium text-gray-900">
+                    {formatCurrency(order.finalAmount)}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {formatDate(order.createdAt)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleViewOrder(order.id)}
+                  className="text-teal-600 hover:text-teal-900 flex items-center gap-1 touch-target"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span className="text-sm">View</span>
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Empty State */}

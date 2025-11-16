@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, Download, FileText, Users, BookOpen, GraduationCap, DollarSign, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, Download, FileText, Users, BookOpen, GraduationCap, DollarSign, Search, Filter, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import Button from '../../ui/Button';
 import RevenueChart from '../../components/Charts/RevenueChart';
 import DoughnutChart from '../../components/Charts/DoughnutChart';
@@ -10,6 +10,11 @@ import { exportToPDF, exportToExcel, formatCurrency, generateRevenueChartData } 
 import { toast } from 'react-toastify'; 
 export default function TutorDashboard() {
   const [dateFilter, setDateFilter] = useState('This Month');
+  const [customDateRange, setCustomDateRange] = useState({
+    startDate: '',
+    endDate: ''
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [stats, setStats] = useState({
     totalStudents: 0,
     totalCourses: 0,
@@ -45,8 +50,14 @@ export default function TutorDashboard() {
     try {
       setLoading(true);
       
+      // Build query parameters
+      let queryParams = `dateFilter=${dateFilter}`;
+      if (dateFilter === 'Custom Range' && customDateRange.startDate && customDateRange.endDate) {
+        queryParams += `&startDate=${customDateRange.startDate}&endDate=${customDateRange.endDate}`;
+      }
+      
       // Fetch dashboard stats
-      const statsResponse = await tutorAPI.get(`/api/tutors/dashboard-stats?dateFilter=${dateFilter}`);
+      const statsResponse = await tutorAPI.get(`/api/tutors/dashboard-stats?${queryParams}`);
       const data = statsResponse.data;
       
       setStats({
@@ -110,10 +121,33 @@ export default function TutorDashboard() {
 
   const handleDateFilterChange = (filter) => {
     setDateFilter(filter);
+    if (filter !== 'Custom Range') {
+      setCustomDateRange({ startDate: '', endDate: '' });
+      setShowDatePicker(false);
+    }
     // Refetch dashboard data with new filter
     setTimeout(() => {
       fetchDashboardData();
     }, 100);
+  };
+
+  const handleCustomDateRange = () => {
+    if (customDateRange.startDate && customDateRange.endDate) {
+      setDateFilter('Custom Range');
+      setShowDatePicker(false);
+      setTimeout(() => {
+        fetchDashboardData();
+      }, 100);
+    }
+  };
+
+  const formatDateForDisplay = () => {
+    if (dateFilter === 'Custom Range' && customDateRange.startDate && customDateRange.endDate) {
+      const start = new Date(customDateRange.startDate).toLocaleDateString();
+      const end = new Date(customDateRange.endDate).toLocaleDateString();
+      return `${start} - ${end}`;
+    }
+    return dateFilter;
   };
 
   const handleSearch = (e) => {
@@ -167,50 +201,110 @@ export default function TutorDashboard() {
     <TutorLayout title="Dashboard" subtitle="Welcome to your tutor dashboard">
       <div className="space-y-6">
         {/* Header with Analytics Overview and Export Buttons */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-xl font-semibold text-gray-800">Analytics Overview</h2>
-            <div className="flex items-center space-x-2">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Analytics Overview</h2>
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => handleDateFilterChange('This Month')}
-                className={`px-3 py-1 rounded text-sm ${
+                className={`px-3 py-1 rounded text-sm transition-colors ${
                   dateFilter === 'This Month' 
                     ? 'bg-sky-500 text-white' 
-                    : 'bg-gray-100 text-gray-600'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 This Month
               </button>
               <button
                 onClick={() => handleDateFilterChange('Last Month')}
-                className={`px-3 py-1 rounded text-sm ${
+                className={`px-3 py-1 rounded text-sm transition-colors ${
                   dateFilter === 'Last Month' 
                     ? 'bg-sky-500 text-white' 
-                    : 'bg-gray-100 text-gray-600'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 Last Month
               </button>
               <button
                 onClick={() => handleDateFilterChange('This Year')}
-                className={`px-3 py-1 rounded text-sm ${
+                className={`px-3 py-1 rounded text-sm transition-colors ${
                   dateFilter === 'This Year' 
                     ? 'bg-sky-500 text-white' 
-                    : 'bg-gray-100 text-gray-600'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 This Year
               </button>
+              
+              {/* Custom Date Range */}
               <div className="relative">
-                <button className="flex items-center space-x-1 px-3 py-1 bg-gray-100 text-gray-600 rounded text-sm hover:bg-gray-200">
-                  <span>{dateFilter}</span>
+                <button 
+                  onClick={() => setShowDatePicker(!showDatePicker)}
+                  className={`flex items-center space-x-1 px-3 py-1 rounded text-sm transition-colors ${
+                    dateFilter === 'Custom Range' 
+                      ? 'bg-sky-500 text-white' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <Calendar className="w-3 h-3" />
+                  <span className="hidden sm:inline">{formatDateForDisplay()}</span>
+                  <span className="sm:hidden">Custom</span>
                   <ChevronDown className="w-3 h-3" />
                 </button>
+                
+                {/* Date Range Picker Dropdown */}
+                {showDatePicker && (
+                  <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-10 min-w-[280px]">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Start Date</label>
+                        <input
+                          type="date"
+                          value={customDateRange.startDate}
+                          onChange={(e) => setCustomDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">End Date</label>
+                        <input
+                          type="date"
+                          value={customDateRange.endDate}
+                          onChange={(e) => setCustomDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        />
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={handleCustomDateRange}
+                          disabled={!customDateRange.startDate || !customDateRange.endDate}
+                          className="flex-1 px-3 py-2 bg-sky-500 text-white text-sm rounded hover:bg-sky-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                        >
+                          Apply
+                        </button>
+                        <button
+                          onClick={() => setShowDatePicker(false)}
+                          className="px-3 py-2 bg-gray-100 text-gray-600 text-sm rounded hover:bg-gray-200 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Overlay to close dropdown */}
+                {showDatePicker && (
+                  <div 
+                    className="fixed inset-0 z-5" 
+                    onClick={() => setShowDatePicker(false)}
+                  />
+                )}
               </div>
             </div>
           </div>
           {/* Export Buttons */}
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <Button 
               onClick={handleDownloadPDF}
               className="flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2"

@@ -105,67 +105,69 @@ const OrderDetail = () => {
 
   return (
     <AdminLayout>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center gap-3 sm:gap-4 mb-4">
             <button
               onClick={() => navigate('/admin/orders')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-target"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Order Details</h1>
-              <p className="text-gray-600">Order ID: {order.orderId}</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">Order Details</h1>
+              <p className="text-sm sm:text-base text-gray-600 truncate">Order ID: {order.orderId}</p>
             </div>
           </div>
 
           {/* Status Display */}
-          <div className="flex items-center justify-between">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border ${getStatusColor()}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg border ${getStatusColor()}`}>
               {getStatusIcon()}
-              <span className="font-medium">
-                Course Purchase - {getStatusText()}
+              <span className="font-medium text-sm sm:text-base">
+                <span className="hidden sm:inline">Course Purchase - </span>{getStatusText()}
               </span>
             </div>
-
-            
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6 lg:space-y-8">
             {/* Student Information */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                <User className="w-5 h-5" />
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
                 Student Information
               </h2>
               
-              <div className="flex items-start gap-4">
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                 <img
                   src={order.student.profileImage || '/default-avatar.png'}
                   alt={order.student.name}
-                  className="w-16 h-16 rounded-full object-cover"
+                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
                 />
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium text-gray-900">{order.student.name}</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 truncate">{order.student.name}</h3>
                   <div className="mt-2 space-y-2">
                     <div className="flex items-center gap-2 text-gray-600">
-                      <Mail className="w-4 h-4" />
-                      <span>{order.student.email}</span>
+                      <Mail className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                      <span className="text-sm sm:text-base truncate">{order.student.email}</span>
                     </div>
                     {order.student.phone && (
                       <div className="flex items-center gap-2 text-gray-600">
-                        <Phone className="w-4 h-4" />
-                        <span>{order.student.phone}</span>
+                        <Phone className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="text-sm sm:text-base">{order.student.phone}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2 text-gray-600">
-                      <Calendar className="w-4 h-4" />
-                      <span>Member since {formatDate(order.student.memberSince)}</span>
+                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                      <span className="text-sm sm:text-base">
+                        <span className="hidden sm:inline">Member since </span>
+                        <span className="sm:hidden">Since </span>
+                        {formatDate(order.student.memberSince)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -173,26 +175,26 @@ const OrderDetail = () => {
             </div>
 
             {/* Course Details */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                <BookOpen className="w-5 h-5" />
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+                <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
                 Course Details
               </h2>
               
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {order.courses.map((courseItem, index) => (
-                  <div key={index} className="border rounded-lg p-4">
-                    <div className="flex gap-4">
+                  <div key={index} className="border rounded-lg p-3 sm:p-4">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                       <img
                         src={courseItem.thumbnail || '/default-course.jpg'}
                         alt={courseItem.title}
-                        className="w-20 h-20 rounded-lg object-cover"
+                        className="w-full h-32 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-lg object-cover flex-shrink-0"
                       />
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 mb-2">{courseItem.title}</h3>
-                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{courseItem.description}</p>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">{courseItem.title}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">{courseItem.description}</p>
                         
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
                           <div>
                             <span className="text-gray-500">Category:</span>
                             <span className="ml-2 font-medium">{courseItem.category.title}</span>
@@ -202,23 +204,23 @@ const OrderDetail = () => {
                             <span className="text-gray-500">Duration:</span>
                             <span className="ml-2 font-medium">{courseItem.duration}h</span>
                           </div>
-                          <div>
+                          <div className="sm:col-span-2">
                             <span className="text-gray-500">Instructor:</span>
                             <span className="ml-2 font-medium">{courseItem.tutor.name}</span>
                           </div>
                         </div>
 
-                        <div className="mt-4 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <span className="text-lg font-semibold text-gray-900">
+                        <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                            <span className="text-base sm:text-lg font-semibold text-gray-900">
                               {formatCurrency(courseItem.discountedPrice)}
                             </span>
                             {courseItem.originalPrice > courseItem.discountedPrice && (
                               <>
-                                <span className="text-sm text-gray-500 line-through">
+                                <span className="text-xs sm:text-sm text-gray-500 line-through">
                                   {formatCurrency(courseItem.originalPrice)}
                                 </span>
-                                <span className="text-sm text-green-600 font-medium">
+                                <span className="text-xs sm:text-sm text-green-600 font-medium">
                                   Saved {formatCurrency(courseItem.savings)}
                                 </span>
                               </>
@@ -229,19 +231,19 @@ const OrderDetail = () => {
                     </div>
 
                     {/* Tutor Information */}
-                    <div className="mt-4 pt-4 border-t">
-                      <h4 className="font-medium text-gray-900 mb-2">Instructor Details</h4>
-                      <div className="flex items-center gap-3">
+                    <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t">
+                      <h4 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">Instructor Details</h4>
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <img
                           src={courseItem.tutor.profileImage || '/default-avatar.png'}
                           alt={courseItem.tutor.name}
-                          className="w-10 h-10 rounded-full object-cover"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover flex-shrink-0"
                         />
-                        <div>
-                          <p className="font-medium text-gray-900">{courseItem.tutor.name}</p>
-                          <p className="text-sm text-gray-600">{courseItem.tutor.email}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{courseItem.tutor.name}</p>
+                          <p className="text-xs sm:text-sm text-gray-600 truncate">{courseItem.tutor.email}</p>
                           {courseItem.tutor.subjects && (
-                            <p className="text-sm text-gray-500">{courseItem.tutor.subjects}</p>
+                            <p className="text-xs sm:text-sm text-gray-500 truncate">{courseItem.tutor.subjects}</p>
                           )}
                         </div>
                       </div>
@@ -253,11 +255,11 @@ const OrderDetail = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Payment Summary */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2">
+                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
                 Payment Summary
               </h2>
               

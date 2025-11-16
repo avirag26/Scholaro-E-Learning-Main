@@ -6,7 +6,7 @@ import socketService from '../../services/socketService';
 import ChatHeader from './ChatHeader';
 import MessageInput from './MessageInput';
 
-const ChatArea = () => {
+const ChatArea = ({ onBack }) => {
   const dispatch = useDispatch();
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -123,11 +123,11 @@ const ChatArea = () => {
 
   if (!activeChat) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <MessageCircle className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No chat selected</h3>
-          <p className="text-gray-600">
+      <div className="flex-1 flex items-center justify-center bg-gray-50 p-4">
+        <div className="text-center max-w-sm">
+          <MessageCircle className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mb-4" />
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No chat selected</h3>
+          <p className="text-sm sm:text-base text-gray-600 px-4">
             Choose a conversation from the sidebar to start chatting
           </p>
         </div>
@@ -150,13 +150,13 @@ const ChatArea = () => {
     <div className="flex-1 flex flex-col bg-white h-full">
       {/* Chat Header */}
       <div className="flex-shrink-0">
-        <ChatHeader chat={currentChat} />
+        <ChatHeader chat={currentChat} onBack={onBack} />
       </div>
 
       {/* Messages Area */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0"
+        className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4 min-h-0"
       >
         {/* Load More Button */}
         {pagination && pagination.hasPrev && (
@@ -189,23 +189,23 @@ const ChatArea = () => {
               )}
 
               {/* Message */}
-              <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-xs lg:max-w-md ${isMine ? 'order-2' : 'order-1'}`}>
+              <div className={`flex ${isMine ? 'justify-end' : 'justify-start'} px-2 sm:px-0`}>
+                <div className={`max-w-[280px] sm:max-w-xs lg:max-w-md ${isMine ? 'order-2' : 'order-1'}`}>
                   {!isMine && (
                     <div className="flex items-center space-x-2 mb-1">
                       <img
                         src={message.sender.profileImage || '/default-avatar.png'}
                         alt={message.sender.name}
-                        className="w-6 h-6 rounded-full object-cover"
+                        className="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover"
                       />
-                      <span className="text-xs text-gray-600 font-medium">
+                      <span className="text-xs text-gray-600 font-medium truncate">
                         {message.sender.name}
                       </span>
                     </div>
                   )}
 
                   <div
-                    className={`px-4 py-2 rounded-lg ${isMine
+                    className={`px-3 sm:px-4 py-2 rounded-lg ${isMine
                       ? 'bg-sky-500 text-white'
                       : 'bg-gray-100 text-gray-900'
                       }`}
@@ -215,7 +215,7 @@ const ChatArea = () => {
                         <img 
                           src={message.fileUrl}
                           alt={message.fileName || 'Image'}
-                          className="max-w-64 max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                          className="max-w-48 sm:max-w-64 max-h-48 sm:max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                           onClick={() => window.open(message.fileUrl, '_blank')}
                           onError={(e) => {
                             e.target.src = '/placeholder-image.png';
@@ -284,9 +284,9 @@ const ChatArea = () => {
       {showScrollButton && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-20 right-8 bg-sky-500 text-white p-2 rounded-full shadow-lg hover:bg-sky-600 transition-colors"
+          className="absolute bottom-16 sm:bottom-20 right-4 sm:right-8 bg-sky-500 text-white p-2 rounded-full shadow-lg hover:bg-sky-600 transition-colors z-10"
         >
-          <ChevronUp className="h-5 w-5 transform rotate-180" />
+          <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5 transform rotate-180" />
         </button>
       )}
 

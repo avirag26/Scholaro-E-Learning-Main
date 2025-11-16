@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Header from "./Header";
 import Footer from "../../../components/Common/Footer";
@@ -7,7 +7,9 @@ import { tutorAPI } from "../../../api/axiosConfig";
 
 import { useCurrentTutor } from "../../../hooks/useCurrentTutor";
 import { useLogout } from "../../../hooks/useLogout";
+
 const TutorLayout = ({ children }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated } = useCurrentTutor();
@@ -48,11 +50,13 @@ const TutorLayout = ({ children }) => {
   // Normal layout for other pages
   return (
     <div className="min-h-screen bg-[#f2fbf6] w-full flex flex-col">
-      <Header />
+      <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
       <div className="flex flex-1 w-full">
-        <TutorSidebar />
-        <main className="flex-1 my-6 mr-4">
-          {children}
+        <TutorSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+        <main className="flex-1 my-4 sm:my-6 mr-2 sm:mr-4 px-2 sm:px-0 lg:ml-0">
+          <div className="max-w-full">
+            {children}
+          </div>
         </main>
       </div>
       <Footer />
