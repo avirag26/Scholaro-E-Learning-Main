@@ -1,7 +1,7 @@
 import User from "../../Model/usermodel.js";
 import Order from "../../Model/OrderModel.js";
 import { sendOtpToEmail, verifyEmailOtp, sendOtpWithData, verifyOtpWithData } from '../../utils/otpService.js';
-import { generateSignedVideoUrl, extractPublicIdFromUrl, generateUltraSecureVideoUrl } from '../../config/cloudinary.js';
+import { generateSignedVideoUrl, extractPublicIdFromUrl, generateUltraSecureVideoUrl } from '../../Config/cloudinary.js';
 
 const getUserProfile = async (req, res) => {
   try {

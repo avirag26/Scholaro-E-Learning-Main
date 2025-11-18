@@ -607,7 +607,7 @@ const getLessonDetails = async (req, res) => {
         if (!lesson.videoUrl) return lesson.videoUrl;
         
         try {
-          const { extractPublicIdFromUrl, generateSignedVideoUrl } = require('../../config/cloudinary.js');
+          const { extractPublicIdFromUrl, generateSignedVideoUrl } = require('../../Config/cloudinary.js');
           const publicId = extractPublicIdFromUrl(lesson.videoUrl);
           if (publicId) {
             return generateSignedVideoUrl(publicId, {

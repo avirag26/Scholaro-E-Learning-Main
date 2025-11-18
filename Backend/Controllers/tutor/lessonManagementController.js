@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import Lesson from "../../Model/LessonModel.js";
 import { Course } from "../../Model/CourseModel.js";
 import { notifyUsersNewLesson } from "../../utils/notificationHelper.js";
-import { generateSignedVideoUrl, extractPublicIdFromUrl } from '../../config/cloudinary.js';
+import { generateSignedVideoUrl, extractPublicIdFromUrl } from '../../Config/cloudinary.js';
 
 const createLesson = async (req, res) => {
   try {
