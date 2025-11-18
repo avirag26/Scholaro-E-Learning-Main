@@ -232,28 +232,7 @@ const MyCourses = () => {
                     </div>
 
                     {/* Search Results Summary */}
-                    {searchTerm && (
-                        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-blue-800 font-medium">
-                                        Showing {getFilteredCourses([...enrolledCourses, ...completedCourses]).length} of {enrolledCourses.length + completedCourses.length} courses
-                                    </p>
-                                    <div className="flex items-center gap-2 mt-1 text-sm text-blue-600">
-                                        <span className="bg-blue-100 px-2 py-1 rounded">
-                                            Search: "{searchTerm}"
-                                        </span>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => setSearchTerm('')}
-                                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                                >
-                                    Clear Search
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                
 
                     {/* Enrolled Courses */}
                     <div className="mb-12">
