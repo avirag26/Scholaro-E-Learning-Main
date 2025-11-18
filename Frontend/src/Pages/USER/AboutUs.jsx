@@ -70,13 +70,13 @@ const AboutUs = () => {
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Mission</h2>
               <p className="text-lg text-gray-600 mb-6">
-                At Scholaro, we believe that quality education should be accessible to everyone, everywhere. 
-                Our mission is to bridge the gap between learners and expert educators through innovative 
+                At Scholaro, we believe that quality education should be accessible to everyone, everywhere.
+                Our mission is to bridge the gap between learners and expert educators through innovative
                 technology and personalized learning experiences.
               </p>
               <p className="text-lg text-gray-600 mb-6">
-                We're committed to creating a platform where knowledge flows freely, where students can 
-                find the perfect tutor for their needs, and where educators can share their expertise 
+                We're committed to creating a platform where knowledge flows freely, where students can
+                find the perfect tutor for their needs, and where educators can share their expertise
                 with a global audience.
               </p>
               <div className="flex items-center gap-4">

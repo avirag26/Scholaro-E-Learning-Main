@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { BookOpen, Award, TrendingUp } from 'lucide-react';
 import Button from "../../ui/Button";
 import PriceDisplay from "../../components/PriceDisplay";
@@ -12,9 +12,15 @@ import { useLogout } from "../../hooks/useLogout";
 import { toast } from 'react-toastify';
 export default function UserHomePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAuthenticated } = useCurrentUser();
   const { forceLogout } = useLogout('user');
   const hasCheckedStatus = useRef(false);
+  
+  // Determine appropriate paths based on current route context
+  const isPublicRoute = location.pathname.startsWith('/browse');
+  const coursesPath = isPublicRoute ? '/browse/courses' : '/user/courses';
+  const teachersPath = isPublicRoute ? '/browse/teachers' : '/user/teachers';
   
   const [dashboardData, setDashboardData] = useState(null);
   const [featuredCourses, setFeaturedCourses] = useState([]);
@@ -161,14 +167,14 @@ export default function UserHomePage() {
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
-                  onClick={() => navigate('/browse/courses')}
+                  onClick={() => navigate(coursesPath)}
                   className="bg-teal-600 hover:bg-teal-700 px-6 py-3"
                 >
                   Browse Courses
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => navigate('/user/teachers')}
+                  onClick={() => navigate(teachersPath)}
                   className="border-teal-600 text-teal-600 hover:bg-teal-50 px-6 py-3"
                 >
                   Find Tutors
@@ -225,7 +231,7 @@ export default function UserHomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Continue Learning</h2>
-            <Link to="/browse/courses" className="text-teal-600 hover:underline font-medium">
+            <Link to={coursesPath} className="text-teal-600 hover:underline font-medium">
               View All Courses
             </Link>
           </div>
@@ -286,7 +292,7 @@ export default function UserHomePage() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">No Enrolled Courses</h3>
               <p className="text-gray-600 mb-6">Start your learning journey by enrolling in a course</p>
               <Button 
-                onClick={() => navigate('/browse/courses')}
+                onClick={() => navigate(coursesPath)}
                 className="bg-teal-600 hover:bg-teal-700 px-6 py-3"
               >
                 Browse Courses
@@ -299,7 +305,7 @@ export default function UserHomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Browse All Courses</h2>
-            <Link to="/browse/courses" className="text-teal-600 hover:underline font-medium">
+            <Link to={coursesPath} className="text-teal-600 hover:underline font-medium">
               See All
             </Link>
           </div>
@@ -356,7 +362,7 @@ export default function UserHomePage() {
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Meet Our Expert Tutors</h2>
             <div className="flex items-center gap-4">
              
-              <Link to="/user/teachers" className="text-teal-600 hover:underline font-medium">
+              <Link to={teachersPath} className="text-teal-600 hover:underline font-medium">
                 View All Tutors
               </Link>
             </div>
@@ -388,7 +394,7 @@ export default function UserHomePage() {
                     <p className="text-sm text-gray-600 mb-2">{getExpertiseArea(tutor)}</p>
                     
                     <Button
-                      onClick={() => navigate('/user/teachers')}
+                      onClick={() => navigate(teachersPath)}
                       className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg text-sm"
                     >
                       View Profile
@@ -400,7 +406,7 @@ export default function UserHomePage() {
               {featuredTutors.length > 4 && (
                 <div className="text-center mt-8">
                   <Button
-                    onClick={() => navigate('/user/teachers')}
+                    onClick={() => navigate(teachersPath)}
                     className="bg-teal-600 hover:bg-teal-700 px-6 py-3"
                   >
                     View All Tutors

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Clock, Users, Star, Globe, Award, CheckCircle, PlayCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -12,9 +12,14 @@ import { useCurrentUser } from '../../hooks/useCurrentUser';
 const CourseDetail = () => {
     const { courseId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
     const { selectedCourse, courseDetailsLoading, error } = useSelector((state) => state.userCourses);
     const { user } = useCurrentUser();
+    
+    // Check if we're on a public route (starts with /browse) or authenticated route (starts with /user)
+    const isPublicRoute = location.pathname.startsWith('/browse');
+    const backPath = isPublicRoute ? '/browse/courses' : '/user/courses';
     useEffect(() => {
         if (courseId) {
             dispatch(fetchCourseDetails(courseId));
@@ -31,7 +36,7 @@ const CourseDetail = () => {
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">Course Not Found</h2>
                         <p className="text-gray-600 mb-6">{error}</p>
                         <button
-                            onClick={() => navigate('/browse/courses')}
+                            onClick={() => navigate(backPath)}
                             className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
                         >
                             Back to Courses
@@ -78,7 +83,7 @@ const CourseDetail = () => {
                         <div className="bg-white rounded-lg shadow-sm p-8 mb-6">
                             <div className="mb-4">
                                 <button
-                                    onClick={() => navigate('/browse/courses')}
+                                    onClick={() => navigate(backPath)}
                                     className="text-teal-600 hover:text-teal-700 text-sm font-medium"
                                 >
                                     ← Back to Courses

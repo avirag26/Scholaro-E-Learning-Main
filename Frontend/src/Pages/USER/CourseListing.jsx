@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Search, Filter, Star, Users, ChevronDown, X, MessageCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import PublicLayout from '../../components/Layout/PublicLayout';
@@ -19,6 +19,7 @@ import {
 const CourseListing = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const {
     categories,
@@ -170,8 +171,10 @@ const CourseListing = () => {
     }
   };
   const handleCourseClick = (courseId) => {
-    // Use public route for course details
-    navigate(`/browse/course/${courseId}`);
+    // Use appropriate route based on current context
+    const isPublicRoute = location.pathname.startsWith('/browse');
+    const coursePath = isPublicRoute ? '/browse/course' : '/user/course';
+    navigate(`${coursePath}/${courseId}`);
   };
 
   const handleChatClick = async (tutorId) => {

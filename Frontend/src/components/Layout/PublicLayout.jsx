@@ -2,11 +2,9 @@ import { useLocation } from 'react-router-dom';
 import Header from '../../Pages/USER/Common/Header';
 import PublicHeader from '../../Pages/USER/Common/PublicHeader';
 import Footer from '../Common/Footer';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 const PublicLayout = ({ children, showSidebar = false, onMenuClick }) => {
   const location = useLocation();
-  const { isAuthenticated } = useCurrentUser();
   
   // Check if we're on a public route (starts with /browse)
   const isPublicRoute = location.pathname.startsWith('/browse');

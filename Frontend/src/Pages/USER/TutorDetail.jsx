@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Users,
   BookOpen,
@@ -24,12 +24,19 @@ import TutorStatsCard from '../../components/TutorStatsCard';
 const TutorDetail = () => {
   const { tutorId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [tutor, setTutor] = useState(null);
   const [tutorStats, setTutorStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentCourseIndex, setCurrentCourseIndex] = useState(0);
   const [error, setError] = useState(null);
   const userInfo = useUserInfo();
+  
+  // Check if we're on a public route (starts with /browse) or authenticated route (starts with /user)
+  const isPublicRoute = location.pathname.startsWith('/browse');
+  const teachersPath = isPublicRoute ? '/browse/teachers' : '/user/teachers';
+  const coursePath = isPublicRoute ? '/browse/course' : '/user/course';
+  const coursesPath = isPublicRoute ? '/browse/courses' : '/user/courses';
 
   useEffect(() => {
     const fetchTutorDetails = async () => {
@@ -46,7 +53,7 @@ const TutorDetail = () => {
           setTutor(tutorData.tutor);
         } else {
           toast.error('Failed to load tutor details');
-          navigate('/browse/teachers');
+          navigate(teachersPath);
         }
 
         if (statsData && statsData.success) {
@@ -73,8 +80,8 @@ const TutorDetail = () => {
     }
   }, [tutorId, navigate]);
   const handleCourseClick = (courseId) => {
-    // Use public route for course details
-    navigate(`/browse/course/${courseId}`);
+    // Use appropriate route based on current context
+    navigate(`${coursePath}/${courseId}`);
   };
   const handleSendMessage = () => {
   };
@@ -105,7 +112,7 @@ const TutorDetail = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h2>
             <p className="text-gray-600 mb-4">{error}</p>
             <button
-              onClick={() => navigate('/browse/teachers')}
+              onClick={() => navigate(teachersPath)}
               className="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 transition-colors"
             >
               Back to Teachers
@@ -128,7 +135,7 @@ const TutorDetail = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Tutor not found</h2>
             <p className="text-gray-600 mb-4">The tutor you're looking for doesn't exist or is not available.</p>
             <button
-              onClick={() => navigate('/browse/teachers')}
+              onClick={() => navigate(teachersPath)}
               className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
             >
               Back to Teachers
@@ -274,7 +281,7 @@ const TutorDetail = () => {
               {tutor.courses.length > PAGINATION.COURSES_PER_ROW && (
                 <div className="text-center mt-8">
                   <button
-                    onClick={() => navigate(`/browse/courses?tutor=${tutorId}`)}
+                    onClick={() => navigate(`${coursesPath}?tutor=${tutorId}`)}
                     className="px-6 py-2 border border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
                   >
                     View All {tutor.courses.length} Courses

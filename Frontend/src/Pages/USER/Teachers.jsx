@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 import PublicLayout from '../../components/Layout/PublicLayout';
@@ -10,6 +10,7 @@ import { DEFAULT_IMAGES } from '../../constants/defaults';
 
 const Teachers = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [teachers, setTeachers] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -87,8 +88,10 @@ const Teachers = () => {
     toast.info('Messaging feature coming soon!');
   };
   const handleTutorClick = (tutorId) => {
-    // Use public route for tutor details
-    navigate(`/browse/tutor/${tutorId}`);
+    // Use appropriate route based on current context
+    const isPublicRoute = location.pathname.startsWith('/browse');
+    const tutorPath = isPublicRoute ? '/browse/tutor' : '/user/tutor';
+    navigate(`${tutorPath}/${tutorId}`);
   };
 
   // For public browsing, we don't need to wait for userInfo
