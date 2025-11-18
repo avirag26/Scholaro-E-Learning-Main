@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Bell, User, Menu, X } from "lucide-react";
 import NotificationDropdown from "../../../components/Notifications/NotificationDropdown";
-
+import { useLogout } from "../../../hooks/useLogout";
 export default function Header({ onMenuClick }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const [tutorInfo, setTutorInfo] = useState(null);
+  const { logout } = useLogout('tutor');
   useEffect(() => {
     const loadTutorInfo = () => {
       const storedTutorInfo = localStorage.getItem('tutorInfo');
@@ -34,6 +35,9 @@ export default function Header({ onMenuClick }) {
       window.removeEventListener('tutorInfoUpdated', handleTutorInfoUpdate);
     };
   }, []);
+    const handleLogout = async () => {
+    await logout();
+  };
   return (
     <>
       <header className="w-full bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
@@ -113,7 +117,7 @@ export default function Header({ onMenuClick }) {
             <nav className="px-4 py-6 space-y-4">
               <button
                 onClick={() => {
-                  navigate('/tutor/dashboard');
+                  navigate('/tutor/home');
                   setIsMobileMenuOpen(false);
                 }}
                 className="block w-full text-left text-base font-medium text-gray-900 hover:text-sky-500 py-2 transition-colors"
@@ -129,15 +133,7 @@ export default function Header({ onMenuClick }) {
               >
                 My Courses
               </button>
-              <button
-                onClick={() => {
-                  navigate('/tutor/students');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="block w-full text-left text-base font-medium text-gray-900 hover:text-sky-500 py-2 transition-colors"
-              >
-                Students
-              </button>
+            
               <button
                 onClick={() => {
                   navigate('/tutor/orders');
@@ -155,6 +151,14 @@ export default function Header({ onMenuClick }) {
                 className="block w-full text-left text-base font-medium text-gray-900 hover:text-sky-500 py-2 transition-colors"
               >
                 Wallet
+              </button>
+                <button
+                onClick={() => {
+                  handleLogout()
+                }}
+                className="block w-full text-left text-base font-medium text-gray-900 hover:text-sky-500 py-2 transition-colors"
+              >
+                Logout
               </button>
               
               {/* Mobile-only actions */}
