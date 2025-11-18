@@ -1,16 +1,14 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Play, Clock, Users, Star, Globe, Award, CheckCircle, PlayCircle } from 'lucide-react';
+import { Clock, Users, Star, Globe, Award, CheckCircle, PlayCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
-import Header from './Common/Header';
-import Footer from '../../components/Common/Footer';
+import PublicLayout from '../../components/Layout/PublicLayout';
 import PriceDisplay from '../../components/PriceDisplay';
 import CourseDetailActions from '../../components/CourseDetailActions';
 import Loading from '../../ui/Loading';
 import { fetchCourseDetails } from '../../Redux/userCourseSlice';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
-import { addToCart } from '../../Redux/cartSlice';
 const CourseDetail = () => {
     const { courseId } = useParams();
     const navigate = useNavigate();
@@ -27,22 +25,20 @@ const CourseDetail = () => {
     }
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-50">
-                <Header />
+            <PublicLayout>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="text-center">
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">Course Not Found</h2>
                         <p className="text-gray-600 mb-6">{error}</p>
                         <button
-                            onClick={() => navigate('/user/courses')}
+                            onClick={() => navigate('/browse/courses')}
                             className="px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
                         >
                             Back to Courses
                         </button>
                     </div>
                 </div>
-                <Footer />
-            </div>
+            </PublicLayout>
         );
     }
     if (!selectedCourse) {
@@ -75,18 +71,17 @@ const CourseDetail = () => {
         });
     };
     return (
-        <div className="min-h-screen bg-gray-50">
-            <Header />
+        <PublicLayout>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-lg shadow-sm p-8 mb-6">
                             <div className="mb-4">
                                 <button
-                                    onClick={() => navigate('/user/courses')}
+                                    onClick={() => navigate('/browse/courses')}
                                     className="text-teal-600 hover:text-teal-700 text-sm font-medium"
                                 >
-                                    ? Back to Courses
+                                    ← Back to Courses
                                 </button>
                             </div>
                             <div className="mb-6">
@@ -319,8 +314,7 @@ const CourseDetail = () => {
                     </div>
                 </div>
             </div>
-            <Footer />
-        </div>
+        </PublicLayout>
     );
 };
 export default CourseDetail;

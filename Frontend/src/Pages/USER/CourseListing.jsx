@@ -3,8 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Filter, Star, Users, ChevronDown, X, MessageCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
-import Header from './Common/Header';
-import Footer from '../../components/Common/Footer';
+import PublicLayout from '../../components/Layout/PublicLayout';
 import PriceDisplay from '../../components/PriceDisplay';
 import Loading from '../../ui/Loading';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
@@ -171,7 +170,8 @@ const CourseListing = () => {
     }
   };
   const handleCourseClick = (courseId) => {
-    navigate(`/user/course/${courseId}`);
+    // Use public route for course details
+    navigate(`/browse/course/${courseId}`);
   };
 
   const handleChatClick = async (tutorId) => {
@@ -193,8 +193,7 @@ const CourseListing = () => {
     return <Loading />;
   }
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <PublicLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -440,8 +439,7 @@ const CourseListing = () => {
           </div>
         )}
       </div>
-      <Footer />
-    </div>
+    </PublicLayout>
   );
 };
 const CourseCard = ({ course, onClick, onChatClick, user }) => {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, MessageCircle, CheckCircle } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ShoppingCart, Heart, MessageCircle, CheckCircle, LogIn } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { addToCart } from '../Redux/cartSlice';
 import { addToWishlist, removeFromWishlist } from '../Redux/wishlistSlice';
@@ -10,11 +10,15 @@ import { createOrGetChat } from '../Redux/chatSlice';
 const CourseDetailActions = ({ courseId, course, isPurchased: propIsPurchased, className = "" }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState({ cart: false, wishlist: false, chat: false });
   
   const { items: cartItems } = useSelector(state => state.cart);
   const { items: wishlistItems } = useSelector(state => state.wishlist);
-  const { user } = useSelector(state => state.currentUser);
+  const { user, isAuthenticated } = useSelector(state => state.currentUser);
+  
+  // Check if we're on a public route
+  const isPublicRoute = location.pathname.startsWith('/browse');
   
   const isInCart = cartItems?.some(item => item.course._id === courseId);
   const isInWishlist = wishlistItems?.some(item => item.course._id === courseId);
@@ -29,6 +33,12 @@ const CourseDetailActions = ({ courseId, course, isPurchased: propIsPurchased, c
   
   const tutorId = course?.tutor?._id || course?.tutor;
   const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      toast.info('Please login to add courses to cart');
+      navigate('/user/login');
+      return;
+    }
+    
     if (isInCart) return;
     
     setLoading(prev => ({ ...prev, cart: true }));
@@ -43,6 +53,12 @@ const CourseDetailActions = ({ courseId, course, isPurchased: propIsPurchased, c
   };
 
   const handleWishlistToggle = async () => {
+    if (!isAuthenticated) {
+      toast.info('Please login to add courses to wishlist');
+      navigate('/user/login');
+      return;
+    }
+    
     setLoading(prev => ({ ...prev, wishlist: true }));
     try {
       if (isInWishlist) {
@@ -77,31 +93,43 @@ const CourseDetailActions = ({ courseId, course, isPurchased: propIsPurchased, c
     <div className={`flex gap-3 ${className}`}>
       {!isPurchased ? (
         <>
-          <button
-            onClick={handleAddToCart}
-            disabled={isInCart || loading.cart}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-medium transition-colors ${
-              isInCart
-                ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                : 'bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50'
-            }`}
-          >
-            <ShoppingCart className="w-5 h-5" />
-            {loading.cart ? 'Adding...' : isInCart ? 'In Cart' : 'Add to Cart'}
-          </button>
-          
-          <button
-            onClick={handleWishlistToggle}
-            disabled={loading.wishlist}
-            className={`p-3 rounded-lg border-2 transition-colors disabled:opacity-50 ${
-              isInWishlist
-                ? 'border-red-500 bg-red-500 text-white'
-                : 'border-gray-300 text-gray-600 hover:border-red-500 hover:text-red-500'
-            }`}
-            title={isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
-          >
-            <Heart className={`w-5 h-5 ${isInWishlist ? 'fill-current' : ''}`} />
-          </button>
+          {!isAuthenticated ? (
+            <button
+              onClick={() => navigate('/user/login')}
+              className="flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-medium transition-colors bg-sky-600 text-white hover:bg-sky-700"
+            >
+              <LogIn className="w-5 h-5" />
+              Login to Purchase
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleAddToCart}
+                disabled={isInCart || loading.cart}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-medium transition-colors ${
+                  isInCart
+                    ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                    : 'bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50'
+                }`}
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {loading.cart ? 'Adding...' : isInCart ? 'In Cart' : 'Add to Cart'}
+              </button>
+              
+              <button
+                onClick={handleWishlistToggle}
+                disabled={loading.wishlist}
+                className={`p-3 rounded-lg border-2 transition-colors disabled:opacity-50 ${
+                  isInWishlist
+                    ? 'border-red-500 bg-red-500 text-white'
+                    : 'border-gray-300 text-gray-600 hover:border-red-500 hover:text-red-500'
+                }`}
+                title={isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
+              >
+                <Heart className={`w-5 h-5 ${isInWishlist ? 'fill-current' : ''}`} />
+              </button>
+            </>
+          )}
         </>
       ) : (
         <>

@@ -74,7 +74,7 @@ const ExamResults = () => {
     try {
       // First try to get the download URL
       const response = await userAPI.get(`/api/users/certificates/${certificate._id}/download`);
-      
+
       // Check if response contains download URL (Cloudinary)
       if (response.data.success && response.data.downloadUrl) {
         // Create a temporary link to download from Cloudinary
@@ -86,14 +86,14 @@ const ExamResults = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+
         toast.success('Certificate download started!');
         return;
       }
-      
+
       // If no download URL, try blob download
       throw new Error('No download URL provided');
-      
+
     } catch (error) {
       // Check if it's a 500 error, suggest regeneration
       if (error.response?.status === 500) {
@@ -102,29 +102,29 @@ const ExamResults = () => {
         setCertificate(null);
         return;
       }
-      
+
       // Fallback to blob download for legacy certificates or errors
       try {
         const blobResponse = await userAPI.get(
           `/api/users/certificates/${certificate._id}/download`,
-          { 
+          {
             responseType: 'blob',
             timeout: 30000 // 30 second timeout
           }
         );
-        
+
         // Check if we got a valid blob
         if (blobResponse.data && blobResponse.data.size > 0) {
           // Check if it's HTML content
           const contentType = blobResponse.headers['content-type'];
           let fileExtension = '.pdf';
           let mimeType = 'application/pdf';
-          
+
           if (contentType && contentType.includes('text/html')) {
             fileExtension = '.html';
             mimeType = 'text/html';
           }
-          
+
           const blob = new Blob([blobResponse.data], { type: mimeType });
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
@@ -134,7 +134,7 @@ const ExamResults = () => {
           link.click();
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
-          
+
           toast.success('Certificate downloaded successfully!');
         } else {
           throw new Error('Empty or invalid certificate file');
@@ -142,13 +142,13 @@ const ExamResults = () => {
       } catch (blobError) {
         // Show specific error message and allow regeneration
         let errorMessage = 'Failed to download certificate. Please try regenerating it.';
-        
+
         if (error.response?.data?.message) {
           errorMessage = error.response.data.message;
         } else if (blobError.response?.data?.message) {
           errorMessage = blobError.response.data.message;
         }
-        
+
         toast.error(errorMessage);
         // Reset certificate state to allow regeneration
         setCertificate(null);
@@ -330,7 +330,7 @@ const ExamResults = () => {
                   <p className="text-green-600 text-sm">
                     Verification Code: {certificate.verificationCode}
                   </p>
-                 
+
                 </div>
                 <div className="flex flex-col space-y-2">
                   <button
@@ -381,14 +381,14 @@ const ExamResults = () => {
           </button>
         )}
 
-        
+
       </div>
 
       {/* Feedback Section */}
       {!result.passed && (
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-blue-800 mb-2">
-             Study Recommendations
+            Study Recommendations
           </h3>
           <p className="text-blue-700 mb-4">
             Don't worry! Here are some tips to help you improve:

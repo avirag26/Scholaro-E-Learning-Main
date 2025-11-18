@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 // Make toast available globally for Socket.IO notifications
 window.toast = toast;
 import UserRoutes from "../Routes/userRoutes"
+import PublicRoutes from "../Routes/publicRoutes";
 import TutorRoutes from "../Routes/tutorRoutes";
 import LandingProtection from "./components/RouteProtection/LandingProtection";
 import NotFoundPage from "./ui/NotFound";
@@ -79,6 +80,7 @@ function App() {
         <GlobalGuard>
           <Routes>
             <Route path="/" element={<LandingProtection />} />
+            <Route path="/browse/*" element={<PublicRoutes />} />
             <Route path="/user/*" element={<UserRoutes />} />
             <Route path='/tutor/*' element={<TutorRoutes />} />
             <Route path="/admin/*" element={<AdminRoutes />} />

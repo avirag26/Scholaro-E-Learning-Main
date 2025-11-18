@@ -1,15 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from 'react-router-dom';
-import { BookOpen, Clock, Award, TrendingUp, Star } from 'lucide-react';
+import { BookOpen, Award, TrendingUp } from 'lucide-react';
 import Button from "../../ui/Button";
 import PriceDisplay from "../../components/PriceDisplay";
-import DynamicCategoryCards from "../../components/DynamicCategoryCards";
-import Testimonials from "../../ui/Testimonials";
-import TeamSection from "../../ui/TeamSection";
 import BannerImg from "../../assets/banner.png";
 import { MdFavoriteBorder } from "react-icons/md";
-import Header from "./Common/Header";
-import Footer from "../../components/Common/Footer";
+import PublicLayout from "../../components/Layout/PublicLayout";
 import { userAPI } from "../../api/axiosConfig";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { useLogout } from "../../hooks/useLogout";
@@ -142,18 +138,15 @@ export default function UserHomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
+      <PublicLayout>
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
         </div>
-        <Footer />
-      </div>
+      </PublicLayout>
     );
   }
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <PublicLayout>
       <section className="bg-gradient-to-br from-teal-50 to-blue-50 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 items-center">
@@ -168,7 +161,7 @@ export default function UserHomePage() {
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
-                  onClick={() => navigate('/user/courses')}
+                  onClick={() => navigate('/browse/courses')}
                   className="bg-teal-600 hover:bg-teal-700 px-6 py-3"
                 >
                   Browse Courses
@@ -232,7 +225,7 @@ export default function UserHomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Continue Learning</h2>
-            <Link to="/user/courses" className="text-teal-600 hover:underline font-medium">
+            <Link to="/browse/courses" className="text-teal-600 hover:underline font-medium">
               View All Courses
             </Link>
           </div>
@@ -293,7 +286,7 @@ export default function UserHomePage() {
               <h3 className="text-lg font-medium text-gray-900 mb-2">No Enrolled Courses</h3>
               <p className="text-gray-600 mb-6">Start your learning journey by enrolling in a course</p>
               <Button 
-                onClick={() => navigate('/user/courses')}
+                onClick={() => navigate('/browse/courses')}
                 className="bg-teal-600 hover:bg-teal-700 px-6 py-3"
               >
                 Browse Courses
@@ -306,7 +299,7 @@ export default function UserHomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Browse All Courses</h2>
-            <Link to="/user/courses" className="text-teal-600 hover:underline font-medium">
+            <Link to="/browse/courses" className="text-teal-600 hover:underline font-medium">
               See All
             </Link>
           </div>
@@ -431,7 +424,6 @@ export default function UserHomePage() {
       
    
      
-      <Footer />
-    </div>
+    </PublicLayout>
   );
 }

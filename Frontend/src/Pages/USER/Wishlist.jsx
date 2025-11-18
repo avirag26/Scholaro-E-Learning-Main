@@ -211,7 +211,7 @@ export default function Wishlist() {
                     }
                   </p>
                   <Link
-                    to="/user/courses"
+                    to="/browse/courses"
                     className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-sky-500 text-white font-medium rounded-lg hover:bg-sky-600 transition-colors text-sm sm:text-base"
                   >
                     Browse Courses

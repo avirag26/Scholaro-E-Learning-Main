@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, MessageCircle, HelpCircle, Users } from 'lucide-react';
 import { toast } from 'react-toastify';
-import Header from './Common/Header';
-import Footer from '../../components/Common/Footer';
+import PublicLayout from '../../components/Layout/PublicLayout';
 import  { userAPI } from '../../api/axiosConfig';
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -67,7 +66,6 @@ const Contact = () => {
       });
       await userAPI.post('/api/users/contact',formData)
     } catch (error) {
-      console.log(error.message)
       toast.error('Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -92,8 +90,7 @@ const Contact = () => {
     }
   ];
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <PublicLayout>
       <section className="bg-gradient-to-r from-teal-600 to-blue-600 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -272,8 +269,7 @@ const Contact = () => {
           </div>
         </div>
       </section>
-      <Footer />
-    </div>
+    </PublicLayout>
   );
 };
 export default Contact;

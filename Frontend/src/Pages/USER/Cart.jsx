@@ -228,7 +228,7 @@ export default function Cart() {
                     <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">Your cart is empty</h3>
                     <p className="text-gray-600 mb-6 text-sm sm:text-base">Looks like you haven't added any courses yet.</p>
                     <Link
-                      to="/user/courses"
+                      to="/browse/courses"
                       className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-sky-500 text-white font-medium rounded-lg hover:bg-sky-600 transition-colors text-sm sm:text-base"
                     >
                       Browse Courses
@@ -349,7 +349,7 @@ export default function Cart() {
                     <div className="text-center py-4 sm:py-6">
                       <p className="text-gray-500 mb-4 text-sm sm:text-base">No available courses in cart</p>
                       <Link
-                        to="/user/courses"
+                        to="/browse/courses"
                         className="inline-flex items-center px-3 sm:px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 text-sm sm:text-base"
                       >
                         Browse Courses
@@ -393,7 +393,7 @@ export default function Cart() {
                   )}
 
                   <Link
-                    to="/user/courses"
+                    to="/browse/courses"
                     className="block w-full text-center py-2 sm:py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors text-sm sm:text-base"
                   >
                     Continue Shopping

@@ -13,15 +13,13 @@ import {
   Play
 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import Header from './Common/Header';
-import Footer from '../../components/Common/Footer';
+import PublicLayout from '../../components/Layout/PublicLayout';
 import PriceDisplay from '../../components/PriceDisplay';
 import StarRating from '../../components/StarRating';
 import Loading from '../../ui/Loading';
 import useUserInfo from '../../hooks/useUserInfo';
 import { tutorService } from '../../services/tutorService';
 import { DEFAULT_IMAGES, DEFAULT_TEXTS, PAGINATION } from '../../constants/defaults';
-import { ROUTES, safeNavigate } from '../../utils/navigationUtils';
 import TutorStatsCard from '../../components/TutorStatsCard';
 const TutorDetail = () => {
   const { tutorId } = useParams();
@@ -48,7 +46,7 @@ const TutorDetail = () => {
           setTutor(tutorData.tutor);
         } else {
           toast.error('Failed to load tutor details');
-          safeNavigate(navigate, ROUTES.USER.TEACHERS);
+          navigate('/browse/teachers');
         }
 
         if (statsData && statsData.success) {
@@ -75,7 +73,8 @@ const TutorDetail = () => {
     }
   }, [tutorId, navigate]);
   const handleCourseClick = (courseId) => {
-    safeNavigate(navigate, ROUTES.USER.COURSE_DETAIL(courseId));
+    // Use public route for course details
+    navigate(`/browse/course/${courseId}`);
   };
   const handleSendMessage = () => {
   };
@@ -94,37 +93,26 @@ const TutorDetail = () => {
     }
   };
 
-  // Safety check for userInfo (after all hooks)
-  if (!userInfo && !error && !loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
-        </div>
-      </div>
-    );
-  }
+  // For public browsing, we don't need to wait for userInfo
 
   // Error boundary
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header user={userInfo} />
+      <PublicLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h2>
             <p className="text-gray-600 mb-4">{error}</p>
             <button
-              onClick={() => safeNavigate(navigate, ROUTES.USER.TEACHERS)}
+              onClick={() => navigate('/browse/teachers')}
               className="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 transition-colors"
             >
               Back to Teachers
             </button>
           </div>
         </div>
-        <Footer />
-      </div>
+      </PublicLayout>
     );
   }
 
@@ -134,27 +122,24 @@ const TutorDetail = () => {
 
   if (!tutor) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header user={userInfo} />
+      <PublicLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Tutor not found</h2>
             <p className="text-gray-600 mb-4">The tutor you're looking for doesn't exist or is not available.</p>
             <button
-              onClick={() => safeNavigate(navigate, ROUTES.USER.TEACHERS)}
+              onClick={() => navigate('/browse/teachers')}
               className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
             >
               Back to Teachers
             </button>
           </div>
         </div>
-        <Footer />
-      </div>
+      </PublicLayout>
     );
   }
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header user={userInfo} />
+    <PublicLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         { }
         <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
@@ -289,7 +274,7 @@ const TutorDetail = () => {
               {tutor.courses.length > PAGINATION.COURSES_PER_ROW && (
                 <div className="text-center mt-8">
                   <button
-                    onClick={() => navigate(`/user/courses?tutor=${tutorId}`)}
+                    onClick={() => navigate(`/browse/courses?tutor=${tutorId}`)}
                     className="px-6 py-2 border border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors"
                   >
                     View All {tutor.courses.length} Courses
@@ -308,8 +293,7 @@ const TutorDetail = () => {
           )}
         </div>
       </div>
-      <Footer />
-    </div>
+    </PublicLayout>
   );
 };
 const CourseCard = ({ course, tutorName, onClick }) => {

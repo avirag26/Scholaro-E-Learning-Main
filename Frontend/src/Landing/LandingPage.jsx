@@ -24,9 +24,10 @@ export default function LandingPage(){
                         {}
                         <nav className="hidden md:flex space-x-8">
                             <Link to="/" className="text-gray-700 hover:text-teal-600 transition-colors">Home</Link>
-                            <Link to="/user/login" className="text-gray-700 hover:text-teal-600 transition-colors">Courses</Link>
-                            <Link to="/user/login" className="text-gray-700 hover:text-teal-600 transition-colors">About</Link>
-                            <Link to="/user/login" className="text-gray-700 hover:text-teal-600 transition-colors">Contact</Link>
+                            <Link to="/browse/courses" className="text-gray-700 hover:text-teal-600 transition-colors">Courses</Link>
+                            <Link to="/browse/teachers" className="text-gray-700 hover:text-teal-600 transition-colors">Tutors</Link>
+                            <Link to="/browse/aboutus" className="text-gray-700 hover:text-teal-600 transition-colors">About</Link>
+                            <Link to="/browse/contact" className="text-gray-700 hover:text-teal-600 transition-colors">Contact</Link>
                         </nav>
                         {}
                         <div className="hidden md:flex items-center space-x-4">
@@ -57,9 +58,10 @@ export default function LandingPage(){
                         <div className="md:hidden py-4 border-t">
                             <div className="flex flex-col space-y-4">
                                 <Link to="/" className="text-gray-700 hover:text-teal-600">Home</Link>
-                                <Link to="/courses" className="text-gray-700 hover:text-teal-600">Courses</Link>
-                                <Link to="/about" className="text-gray-700 hover:text-teal-600">About</Link>
-                                <Link to="/contact" className="text-gray-700 hover:text-teal-600">Contact</Link>
+                                <Link to="/browse/courses" className="text-gray-700 hover:text-teal-600">Courses</Link>
+                                <Link to="/browse/teachers" className="text-gray-700 hover:text-teal-600">Tutors</Link>
+                                <Link to="/browse/aboutus" className="text-gray-700 hover:text-teal-600">About</Link>
+                                <Link to="/browse/contact" className="text-gray-700 hover:text-teal-600">Contact</Link>
                                 <div className="flex flex-col space-y-2 pt-4">
                                     <Button variant="outline" onClick={() => navigate('/user/login')}>Login</Button>
                                     <Button onClick={() => navigate('/user/register')}>Get Started</Button>

@@ -55,7 +55,6 @@ export const createNotification = async (recipientType, recipientId, title, body
       { new: true }
     );
 
-    // Send real-time notification via Socket.IO
     if (io) {
       const notificationRoom = `notifications_${recipientType}_${recipientId}`;
       io.to(notificationRoom).emit('new_notification', {

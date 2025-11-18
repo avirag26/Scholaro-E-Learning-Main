@@ -1,6 +1,5 @@
 import { Users, Target, Award, BookOpen, Heart, Globe } from 'lucide-react';
-import Header from './Common/Header';
-import Footer from '../../components/Common/Footer';
+import PublicLayout from '../../components/Layout/PublicLayout';
 const AboutUs = () => {
   const stats = [
     { number: '10,000+', label: 'Students Enrolled' },
@@ -51,8 +50,7 @@ const AboutUs = () => {
     }
   ];
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <PublicLayout>
       <section className="bg-gradient-to-r from-teal-600 to-blue-600 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -169,8 +167,7 @@ const AboutUs = () => {
           </div>
         </div>
       </section>
-      <Footer />
-    </div>
+    </PublicLayout>
   );
 };
 export default AboutUs;

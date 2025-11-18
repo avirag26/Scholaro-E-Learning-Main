@@ -2,12 +2,11 @@
 import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { toast } from 'react-toastify';
-import Header from "./Common/Header";
-import Footer from '../../components/Common/Footer';
+import PublicLayout from '../../components/Layout/PublicLayout';
 import useUserInfo from '../../hooks/useUserInfo';
 import { tutorService } from '../../services/tutorService';
 import { DEFAULT_IMAGES } from '../../constants/defaults';
-import { ROUTES, safeNavigate } from '../../utils/navigationUtils';
+
 
 const Teachers = () => {
   const navigate = useNavigate();
@@ -88,25 +87,17 @@ const Teachers = () => {
     toast.info('Messaging feature coming soon!');
   };
   const handleTutorClick = (tutorId) => {
-    safeNavigate(navigate, ROUTES.USER.TUTOR_DETAIL(tutorId));
+    // Use public route for tutor details
+    navigate(`/browse/tutor/${tutorId}`);
   };
 
-  // Safety check for userInfo (after all hooks)
-  if (!userInfo && !error) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
-        </div>
-      </div>
-    );
-  }
+  // For public browsing, we don't need to wait for userInfo
+  // Only show loading if we're actually loading data, not waiting for userInfo
 
   // Error boundary
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header user={userInfo} />
+      <PublicLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
@@ -124,30 +115,26 @@ const Teachers = () => {
             </button>
           </div>
         </div>
-        <Footer />
-      </div>
+      </PublicLayout>
     );
   }
 
   // Show full page loader only for initial loading
   if (initialLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header user={userInfo} />
+      <PublicLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading teachers...</p>
           </div>
         </div>
-        <Footer />
-      </div>
+      </PublicLayout>
     );
   }
   try {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header user={userInfo} />
+      <PublicLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           { }
           <div className="text-center mb-8">
@@ -369,13 +356,11 @@ const Teachers = () => {
             </div>
           )}
         </div>
-        <Footer />
-      </div>
+      </PublicLayout>
     );
   } catch (renderError) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header user={userInfo} />
+      <PublicLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">💥</div>
@@ -389,8 +374,7 @@ const Teachers = () => {
             </button>
           </div>
         </div>
-        <Footer />
-      </div>
+      </PublicLayout>
     );
   }
 };
