@@ -88,8 +88,7 @@ const certificateSchema = new mongoose.Schema({
 // Indexes for better query performance
 certificateSchema.index({ userId: 1 });
 certificateSchema.index({ courseId: 1 });
-certificateSchema.index({ certificateId: 1 });
-certificateSchema.index({ verificationCode: 1 });
+// certificateId and verificationCode already have unique indexes from field definitions
 
 // Virtual for public verification URL
 certificateSchema.virtual('verificationUrl').get(function() {

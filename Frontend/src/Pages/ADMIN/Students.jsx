@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUsers } from "../../Redux/userSlice";
 import AdminLayout from "./common/AdminLayout";
@@ -113,37 +113,37 @@ const Students = () => {
   }
   return (
     <AdminLayout title="Students" subtitle="Manage all registered students">
-      { }
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow p-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4">
           <div className="flex items-center">
-            <div className="text-2xl text-blue-500 mr-3"></div>
+            <div className="text-2xl text-blue-500 mr-3">👥</div>
             <div>
-              <p className="text-sm text-gray-500">Total Students</p>
-              <p className="text-xl font-semibold text-gray-900">
+              <p className="text-xs sm:text-sm text-gray-500">Total Students</p>
+              <p className="text-lg sm:text-xl font-semibold text-gray-900">
                 {stats?.total || 0}
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4">
           <div className="flex items-center">
-            <div className="text-2xl text-green-500 mr-3"></div>
+            <div className="text-2xl text-green-500 mr-3">✅</div>
             <div>
-              <p className="text-sm text-gray-500">Listed Students</p>
-              <p className="text-xl font-semibold text-gray-900">
+              <p className="text-xs sm:text-sm text-gray-500">Active Students</p>
+              <p className="text-lg sm:text-xl font-semibold text-gray-900">
                 {stats?.listed || 0}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4 sm:col-span-2 lg:col-span-1">
           <div className="flex items-center">
-            <div className="text-2xl text-red-500 mr-3"></div>
+            <div className="text-2xl text-red-500 mr-3">🚫</div>
             <div>
-              <p className="text-sm text-gray-500">Unlisted Students</p>
-              <p className="text-xl font-semibold text-gray-900">
+              <p className="text-xs sm:text-sm text-gray-500">Blocked Students</p>
+              <p className="text-lg sm:text-xl font-semibold text-gray-900">
                 {stats?.unlisted || 0}
               </p>
             </div>
@@ -152,31 +152,43 @@ const Students = () => {
       </div>
       { }
       <div className="bg-white rounded-lg shadow">
-        { }
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <h2 className="text-lg font-semibold text-gray-900">
+        {/* Header and Filters */}
+        <div className="p-4 sm:p-6 border-b border-gray-200">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">
                 Student List
               </h2>
+              <button
+                onClick={() => dispatch(fetchUsers({
+                  page: currentPage,
+                  search: searchTerm,
+                  status: statusFilter
+                }))}
+                className="px-3 py-2 bg-sky-500 text-white text-sm rounded-lg hover:bg-sky-600 self-start sm:self-auto"
+              >
+                Refresh
+              </button>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="text-sm border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                className="text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-sky-500"
               >
                 <option value="all">All Students</option>
                 <option value="active">Active Only</option>
                 <option value="blocked">Blocked Only</option>
               </select>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="relative">
+              
+              <div className="relative flex-1 sm:max-w-xs">
                 <input
                   type="text"
                   placeholder="Search students..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500 w-64"
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
                 />
                 {searchTerm && (
                   <button
@@ -189,36 +201,94 @@ const Students = () => {
                   </button>
                 )}
               </div>
-              <button
-                onClick={() => dispatch(fetchUsers({
-                  page: currentPage,
-                  search: searchTerm,
-                  status: statusFilter
-                }))}
-                className="px-4 py-2 bg-sky-500 text-white text-sm rounded-lg hover:bg-sky-600"
-              >
-                Refresh
-              </button>
             </div>
           </div>
         </div>
-        { }
-        <div className="overflow-x-auto">
+        {/* Mobile Card View */}
+        <div className="block sm:hidden">
+          {Array.isArray(filteredUsers) && filteredUsers.length > 0 ? (
+            <div className="divide-y divide-gray-200">
+              {filteredUsers.map((user) => (
+                <div key={user._id} className="p-4 hover:bg-gray-50">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center text-white text-sm font-medium mr-3">
+                        {user.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{user.full_name}</div>
+                        <div className="text-xs text-gray-500">ID: {user.user_id}</div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${user.is_blocked
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-green-100 text-green-800'
+                        }`}>
+                        {user.is_blocked ? 'Blocked' : 'Active'}
+                      </span>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${user.is_verified
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                        {user.is_verified ? 'Verified' : 'Pending'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-600 mb-3">
+                    <div>{user.email}</div>
+                    {user.phone && <div>{user.phone}</div>}
+                  </div>
+                  <button
+                    onClick={() => handleBlockUnblock(user._id, user.is_blocked)}
+                    disabled={actionLoading[user._id]}
+                    className={`w-full px-3 py-2 rounded text-sm font-medium transition-colors ${user.is_blocked
+                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                      : 'bg-red-600 hover:bg-red-700 text-white'
+                      } ${actionLoading[user._id] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {actionLoading[user._id] ? (
+                      'Processing...'
+                    ) : user.is_blocked ? (
+                      'Unblock Student'
+                    ) : (
+                      'Block Student'
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-gray-500">
+              <div className="text-4xl mb-2">👥</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
+              <p className="text-sm">
+                {searchTerm || statusFilter !== "all"
+                  ? "Try adjusting your search or filter criteria"
+                  : "Students will appear here once they register"
+                }
+              </p>
+            </div>
+          )}
+        </div>
+        
+        {/* Desktop Table View */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Verification</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Verification</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {Array.isArray(filteredUsers) && filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
                   <tr key={user._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center text-white text-sm font-medium mr-3">
                           {user.full_name?.charAt(0)?.toUpperCase() || 'U'}
@@ -229,11 +299,11 @@ const Students = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{user.email}</div>
                       {user.phone && <div className="text-xs text-gray-500">{user.phone}</div>}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${user.is_blocked
                         ? 'bg-red-100 text-red-800'
                         : 'bg-green-100 text-green-800'
@@ -241,7 +311,7 @@ const Students = () => {
                         {user.is_blocked ? 'Blocked' : 'Active'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${user.is_verified
                         ? 'bg-blue-100 text-blue-800'
                         : 'bg-yellow-100 text-yellow-800'
@@ -249,7 +319,7 @@ const Students = () => {
                         {user.is_verified ? 'Verified' : 'Pending'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <button
                         onClick={() => handleBlockUnblock(user._id, user.is_blocked)}
                         disabled={actionLoading[user._id]}
@@ -271,7 +341,7 @@ const Students = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="px-6 py-8 text-center">
+                  <td colSpan="5" className="px-4 sm:px-6 py-8 text-center">
                     <div className="text-gray-500">
                       <div className="text-4xl mb-2">👥</div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
@@ -288,44 +358,64 @@ const Students = () => {
             </tbody>
           </table>
         </div>
-        { }
+        {/* Pagination */}
         {pagination && (pagination.totalUsers > 0 || pagination.totalPages > 0) && (
-          <div className="px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <span></span>
+          <div className="px-4 sm:px-6 py-4 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
+                Showing {((pagination.currentPage - 1) * 10) + 1} to{' '}
+                {Math.min(pagination.currentPage * 10, pagination.totalUsers)} of{' '}
+                {pagination.totalUsers} students
+              </div>
               {pagination.totalPages > 1 && (
-                <div className="flex items-center space-x-2">
-                  { }
+                <div className="flex items-center justify-center space-x-1 sm:space-x-2">
                   <button
                     onClick={() => handlePageChange(pagination.currentPage - 1)}
                     disabled={!pagination.hasPrev}
-                    className={`px-3 py-1 rounded text-sm font-medium ${!pagination.hasPrev
+                    className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium ${!pagination.hasPrev
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                       }`}
                   >
                     Previous
                   </button>
-                  { }
+                  
+                  {/* Page Numbers - Show fewer on mobile */}
                   <div className="flex space-x-1">
-                    {pagination.totalPages > 1 && Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-3 py-1 rounded text-sm font-medium ${pagination.currentPage === page
-                          ? 'bg-sky-500 text-white'
-                          : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                          }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
+                    {pagination.totalPages > 1 && Array.from({ 
+                      length: Math.min(window.innerWidth < 640 ? 3 : 5, pagination.totalPages) 
+                    }, (_, i) => {
+                      let pageNum;
+                      const maxPages = window.innerWidth < 640 ? 3 : 5;
+                      if (pagination.totalPages <= maxPages) {
+                        pageNum = i + 1;
+                      } else if (pagination.currentPage <= Math.floor(maxPages/2) + 1) {
+                        pageNum = i + 1;
+                      } else if (pagination.currentPage >= pagination.totalPages - Math.floor(maxPages/2)) {
+                        pageNum = pagination.totalPages - maxPages + 1 + i;
+                      } else {
+                        pageNum = pagination.currentPage - Math.floor(maxPages/2) + i;
+                      }
+                      
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium ${pagination.currentPage === pageNum
+                            ? 'bg-sky-500 text-white'
+                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                            }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
                   </div>
-                  { }
+                  
                   <button
                     onClick={() => handlePageChange(pagination.currentPage + 1)}
                     disabled={!pagination.hasNext}
-                    className={`px-3 py-1 rounded text-sm font-medium ${!pagination.hasNext
+                    className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium ${!pagination.hasNext
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                       }`}

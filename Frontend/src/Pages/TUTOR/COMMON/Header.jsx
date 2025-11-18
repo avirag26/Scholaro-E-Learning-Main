@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Bell, User, Menu, X } from "lucide-react";
+import { Search, Menu, X } from "lucide-react";
 import NotificationDropdown from "../../../components/Notifications/NotificationDropdown";
 import { useLogout } from "../../../hooks/useLogout";
 export default function Header({ onMenuClick }) {
@@ -35,7 +35,7 @@ export default function Header({ onMenuClick }) {
       window.removeEventListener('tutorInfoUpdated', handleTutorInfoUpdate);
     };
   }, []);
-    const handleLogout = async () => {
+  const handleLogout = async () => {
     await logout();
   };
   return (
@@ -55,7 +55,7 @@ export default function Header({ onMenuClick }) {
                 <Menu className="h-5 w-5" />
               )}
             </button>
-            
+
             {/* Desktop Sidebar Toggle */}
             {onMenuClick && (
               <button
@@ -65,27 +65,27 @@ export default function Header({ onMenuClick }) {
                 <Menu className="h-5 w-5" />
               </button>
             )}
-            
+
             <div className="flex items-center">
               <span className="text-xl sm:text-2xl font-bold text-sky-500">Scholaro</span>
               <span className="ml-2 text-xs sm:text-sm text-gray-500 font-medium">Tutor</span>
             </div>
           </div>
-          
+
           {/* Right side - Actions */}
           <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Search - Hidden on mobile */}
             <button className="hidden md:flex p-2 rounded-lg hover:bg-gray-100 transition-colors">
               <Search className="h-5 w-5 text-gray-600" />
             </button>
-            
+
             {/* Notifications */}
-            <div className="hidden sm:block">
+            <div>
               <NotificationDropdown userType="tutor" />
             </div>
-            
+
             {/* Profile */}
-            <button 
+            <button
               onClick={() => navigate('/tutor/profile')}
               className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
@@ -106,6 +106,8 @@ export default function Header({ onMenuClick }) {
                 {tutorInfo?.name || 'Tutor'}
               </span>
             </button>
+
+
           </div>
         </div>
       </header>
@@ -133,7 +135,7 @@ export default function Header({ onMenuClick }) {
               >
                 My Courses
               </button>
-            
+
               <button
                 onClick={() => {
                   navigate('/tutor/orders');
@@ -152,7 +154,7 @@ export default function Header({ onMenuClick }) {
               >
                 Wallet
               </button>
-                <button
+              <button
                 onClick={() => {
                   handleLogout()
                 }}
@@ -160,7 +162,7 @@ export default function Header({ onMenuClick }) {
               >
                 Logout
               </button>
-              
+
               {/* Mobile-only actions */}
               <div className="pt-4 border-t border-gray-200 space-y-4">
                 <button
@@ -170,10 +172,7 @@ export default function Header({ onMenuClick }) {
                   <Search className="h-5 w-5" />
                   Search
                 </button>
-                <div className="flex items-center gap-3 py-2">
-                  <NotificationDropdown userType="tutor" />
-                  <span className="text-base font-medium text-gray-900">Notifications</span>
-                </div>
+
               </div>
             </nav>
           </div>

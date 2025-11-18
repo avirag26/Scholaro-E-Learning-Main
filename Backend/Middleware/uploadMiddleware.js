@@ -17,7 +17,7 @@ const chatImageStorage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-  
+
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const extension = path.extname(file.originalname);
     cb(null, `chat-${uniqueSuffix}${extension}`);
@@ -26,7 +26,7 @@ const chatImageStorage = multer.diskStorage({
 
 
 const imageFileFilter = (req, file, cb) => {
-  
+
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
@@ -39,8 +39,8 @@ export const uploadChatImage = multer({
   storage: chatImageStorage,
   fileFilter: imageFileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, 
-    files: 1 
+    fileSize: 5 * 1024 * 1024,
+    files: 1
   }
 });
 
@@ -64,13 +64,13 @@ export const handleMulterError = (error, req, res, next) => {
       message: 'File upload error: ' + error.message
     });
   }
-  
+
   if (error.message === 'Only image files are allowed!') {
     return res.status(400).json({
       success: false,
       message: 'Only image files are allowed!'
     });
   }
-  
+
   next(error);
 };

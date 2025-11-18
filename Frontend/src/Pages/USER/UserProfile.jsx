@@ -1,6 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Edit2, Camera, Key } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Edit2, Key } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from './Common/Header';
 import Footer from '../../components/Common/Footer';
@@ -12,7 +11,6 @@ import { uploadToCloudinary, validateImageFile } from '../../utils/cloudinary';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useLogout } from '../../hooks/useLogout';
 const UserProfile = () => {
-  const navigate = useNavigate();
   const { user, loading, updateProfile, updateProfileImage } = useCurrentUser();
   const { logout } = useLogout('user');
   const [isEditing, setIsEditing] = useState(false);
@@ -21,14 +19,13 @@ const UserProfile = () => {
   const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isChangingEmail, setIsChangingEmail] = useState(false);
-  const [activeSection, setActiveSection] = useState('profile');
+  const [activeSection] = useState('profile');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: ''
   });
-  const fileInputRef = useRef(null);
   useEffect(() => {
     if (user) {
       setFormData({
@@ -169,48 +166,49 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
           {/* Unified Sidebar with Profile Features */}
-          <UserSidebar 
-            activeSection={activeSection}
-            selectedImage={selectedImage}
-            uploadingImage={uploadingImage}
-            onImageChange={handleImageChange}
-            onLogout={handleLogout}
-          />
-          <div className="flex-1">
-            {}
-            <div className="bg-white rounded-2xl shadow-sm p-8">
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-900">Profile Settings</h2>
+          <div className="lg:w-80 lg:flex-shrink-0">
+            <UserSidebar 
+              activeSection={activeSection}
+              selectedImage={selectedImage}
+              uploadingImage={uploadingImage}
+              onImageChange={handleImageChange}
+              onLogout={handleLogout}
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 sm:mb-8">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Profile Settings</h2>
                 {!isEditing ? (
                   <button
                     onClick={handleEditClick}
-                    className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm sm:text-base"
                   >
                     <Edit2 className="w-4 h-4" />
                     Edit Profile
                   </button>
                 ) : (
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       onClick={handleSaveProfile}
-                      className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                      className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm sm:text-base"
                     >
                       Save
                     </button>
                     <button
                       onClick={handleCancelEdit}
-                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm sm:text-base"
                     >
                       Cancel
                     </button>
                   </div>
                 )}
               </div>
-              <div className="space-y-6">
-                {}
+              <div className="space-y-4 sm:space-y-6">
+                {/* Name Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Name
@@ -221,20 +219,21 @@ const UserProfile = () => {
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
                       disabled={!isEditing}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'
+                      className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base ${isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'
                         }`}
                       placeholder="Enter your name"
                     />
                     {isEditing && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                          <Edit2 className="w-3 h-3 text-green-600" />
+                      <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-green-100 rounded-full flex items-center justify-center">
+                          <Edit2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-600" />
                         </div>
                       </div>
                     )}
                   </div>
                 </div>
-                {}
+                
+                {/* Phone Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Phone
@@ -245,36 +244,37 @@ const UserProfile = () => {
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       disabled={!isEditing}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'
+                      className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base ${isEditing ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'
                         }`}
                       placeholder="Enter your phone number"
                     />
                     {isEditing && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                          <Edit2 className="w-3 h-3 text-green-600" />
+                      <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-green-100 rounded-full flex items-center justify-center">
+                          <Edit2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-600" />
                         </div>
                       </div>
                     )}
                   </div>
                 </div>
-                {}
+                
+                {/* Email Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Email
                   </label>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <input
                       type="email"
                       value={formData.email}
                       disabled
-                      className="flex-1 px-4 py-3 border border-gray-200 bg-gray-50 rounded-lg text-gray-600"
+                      className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 bg-gray-50 rounded-lg text-gray-600 text-sm sm:text-base"
                       placeholder="Enter your email"
                     />
                     <button
                       type="button"
                       onClick={() => setShowEmailChangeModal(true)}
-                      className="px-4 py-3 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 transition-colors font-medium"
+                      className="px-3 sm:px-4 py-2 sm:py-3 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 transition-colors font-medium text-sm sm:text-base whitespace-nowrap"
                     >
                       Change Email
                     </button>
@@ -283,11 +283,12 @@ const UserProfile = () => {
                     Email changes require verification for security
                   </p>
                 </div>
-                {}
-                <div className="flex justify-center pt-6">
+                
+                {/* Change Password Button */}
+                <div className="flex justify-center pt-4 sm:pt-6">
                   <button
                     onClick={() => setShowPasswordModal(true)}
-                    className="flex items-center gap-2 px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                    className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm sm:text-base w-full sm:w-auto"
                   >
                     <Key className="w-4 h-4" />
                     Change Password

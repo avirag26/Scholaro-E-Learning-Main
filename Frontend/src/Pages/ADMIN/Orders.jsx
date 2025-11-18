@@ -154,49 +154,47 @@ const Orders = () => {
     <AdminLayout>
       <div className="p-6">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Order Management</h1>
-            <p className="text-gray-600">Monitor and manage all course purchases</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Order Management</h1>
+            <p className="text-sm sm:text-base text-gray-600">Monitor and manage all course purchases</p>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6 border">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 sm:p-6 border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Orders</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.total || 0}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Orders</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.total || 0}</p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-full">
-                <ShoppingBag className="w-6 h-6 text-blue-600" />
+              <div className="p-2 sm:p-3 bg-blue-100 rounded-full">
+                <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 border">
+          <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 sm:p-6 border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-3xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue || 0)}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Revenue</p>
+                <p className="text-xl sm:text-3xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue || 0)}</p>
               </div>
-              <div className="p-3 bg-green-100 rounded-full">
-                <DollarSign className="w-6 h-6 text-green-600" />
+              <div className="p-2 sm:p-3 bg-green-100 rounded-full">
+                <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
               </div>
             </div>
           </div>
 
-          
-
-          <div className="bg-white rounded-lg shadow-sm p-6 border">
+          <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 sm:p-6 border sm:col-span-2 lg:col-span-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Course Sales</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.total || 0}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Course Sales</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.total || 0}</p>
               </div>
-              <div className="p-3 bg-blue-100 rounded-full">
-                <Calendar className="w-6 h-6 text-blue-600" />
+              <div className="p-2 sm:p-3 bg-purple-100 rounded-full">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
             </div>
           </div>
@@ -204,17 +202,17 @@ const Orders = () => {
 
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm border mb-6">
-          <div className="p-6">
-            <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+          <div className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row gap-4">
               {/* Search */}
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
                 <input
                   type="text"
                   placeholder="Search orders..."
                   value={searchTerm}
                   onChange={handleSearch}
-                  className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="w-full pl-9 sm:pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
                 />
                 {searchTerm && (
                   <button
@@ -227,47 +225,105 @@ const Orders = () => {
                   </button>
                 )}
               </div>
-
-              {/* Status Filters */}
-
             </div>
           </div>
         </div>
 
         {/* Orders Table */}
         <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile Card View */}
+          <div className="block sm:hidden">
+            {orders.length > 0 ? (
+              <div className="divide-y divide-gray-200">
+                {orders.map((order) => (
+                  <div key={order.id} className="p-4 hover:bg-gray-50">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{order.orderId}</div>
+                        <div className="text-xs text-gray-500">{formatDate(order.createdAt)}</div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <div className="text-sm font-medium text-gray-900">{formatCurrency(order.finalAmount)}</div>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor()}`}>
+                          {getStatusText()}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center mb-3">
+                      <img
+                        className="h-8 w-8 rounded-full object-cover"
+                        src={order.user.profileImage || '/default-avatar.png'}
+                        alt={order.user.name}
+                      />
+                      <div className="ml-3">
+                        <div className="text-sm font-medium text-gray-900">{order.user.name}</div>
+                        <div className="text-xs text-gray-500">{order.user.phone}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-gray-600 mb-3">
+                      <div>{order.items.length} course{order.items.length > 1 ? 's' : ''}</div>
+                      <div className="truncate">{order.items[0]?.course.title}{order.items.length > 1 && ` +${order.items.length - 1} more`}</div>
+                    </div>
+                    
+                    <button
+                      onClick={() => handleViewOrder(order.id)}
+                      className="w-full px-3 py-2 bg-teal-100 text-teal-700 rounded text-sm font-medium hover:bg-teal-200 transition-colors flex items-center justify-center gap-1"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View Details
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-gray-500">
+                <ShoppingBag className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
+                <p className="text-sm">
+                  {debouncedSearchTerm || filters.status !== 'all'
+                    ? 'Try adjusting your search or filter criteria.'
+                    : 'Orders will appear here once students start purchasing courses.'
+                  }
+                </p>
+              </div>
+            )}
+          </div>
+          
+          {/* Desktop Table View */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
                   <th
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('orderId')}
                   >
                     Order ID
                   </th>
                   <th
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('finalAmount')}
                   >
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Student
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Courses
                   </th>
                   <th
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('createdAt')}
                   >
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -275,7 +331,7 @@ const Orders = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {orders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {order.orderId}
                       </div>
@@ -283,7 +339,7 @@ const Orders = () => {
                         {order.razorpayPaymentId?.substring(0, 20)}...
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {formatCurrency(order.finalAmount)}
                       </div>
@@ -291,7 +347,7 @@ const Orders = () => {
                         Tax: {formatCurrency(order.taxAmount)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <img
                           className="h-8 w-8 rounded-full object-cover"
@@ -308,24 +364,24 @@ const Orders = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 sm:px-6 py-4">
                       <div className="text-sm text-gray-900">
                         {order.items.length} course{order.items.length > 1 ? 's' : ''}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-500 max-w-xs truncate">
                         {order.items[0]?.course.title}
                         {order.items.length > 1 && ` +${order.items.length - 1} more`}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatDate(order.createdAt)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor()}`}>
                         {getStatusText()}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => handleViewOrder(order.id)}
                         className="text-teal-600 hover:text-teal-900 flex items-center gap-1"
@@ -342,58 +398,55 @@ const Orders = () => {
 
           {/* Pagination */}
           {pagination.totalPages > 1 && (
-            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-              <div className="flex-1 flex justify-between sm:hidden">
-                <button
-                  onClick={() => handlePageChange(pagination.currentPage - 1)}
-                  disabled={!pagination.hasPrev}
-                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => handlePageChange(pagination.currentPage + 1)}
-                  disabled={!pagination.hasNext}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Showing{' '}
-                    <span className="font-medium">
-                      {(pagination.currentPage - 1) * filters.limit + 1}
-                    </span>{' '}
-                    to{' '}
-                    <span className="font-medium">
-                      {Math.min(pagination.currentPage * filters.limit, pagination.totalItems)}
-                    </span>{' '}
-                    of{' '}
-                    <span className="font-medium">{pagination.totalItems}</span> results
-                  </p>
+            <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
+                  Showing{' '}
+                  <span className="font-medium">
+                    {(pagination.currentPage - 1) * filters.limit + 1}
+                  </span>{' '}
+                  to{' '}
+                  <span className="font-medium">
+                    {Math.min(pagination.currentPage * filters.limit, pagination.totalItems)}
+                  </span>{' '}
+                  of{' '}
+                  <span className="font-medium">{pagination.totalItems}</span> results
                 </div>
-                <div>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                    <button
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={!pagination.hasPrev}
-                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
+                
+                <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage - 1)}
+                    disabled={!pagination.hasPrev}
+                    className="flex items-center px-2 sm:px-3 py-1 border border-gray-300 text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="h-3 h-3 sm:h-4 sm:w-4 mr-1" />
+                    <span className="hidden sm:inline">Previous</span>
+                    <span className="sm:hidden">Prev</span>
+                  </button>
 
-                    {[...Array(Math.min(5, pagination.totalPages))].map((_, index) => {
-                      const pageNumber = pagination.currentPage - 2 + index;
+                  {/* Page Numbers - Show fewer on mobile */}
+                  <div className="flex space-x-1">
+                    {[...Array(Math.min(window.innerWidth < 640 ? 3 : 5, pagination.totalPages))].map((_, index) => {
+                      const maxPages = window.innerWidth < 640 ? 3 : 5;
+                      let pageNumber;
+                      if (pagination.totalPages <= maxPages) {
+                        pageNumber = index + 1;
+                      } else if (pagination.currentPage <= Math.floor(maxPages/2) + 1) {
+                        pageNumber = index + 1;
+                      } else if (pagination.currentPage >= pagination.totalPages - Math.floor(maxPages/2)) {
+                        pageNumber = pagination.totalPages - maxPages + 1 + index;
+                      } else {
+                        pageNumber = pagination.currentPage - Math.floor(maxPages/2) + index;
+                      }
+                      
                       if (pageNumber < 1 || pageNumber > pagination.totalPages) return null;
 
                       return (
                         <button
                           key={pageNumber}
                           onClick={() => handlePageChange(pageNumber)}
-                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${pageNumber === pagination.currentPage
-                            ? 'z-10 bg-teal-50 border-teal-500 text-teal-600'
+                          className={`px-2 sm:px-3 py-1 border text-xs sm:text-sm font-medium rounded ${pageNumber === pagination.currentPage
+                            ? 'bg-teal-50 border-teal-500 text-teal-600'
                             : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                             }`}
                         >
@@ -401,15 +454,17 @@ const Orders = () => {
                         </button>
                       );
                     })}
+                  </div>
 
-                    <button
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={!pagination.hasNext}
-                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
-                  </nav>
+                  <button
+                    onClick={() => handlePageChange(pagination.currentPage + 1)}
+                    disabled={!pagination.hasNext}
+                    className="flex items-center px-2 sm:px-3 py-1 border border-gray-300 text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <span className="sm:hidden">Next</span>
+                    <ChevronRight className="h-3 h-3 sm:h-4 sm:w-4 ml-1" />
+                  </button>
                 </div>
               </div>
             </div>

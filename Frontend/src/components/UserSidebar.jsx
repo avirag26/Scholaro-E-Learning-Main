@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, BookOpen, GraduationCap, ShoppingBag, Award, LogOut, Heart, Camera, Package, ShoppingCart } from 'lucide-react';
+import { User, BookOpen, Award, LogOut, Heart, Camera, ShoppingCart } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 
@@ -47,26 +47,26 @@ const UserSidebar = ({
   ];
 
   return (
-    <div className="w-64 bg-white rounded-2xl shadow-sm p-6">
+    <div className="w-full lg:w-64 bg-white rounded-xl lg:rounded-2xl shadow-sm p-4 sm:p-6">
       {/* Profile Section */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-6 sm:mb-8">
         <div className="relative inline-block">
           <img
             src={selectedImage || user?.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"}
             alt="Profile"
-            className="w-20 h-20 rounded-full object-cover mx-auto"
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover mx-auto"
           />
           {/* Show camera button only on profile page */}
           {isProfilePage && (
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingImage}
-              className="absolute -bottom-1 -right-1 bg-teal-600 text-white p-1.5 rounded-full hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute -bottom-1 -right-1 bg-teal-600 text-white p-1 sm:p-1.5 rounded-full hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploadingImage ? (
-                <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                <Camera className="w-3 h-3" />
+                <Camera className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
               )}
             </button>
           )}
@@ -82,12 +82,12 @@ const UserSidebar = ({
             />
           )}
         </div>
-        <h3 className="mt-3 font-semibold text-teal-600 text-lg">
+        <h3 className="mt-2 sm:mt-3 font-semibold text-teal-600 text-base sm:text-lg">
           {user?.name || 'John Doe'}
         </h3>
-        <button className="mt-2 px-4 py-1 bg-teal-50 text-teal-600 text-sm rounded-full border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1 mx-auto">
+        <button className="mt-2 px-3 sm:px-4 py-1 bg-teal-50 text-teal-600 text-xs sm:text-sm rounded-full border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1 mx-auto">
           <span>Share Profile</span>
-          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3" fill="currentColor" viewBox="0 0 20 20">
             <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
           </svg>
         </button>
@@ -99,13 +99,13 @@ const UserSidebar = ({
           <button
             key={item.id}
             onClick={() => handleSidebarClick(item)}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-left transition-colors text-sm sm:text-base ${
               activeSection === item.id
                 ? 'bg-teal-600 text-white'
                 : 'text-gray-600 hover:bg-gray-50'
             }`}
           >
-            <item.icon className="w-5 h-5" />
+            <item.icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
             <span className="font-medium">{item.label}</span>
           </button>
         ))}
