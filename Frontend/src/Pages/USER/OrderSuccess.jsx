@@ -273,7 +273,7 @@ Start learning and advance your career.
                     
                     <div className="flex gap-3">
                       <Link
-                        to={`/user/course/${course._id}/learn`}
+                        to={`/user/learn/${course._id}`}
                         className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors font-medium"
                       >
                         Start Learning
@@ -294,14 +294,9 @@ Start learning and advance your career.
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          
           <Link
             to="/user/courses"
-            className="px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors font-medium text-center"
-          >
-            View All My Courses
-          </Link>
-          <Link
-            to="/user/browse"
             className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-center"
           >
             Browse More Courses
