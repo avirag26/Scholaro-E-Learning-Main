@@ -3,8 +3,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Phone, Video, MoreVertical, BookOpen, User, Trash2, ArrowLeft } from 'lucide-react';
 import { clearChat } from '../../Redux/chatSlice';
 import { toast } from 'react-toastify';
-
+import { useNavigate } from 'react-router-dom';
 const ChatHeader = ({ chat, onBack }) => {
+  const navigate= useNavigate();
   const dispatch = useDispatch();
   const { onlineUsers } = useSelector(state => state.chat);
 
@@ -121,7 +122,7 @@ const ChatHeader = ({ chat, onBack }) => {
             title="Video call (Coming soon)"
             onClick={() => {
               // TODO: Implement video call functionality
-              alert('Video call feature coming soon!');
+              navigate('/video/videoinput')
             }}
           >
             <Video className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -155,8 +156,9 @@ const ChatHeader = ({ chat, onBack }) => {
                     </button>
                     <button
                       onClick={() => {
-                        alert('Video call feature coming soon!');
-                        setShowMoreMenu(false);
+                        // alert('Video call feature coming soon!');
+                        // setShowMoreMenu(false);
+                        navigate('video/videoinput')
                       }}
                       className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                     >

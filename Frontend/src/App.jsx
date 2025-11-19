@@ -12,6 +12,7 @@ import TutorRoutes from "../Routes/tutorRoutes";
 import LandingProtection from "./components/RouteProtection/LandingProtection";
 import NotFoundPage from "./ui/NotFound";
 import AdminRoutes from "../Routes/adminRoutes";
+import VideoRoute from "../Routes/VideocallRoutes";
 import LoadingPage from "./ui/Loading";
 import CertificateVerification from "./components/Public/CertificateVerification";
 import { useCurrentUser } from "./hooks/useCurrentUser";
@@ -84,6 +85,7 @@ function App() {
             <Route path="/user/*" element={<UserRoutes />} />
             <Route path='/tutor/*' element={<TutorRoutes />} />
             <Route path="/admin/*" element={<AdminRoutes />} />
+            <Route path='/video/*' element={<VideoRoute/>} />
             <Route path="/verify-certificate/:verificationCode" element={<CertificateVerification />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

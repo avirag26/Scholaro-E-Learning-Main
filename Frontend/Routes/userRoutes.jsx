@@ -167,6 +167,7 @@ const UserRoutes = () => {
                 </ProtectedRoute>
             } />
 
+
             <Route path='*' element={<NotFoundPage />} />
         </Routes>
     )

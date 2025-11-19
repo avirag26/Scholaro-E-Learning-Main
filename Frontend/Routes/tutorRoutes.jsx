@@ -22,6 +22,8 @@ import CouponManagement from "../src/Pages/TUTOR/CouponManagement";
 import ProtectedRoute from "../src/components/RouteProtection/ProtectedRoute";
 import GuestRoute from "../src/components/RouteProtection/GuestRoute";
 
+
+
 const TutorRoutes = () => {
   return (
     <Routes>
@@ -43,7 +45,9 @@ const TutorRoutes = () => {
       <Route path="coupons" element={<ProtectedRoute userType="tutor"><CouponManagement /></ProtectedRoute>} />
       <Route path="course/:courseId/exam" element={<ProtectedRoute userType="tutor"><ExamManagement /></ProtectedRoute>} />
       <Route path="course/:courseId/final-lesson" element={<ProtectedRoute userType="tutor"><ExamSettings /></ProtectedRoute>} />
-      
+ 
+
+
       <Route path='*' element={<NotFoundPage />} />
     </Routes>
   )
