@@ -6,13 +6,13 @@ import { Upload, X, Play, FileText, Plus } from "lucide-react";
 import TutorLayout from "./COMMON/TutorLayout";
 import Swal from "sweetalert2";
 import ImageUpload from "../../components/ImageUpload";
-import { 
-  uploadToCloudinary, 
-  uploadVideoToCloudinary, 
+import {
+  uploadToCloudinary,
+  uploadVideoToCloudinary,
   uploadDocumentToCloudinary,
-  validateImageFile, 
-  validateVideoFile, 
-  validatePdfFile 
+  validateImageFile,
+  validateVideoFile,
+  validatePdfFile
 } from "../../utils/cloudinary";
 import {
   createLesson,
@@ -34,7 +34,7 @@ const AddLesson = () => {
     pdfFile: null,
     thumbnailFile: null
   });
-  
+
   const [videoPreview, setVideoPreview] = useState(null);
   const [pdfPreview, setPdfPreview] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
@@ -176,7 +176,7 @@ const AddLesson = () => {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate title
     if (!formData.title.trim()) {
       toast.error("Lesson title is required");
@@ -194,7 +194,7 @@ const AddLesson = () => {
       toast.error("Lesson title can only contain letters, numbers, spaces, and basic punctuation (- . , : ( ))");
       return;
     }
-    
+
     // Validate description
     if (!formData.description.trim()) {
       toast.error("Lesson description is required");
@@ -212,7 +212,19 @@ const AddLesson = () => {
       toast.error("Description must have at least 10 meaningful characters");
       return;
     }
-    
+
+    // Validate video (required)
+    if (!formData.videoFile) {
+      toast.error("Lesson video is required");
+      return;
+    }
+
+    // Validate thumbnail (required)
+    if (!formData.thumbnailFile) {
+      toast.error("Lesson thumbnail is required");
+      return;
+    }
+
     if (!courseId) {
       toast.error("Course ID is required");
       return;
@@ -265,13 +277,13 @@ const AddLesson = () => {
     }
   };
   return (
-    <TutorLayout 
-      title="Add New Lesson" 
+    <TutorLayout
+      title="Add New Lesson"
       subtitle="Create engaging lessons for your course"
     >
       <div className="max-w-6xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {}
+          { }
           <div className="bg-green-50 rounded-lg shadow p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
               Add New Lesson
@@ -282,9 +294,9 @@ const AddLesson = () => {
               )}
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {}
+              { }
               <div className="space-y-4">
-                {}
+                { }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Lesson Title
@@ -299,7 +311,7 @@ const AddLesson = () => {
                     required
                   />
                 </div>
-                {}
+                { }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Lesson Description
@@ -314,7 +326,7 @@ const AddLesson = () => {
                     required
                   />
                 </div>
-                {}
+                { }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Lesson Duration
@@ -328,10 +340,10 @@ const AddLesson = () => {
                     placeholder="e.g., 15:30 minutes or 1:20 hours"
                   />
                 </div>
-                {}
+                { }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload Video
+                    Upload Video <span className="text-red-500">*</span>
                   </label>
                   <div
                     className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${uploading.video
@@ -391,9 +403,9 @@ const AddLesson = () => {
                   </div>
                 </div>
               </div>
-              {}
+              { }
               <div className="space-y-4">
-                {}
+                { }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Upload PDF notes
@@ -465,10 +477,10 @@ const AddLesson = () => {
                     )}
                   </div>
                 </div>
-                {}
+                { }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload Thumbnail
+                    Upload Thumbnail <span className="text-red-500">*</span>
                   </label>
                   <ImageUpload
                     currentImage={thumbnailPreview}
@@ -481,7 +493,7 @@ const AddLesson = () => {
                 </div>
               </div>
             </div>
-            {}
+            { }
             <div className="mt-8 text-center">
               <button
                 type="submit"
@@ -492,7 +504,7 @@ const AddLesson = () => {
               </button>
             </div>
           </div>
-          {}
+          { }
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Lessons</h3>
             <div className="space-y-4">
@@ -516,20 +528,19 @@ const AddLesson = () => {
                     <span className="text-sm text-gray-600">
                       Duration: {lesson.duration || 'Not set'}
                     </span>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      lesson.isPublished 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${lesson.isPublished
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                      }`}>
                       {lesson.isPublished ? 'Published' : 'Draft'}
                     </span>
-                    <button 
+                    <button
                       onClick={() => handleDeleteLesson(lesson.id)}
                       className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm"
                     >
                       Remove
                     </button>
-                    <button 
+                    <button
                       onClick={() => navigate(`/tutor/edit-lesson/${lesson.id}`)}
                       className="px-3 py-1 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 transition-colors text-sm"
                     >
@@ -539,12 +550,12 @@ const AddLesson = () => {
                 </div>
               ))}
             </div>
-            {}
+            { }
             <div className="mt-8 text-center">
               <button
                 type="button"
                 className="px-12 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium text-lg"
-                onClick={() =>{navigate('/tutor/courses'), toast.success("Course lessons submitted successfully!")}}
+                onClick={() => { navigate('/tutor/courses'), toast.success("Course lessons submitted successfully!") }}
               >
                 Submit
               </button>

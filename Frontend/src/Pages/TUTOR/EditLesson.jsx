@@ -214,6 +214,18 @@ const EditLesson = () => {
       toast.error("Description must have at least 10 meaningful characters");
       return;
     }
+    
+    // Validate video (required)
+    if (!formData.videoUrl) {
+      toast.error("Lesson video is required");
+      return;
+    }
+    
+    // Validate thumbnail (required)
+    if (!formData.thumbnailUrl) {
+      toast.error("Lesson thumbnail is required");
+      return;
+    }
     try {
       const lessonData = {
         title: formData.title,
@@ -299,7 +311,7 @@ const EditLesson = () => {
             </div>
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Lesson Video
+                Lesson Video <span className="text-red-500">*</span>
               </label>
               {videoPreview ? (
                 <div className="relative">
@@ -341,7 +353,7 @@ const EditLesson = () => {
             </div>
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Video Thumbnail
+                Video Thumbnail <span className="text-red-500">*</span>
               </label>
               <ImageUpload
                 currentImage={thumbnailPreview}
