@@ -91,9 +91,9 @@ export default function AdminLayout({ children, title, subtitle }) {
                 </div>
             </header>
 
-            <div className="flex">
+            <div className="flex overflow-hidden">
                 {/* Desktop Sidebar */}
-                <aside className="hidden lg:block w-64 bg-white shadow-sm min-h-screen">
+                <aside className="hidden lg:block w-64 bg-white shadow-sm min-h-screen flex-shrink-0">
                     {/* Profile Section */}
                     <div className="p-6 border-b">
                         <div className="flex items-center space-x-3">
@@ -196,8 +196,10 @@ export default function AdminLayout({ children, title, subtitle }) {
 
                 {/* Mobile Sidebar Overlay */}
                 {isSidebarOpen && (
-                    <div className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setIsSidebarOpen(false)}>
-                        <div className="fixed left-0 top-0 bottom-0 w-64 bg-white shadow-lg">
+                    <>
+                        {/* Transparent backdrop */}
+                        <div className="lg:hidden fixed inset-0 z-40" onClick={() => setIsSidebarOpen(false)} />
+                        <div className="lg:hidden fixed left-0 top-0 bottom-0 w-64 bg-white shadow-lg overflow-y-auto z-50" onClick={(e) => e.stopPropagation()}>
                             {/* Mobile Sidebar Header */}
                             <div className="flex items-center justify-between p-4 border-b">
                                 <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
@@ -338,18 +340,20 @@ export default function AdminLayout({ children, title, subtitle }) {
                                 </div>
                             </nav>
                         </div>
-                    </div>
+                    </>
                 )}
 
                 {/* Main Content */}
-                <main className="flex-1 p-4 sm:p-6 lg:p-8">
+                <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-x-hidden w-full min-w-0">
                     {title && (
                         <div className="mb-6 sm:mb-8">
                             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{title}</h1>
                             {subtitle && <p className="text-gray-600 mt-2 text-sm sm:text-base">{subtitle}</p>}
                         </div>
                     )}
-                    {children}
+                    <div className="max-w-full overflow-x-hidden">
+                        {children}
+                    </div>
                 </main>
             </div>
 

@@ -173,7 +173,7 @@ export default function Cart() {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Shopping Cart</h1>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                      <span className="text-gray-600 text-sm sm:text-base">{totalItems} Course{totalItems !== 1 ? 's' : ''} in cart</span>
+                      {/* <span className="text-gray-600 text-sm sm:text-base">{totalItems} Course{totalItems !== 1 ? 's' : ''} in cart</span> */}
                       {items.length > 0 && (
                         <button
                           onClick={handleClearCart}
@@ -188,18 +188,7 @@ export default function Cart() {
                   {/* Unavailable and purchased courses notification */}
                   {items.length > 0 && getAvailableItems().length < items.length && (
                     <div className="mt-4 space-y-2">
-                      {getPurchasedItems().length > 0 && (
-                        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-600" />
-                              <p className="text-sm text-green-800">
-                                <strong>{getPurchasedItems().length}</strong> course{getPurchasedItems().length > 1 ? 's are' : ' is'} already purchased and will be removed from cart.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                      
                       {getUnavailableItems().length > getPurchasedItems().length && (
                         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                           <div className="flex items-center justify-between">

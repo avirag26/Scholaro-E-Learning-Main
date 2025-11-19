@@ -207,73 +207,74 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                     
-                    {/* Date Filter Buttons */}
-                    <div className="flex flex-wrap items-center gap-2">
-                        <button
-                            onClick={() => setDateFilter('This Month')}
-                            className={`px-3 py-2 rounded text-sm transition-colors ${dateFilter === 'This Month'
-                                ? 'bg-sky-500 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            This Month
-                        </button>
-                        <button
-                            onClick={() => setDateFilter('Last Month')}
-                            className={`px-3 py-2 rounded text-sm transition-colors ${dateFilter === 'Last Month'
-                                ? 'bg-sky-500 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            Last Month
-                        </button>
-                        <button
-                            onClick={() => setDateFilter('This Year')}
-                            className={`px-3 py-2 rounded text-sm transition-colors ${dateFilter === 'This Year'
-                                ? 'bg-sky-500 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            This Year
-                        </button>
-                    </div>
-                    
-                    {/* Custom Date Range */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 p-3 bg-gray-50 rounded-lg">
-                        <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            Custom Range:
-                        </span>
-                        <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2">
-                            <input
-                                type="date"
-                                value={customDateRange.startDate}
-                                onChange={(e) => setCustomDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                                className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                                placeholder="Start Date"
-                            />
-                            <span className="text-gray-500 text-sm text-center xs:text-left">to</span>
-                            <input
-                                type="date"
-                                value={customDateRange.endDate}
-                                onChange={(e) => setCustomDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                                className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                                placeholder="End Date"
-                            />
-                            <Button
-                                onClick={() => {
-                                    if (customDateRange.startDate && customDateRange.endDate) {
-                                        setDateFilter('Custom Range');
-                                        setTimeout(() => {
-                                            fetchDashboardData();
-                                        }, 100);
-                                    }
-                                }}
-                                disabled={!customDateRange.startDate || !customDateRange.endDate}
-                                className="px-3 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                    {/* Date Filter Section */}
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                        {/* Quick Filter Buttons */}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <button
+                                onClick={() => setDateFilter('This Month')}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dateFilter === 'This Month'
+                                    ? 'bg-sky-500 text-white shadow-sm'
+                                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                                    }`}
                             >
-                                Apply
-                            </Button>
+                                This Month
+                            </button>
+                            <button
+                                onClick={() => setDateFilter('Last Month')}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dateFilter === 'Last Month'
+                                    ? 'bg-sky-500 text-white shadow-sm'
+                                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                                    }`}
+                            >
+                                Last Month
+                            </button>
+                            <button
+                                onClick={() => setDateFilter('This Year')}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dateFilter === 'This Year'
+                                    ? 'bg-sky-500 text-white shadow-sm'
+                                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                                    }`}
+                            >
+                                This Year
+                            </button>
+                        </div>
+                        
+                        {/* Custom Date Range */}
+                        <div className="pt-3 border-t border-gray-200 space-y-2">
+                            <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                <Calendar className="w-4 h-4" />
+                                <span>Custom Range:</span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr_auto] gap-2 items-center">
+                                <input
+                                    type="date"
+                                    value={customDateRange.startDate}
+                                    onChange={(e) => setCustomDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                                />
+                                <span className="text-gray-500 text-sm text-center hidden sm:block">to</span>
+                                <input
+                                    type="date"
+                                    value={customDateRange.endDate}
+                                    onChange={(e) => setCustomDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                                />
+                                <Button
+                                    onClick={() => {
+                                        if (customDateRange.startDate && customDateRange.endDate) {
+                                            setDateFilter('Custom Range');
+                                            setTimeout(() => {
+                                                fetchDashboardData();
+                                            }, 100);
+                                        }
+                                    }}
+                                    disabled={!customDateRange.startDate || !customDateRange.endDate}
+                                    className="w-full sm:w-auto px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-sm"
+                                >
+                                    Apply
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>

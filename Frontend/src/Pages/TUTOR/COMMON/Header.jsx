@@ -40,7 +40,7 @@ export default function Header({ onMenuClick }) {
   };
   return (
     <>
-      <header className="w-full bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
+      <header className="w-full bg-white border-b border-gray-200 shadow-sm sticky top-0 z-[70]">
         <div className="flex items-center justify-between px-4 sm:px-6 py-3">
           {/* Left side - Logo and Menu */}
           <div className="flex items-center gap-4">
@@ -112,36 +112,76 @@ export default function Header({ onMenuClick }) {
         </div>
       </header>
 
-      {/* Mobile Navigation Menu */}
+      {/* Mobile Navigation Menu - Sidebar style from left */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}>
-          <div className="fixed top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg">
-            <nav className="px-4 py-6 space-y-4">
+        <>
+          {/* Backdrop overlay */}
+          <div 
+            className="lg:hidden fixed inset-0 z-[60]" 
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <aside 
+            className="lg:hidden fixed left-0 top-0 bottom-0 w-64 bg-white shadow-lg overflow-y-auto z-[61]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Profile Section */}
+            <div className="flex flex-col items-center py-8 border-b border-gray-200">
+              {tutorInfo?.profileImage ? (
+                <img
+                  src={tutorInfo.profileImage}
+                  alt="Tutor Profile"
+                  className="w-20 h-20 rounded-full object-cover shadow"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-sky-500 rounded-full flex items-center justify-center shadow">
+                  <span className="text-white text-2xl font-medium">
+                    {tutorInfo?.name?.charAt(0) || 'T'}
+                  </span>
+                </div>
+              )}
+              <div className="mt-4 text-sky-500 font-semibold text-base text-center px-2">
+                {tutorInfo?.name || 'Tutor'}
+              </div>
+              <button className="mt-2 px-3 py-1 bg-sky-50 rounded-full text-sky-600 text-xs border flex items-center gap-1 hover:bg-sky-100 transition">
+                Share Profile
+              </button>
+            </div>
+
+            {/* Navigation */}
+            <nav className="px-4 py-6 space-y-2">
               <button
                 onClick={() => {
                   navigate('/tutor/home');
                   setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left text-base font-medium text-gray-900 hover:text-sky-500 py-2 transition-colors"
+                className="flex items-center gap-3 w-full text-left text-base font-medium text-sky-500 hover:bg-sky-50 px-4 py-3 rounded-lg transition-colors"
               >
                 Dashboard
+              </button>
+              <button
+                onClick={() => {
+                  navigate('/tutor/profile');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 w-full text-left text-base font-medium text-sky-500 hover:bg-sky-50 px-4 py-3 rounded-lg transition-colors"
+              >
+                Profile
               </button>
               <button
                 onClick={() => {
                   navigate('/tutor/courses');
                   setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left text-base font-medium text-gray-900 hover:text-sky-500 py-2 transition-colors"
+                className="flex items-center gap-3 w-full text-left text-base font-medium text-sky-500 hover:bg-sky-50 px-4 py-3 rounded-lg transition-colors"
               >
-                My Courses
+                Courses
               </button>
-
               <button
                 onClick={() => {
                   navigate('/tutor/orders');
                   setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left text-base font-medium text-gray-900 hover:text-sky-500 py-2 transition-colors"
+                className="flex items-center gap-3 w-full text-left text-base font-medium text-sky-500 hover:bg-sky-50 px-4 py-3 rounded-lg transition-colors"
               >
                 Orders
               </button>
@@ -150,33 +190,40 @@ export default function Header({ onMenuClick }) {
                   navigate('/tutor/wallet');
                   setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left text-base font-medium text-gray-900 hover:text-sky-500 py-2 transition-colors"
+                className="flex items-center gap-3 w-full text-left text-base font-medium text-sky-500 hover:bg-sky-50 px-4 py-3 rounded-lg transition-colors"
               >
                 Wallet
               </button>
               <button
                 onClick={() => {
-                  handleLogout()
+                  navigate('/tutor/coupons');
+                  setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left text-base font-medium text-gray-900 hover:text-sky-500 py-2 transition-colors"
+                className="flex items-center gap-3 w-full text-left text-base font-medium text-sky-500 hover:bg-sky-50 px-4 py-3 rounded-lg transition-colors"
+              >
+                Coupons
+              </button>
+              <button
+                onClick={() => {
+                  navigate('/tutor/chat');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 w-full text-left text-base font-medium text-sky-500 hover:bg-sky-50 px-4 py-3 rounded-lg transition-colors"
+              >
+                Chat & Video
+              </button>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-3 w-full text-left text-base font-medium text-sky-500 hover:bg-sky-50 px-4 py-3 rounded-lg transition-colors mt-4 pt-4 border-t border-gray-200"
               >
                 Logout
               </button>
-
-              {/* Mobile-only actions */}
-              <div className="pt-4 border-t border-gray-200 space-y-4">
-                <button
-                  className="flex items-center gap-3 text-base font-medium text-gray-900 hover:text-sky-500 py-2 transition-colors w-full text-left"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Search className="h-5 w-5" />
-                  Search
-                </button>
-
-              </div>
             </nav>
-          </div>
-        </div>
+          </aside>
+        </>
       )}
     </>
   );
