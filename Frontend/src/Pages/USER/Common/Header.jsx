@@ -99,10 +99,7 @@ export default function Header({ onMenuClick }) {
 
           {/* Right side - Actions */}
           <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
-            {/* Search - Hidden on mobile */}
-            <Button variant="ghost" size="icon" className="hidden md:flex">
-              <Search className="h-5 w-5" />
-            </Button>
+            
 
             {/* Wishlist */}
             <div className="relative">
@@ -295,16 +292,7 @@ export default function Header({ onMenuClick }) {
                     Settings
                   </Link>
 
-                  <button
-                    className="flex items-center gap-3 text-base font-medium text-gray-900 hover:text-sky-500 py-2 transition-colors w-full text-left"
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      // Add search functionality here
-                    }}
-                  >
-                    <Search className="h-5 w-5" />
-                    Search
-                  </button>
+                 
 
                   <button
                     onClick={() => {

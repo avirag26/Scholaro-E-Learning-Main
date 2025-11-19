@@ -64,10 +64,7 @@ export default function Header({ onMenuClick }) {
 
           {/* Right side - Actions */}
           <div className="flex items-center space-x-2 sm:space-x-4">
-            {/* Search - Hidden on mobile */}
-            <button className="hidden md:flex p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <Search className="h-5 w-5 text-gray-600" />
-            </button>
+           
 
             {/* Notifications */}
             <div>

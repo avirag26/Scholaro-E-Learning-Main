@@ -497,10 +497,7 @@ const CourseCard = ({ course, onClick, onChatClick, user }) => {
           </div>
          
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Users className="w-4 h-4" />
-              {course.enrolled_count}
-            </div>
+           <span></span>
             <PriceDisplay
               price={course.price}
               offerPercentage={course.offer_percentage}

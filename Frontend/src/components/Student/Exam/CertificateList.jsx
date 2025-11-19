@@ -164,17 +164,7 @@ const CertificateList = () => {
 
               {/* Status Indicators */}
               <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
-                <div className="flex items-center space-x-2">
-                  {certificate.isValid ? (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                      ✓ Valid
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
-                      ✗ Invalid
-                    </span>
-                  )}
-                </div>
+               
                 
                 {certificate.expiresAt && (
                   <div className="text-xs text-gray-500">
@@ -190,7 +180,7 @@ const CertificateList = () => {
       {/* Summary Stats */}
       <div className="bg-white rounded-lg shadow-lg p-6 mt-8">
         <h3 className="text-lg font-semibold mb-4">Certificate Statistics</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
               {certificates.length}
@@ -204,12 +194,7 @@ const CertificateList = () => {
             </div>
             <div className="text-sm text-gray-600">Average Score</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">
-              {certificates.filter(cert => cert.isValid).length}
-            </div>
-            <div className="text-sm text-gray-600">Valid Certificates</div>
-          </div>
+         
         </div>
       </div>
     </div>
