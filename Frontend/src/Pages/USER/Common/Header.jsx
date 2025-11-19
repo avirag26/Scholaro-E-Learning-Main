@@ -30,7 +30,7 @@ export default function Header({ onMenuClick }) {
   const handleLogout = () => {
     // Add logout logic here
     localStorage.removeItem('token');
-    navigate('/login');
+    navigate('/user/login');
   };
   return (
     <>
@@ -38,7 +38,7 @@ export default function Header({ onMenuClick }) {
         <div className="container mx-auto flex h-14 sm:h-16 items-center px-3 sm:px-4 justify-between">
           {/* Left side - Logo and Menu */}
           <div className="flex items-center gap-2 sm:gap-4">
-            {/* Hamburger Menu for Mobile */}
+            {/* Hamburger Menu for Mobile Only */}
             <Button
               variant="ghost"
               size="icon"
@@ -47,17 +47,6 @@ export default function Header({ onMenuClick }) {
             >
               <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="sr-only">Toggle mobile menu</span>
-            </Button>
-
-            {/* Sidebar Menu for Desktop */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hidden lg:inline-block"
-              onClick={onMenuClick}
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle sidebar</span>
             </Button>
 
             <Link

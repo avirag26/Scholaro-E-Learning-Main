@@ -44,7 +44,7 @@ export default function Header({ onMenuClick }) {
         <div className="flex items-center justify-between px-4 sm:px-6 py-3">
           {/* Left side - Logo and Menu */}
           <div className="flex items-center gap-4">
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu Button Only */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -55,16 +55,6 @@ export default function Header({ onMenuClick }) {
                 <Menu className="h-5 w-5" />
               )}
             </button>
-
-            {/* Desktop Sidebar Toggle */}
-            {onMenuClick && (
-              <button
-                onClick={onMenuClick}
-                className="hidden lg:block p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <Menu className="h-5 w-5" />
-              </button>
-            )}
 
             <div className="flex items-center">
               <span className="text-xl sm:text-2xl font-bold text-sky-500">Scholaro</span>

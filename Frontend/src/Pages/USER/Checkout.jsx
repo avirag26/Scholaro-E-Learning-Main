@@ -533,13 +533,13 @@ function Checkout() {
                                 })}
                                 
                                 {/* Show unavailable courses notification */}
-                                {items.length > getAvailableItems().length && (
+                                {/* {items.length > getAvailableItems().length && (
                                     <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                                         <p className="text-sm text-red-800">
                                             {items.length - getAvailableItems().length} unavailable course{items.length - getAvailableItems().length > 1 ? 's' : ''} excluded from checkout
                                         </p>
                                     </div>
-                                )}
+                                )} */}
                             </div>
 
                            

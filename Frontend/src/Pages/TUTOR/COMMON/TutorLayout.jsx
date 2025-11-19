@@ -51,10 +51,10 @@ const TutorLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-[#f2fbf6] w-full flex flex-col">
       <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <div className="flex flex-1 w-full">
+      <div className="flex flex-1 w-full overflow-hidden">
         <TutorSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <main className="flex-1 my-2 sm:my-4 lg:my-6 mx-2 sm:mx-4 lg:ml-0 lg:mr-4">
-          <div className="max-w-full">
+        <main className="flex-1 my-2 sm:my-4 lg:my-6 mx-2 sm:mx-4 lg:ml-0 lg:mr-4 overflow-x-hidden w-full min-w-0">
+          <div className="max-w-full overflow-x-hidden">
             {children}
           </div>
         </main>

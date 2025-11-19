@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { userAPI } from '../../../api/axiosConfig';
-
+import { useNavigate } from 'react-router-dom';
 const CertificateList = () => {
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const navigate=useNavigate();
   useEffect(() => {
     loadCertificates();
   }, []);
@@ -95,7 +95,7 @@ const CertificateList = () => {
           Complete courses and pass exams to earn certificates!
         </p>
         <button
-          onClick={() => window.location.href = '/courses'}
+          onClick={()=>navigate('/user/courses')}
           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           Browse Courses

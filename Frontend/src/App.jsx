@@ -85,7 +85,7 @@ function App() {
             <Route path="/user/*" element={<UserRoutes />} />
             <Route path='/tutor/*' element={<TutorRoutes />} />
             <Route path="/admin/*" element={<AdminRoutes />} />
-            <Route path='/video/*' element={<VideoRoute/>} />
+            <Route path='/video/*' element={<VideoRoute />} />
             <Route path="/verify-certificate/:verificationCode" element={<CertificateVerification />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

@@ -25,7 +25,7 @@ const TutorSidebar = ({ isOpen, onClose }) => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 bg-white mx-4 my-6 rounded-2xl shadow-md flex-col items-center py-8">
+      <aside className="hidden lg:flex w-64 bg-white mx-4 my-6 rounded-2xl shadow-md flex-col items-center py-8 flex-shrink-0">
         <img src={tutor?.profileImage || profileImage} className="w-20 h-20 xl:w-24 xl:h-24 rounded-full shadow object-cover" alt="profile" />
         <div className="mt-4 text-sky-500 font-semibold text-base xl:text-lg text-center px-2">{tutor?.name || 'Tutor'}</div>
         <button className="mt-2 px-3 py-1 bg-sky-50 rounded-full text-sky-600 text-xs xl:text-sm border flex items-center gap-1 hover:bg-sky-100 transition">
