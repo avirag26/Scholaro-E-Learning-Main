@@ -141,14 +141,7 @@ const MyCourses = () => {
 
 
 
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="flex items-center gap-1">
-                            {renderStars(course.average_rating || 0)}
-                        </div>
-                        <span className="text-sm text-gray-600">
-                            ({course.total_ratings || 0} Ratings)
-                        </span>
-                    </div>
+                   
 
 
                     {!isCompleted && (
@@ -177,10 +170,7 @@ const MyCourses = () => {
                             <BookOpen className="w-4 h-4" />
                             <span>{course.lessons?.length || 0} Lessons</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            <span>{course.duration || 'N/A'}</span>
-                        </div>
+                       
                     </div>
                 </div>
             </div>
