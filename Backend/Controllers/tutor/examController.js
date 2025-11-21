@@ -2,6 +2,7 @@ import Exam from '../../Model/ExamModel.js';
 import ExamAttempt from '../../Model/ExamAttemptModel.js';
 import { Course } from '../../Model/CourseModel.js';
 import Lesson from '../../Model/LessonModel.js';
+import { STATUS_CODES } from '../../constants/constants.js';
 
 // Create exam for a course
 export const createExam = async (req, res) => {
@@ -13,7 +14,7 @@ export const createExam = async (req, res) => {
     // Verify course belongs to tutor
     const course = await Course.findOne({ _id: courseId, tutor: tutorId });
     if (!course) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Course not found or unauthorized'
       });
@@ -22,7 +23,7 @@ export const createExam = async (req, res) => {
     // Check if exam already exists for this course
     const existingExam = await Exam.findOne({ courseId, tutorId });
     if (existingExam) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Exam already exists for this course'
       });
@@ -30,7 +31,7 @@ export const createExam = async (req, res) => {
 
     // Validate questions
     if (!questions || questions.length === 0) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'At least one question is required'
       });
@@ -59,13 +60,13 @@ export const createExam = async (req, res) => {
       'examSettings.isEnabled': true
     });
 
-    res.status(201).json({
+    res.status(STATUS_CODES.CREATED).json({
       success: true,
       message: 'Exam created successfully',
       exam
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error creating exam',
       error: error.message
@@ -82,7 +83,7 @@ export const getExam = async (req, res) => {
     // Verify course belongs to tutor
     const course = await Course.findOne({ _id: courseId, tutor: tutorId });
     if (!course) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Course not found or unauthorized'
       });
@@ -90,18 +91,18 @@ export const getExam = async (req, res) => {
 
     const exam = await Exam.findOne({ courseId, tutorId });
     if (!exam) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Exam not found'
       });
     }
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       exam
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching exam',
       error: error.message
@@ -118,7 +119,7 @@ export const updateExam = async (req, res) => {
 
     const exam = await Exam.findOne({ _id: examId, tutorId });
     if (!exam) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Exam not found or unauthorized'
       });
@@ -135,13 +136,13 @@ export const updateExam = async (req, res) => {
 
     await exam.save();
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: 'Exam updated successfully',
       exam
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error updating exam',
       error: error.message
@@ -157,7 +158,7 @@ export const deleteExam = async (req, res) => {
 
     const exam = await Exam.findOne({ _id: examId, tutorId });
     if (!exam) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Exam not found or unauthorized'
       });
@@ -170,12 +171,12 @@ export const deleteExam = async (req, res) => {
 
     await Exam.findByIdAndDelete(examId);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: 'Exam deleted successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error deleting exam',
       error: error.message
@@ -193,7 +194,7 @@ export const getExamAttempts = async (req, res) => {
     // Verify exam belongs to tutor
     const exam = await Exam.findOne({ _id: examId, tutorId });
     if (!exam) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Exam not found or unauthorized'
       });
@@ -234,7 +235,7 @@ export const getExamAttempts = async (req, res) => {
       }
     ]);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       attempts,
       pagination: {
@@ -251,7 +252,7 @@ export const getExamAttempts = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching exam attempts',
       error: error.message
@@ -269,7 +270,7 @@ export const setFinalLesson = async (req, res) => {
     // Verify course belongs to tutor
     const course = await Course.findOne({ _id: courseId, tutor: tutorId });
     if (!course) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Course not found or unauthorized'
       });
@@ -278,7 +279,7 @@ export const setFinalLesson = async (req, res) => {
     // Verify lesson belongs to course
     const lesson = await Lesson.findOne({ _id: lessonId, course: courseId });
     if (!lesson) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Lesson not found in this course'
       });
@@ -298,12 +299,12 @@ export const setFinalLesson = async (req, res) => {
       'examSettings.finalLessonId': lessonId
     });
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: 'Final lesson set successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error setting final lesson',
       error: error.message
@@ -321,7 +322,7 @@ export const updateExamSettings = async (req, res) => {
     // Verify course belongs to tutor
     const course = await Course.findOne({ _id: courseId, tutor: tutorId });
     if (!course) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Course not found or unauthorized'
       });
@@ -338,12 +339,12 @@ export const updateExamSettings = async (req, res) => {
 
     await Course.findByIdAndUpdate(courseId, updateData);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: 'Exam settings updated successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error updating exam settings',
       error: error.message

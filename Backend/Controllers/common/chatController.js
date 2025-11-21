@@ -4,6 +4,7 @@ import User from '../../Model/usermodel.js';
 import Tutor from '../../Model/TutorModel.js';
 import { Course } from '../../Model/CourseModel.js';
 import mongoose from 'mongoose';
+import { STATUS_CODES } from '../../constants/constants.js';
 
 
 export const getUserChats = async (req, res) => {
@@ -12,7 +13,7 @@ export const getUserChats = async (req, res) => {
     const userType = req.user ? 'User' : 'Tutor';
 
     if (!userId) {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: 'Authentication required'
       });
@@ -94,13 +95,13 @@ export const getUserChats = async (req, res) => {
  
     const validChats = formattedChats.filter(chat => chat !== null);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       chats: validChats
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching chats',
       error: error.message
@@ -115,7 +116,7 @@ export const createOrGetChat = async (req, res) => {
     const userId = req.user._id;
 
     if (!tutorId) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Tutor ID is required'
       });
@@ -123,7 +124,7 @@ export const createOrGetChat = async (req, res) => {
 
 
     if (tutorId === userId.toString()) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Cannot create chat with yourself'
       });
@@ -131,7 +132,7 @@ export const createOrGetChat = async (req, res) => {
 
     const tutor = await Tutor.findById(tutorId);
     if (!tutor) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Tutor not found'
       });
@@ -144,7 +145,7 @@ export const createOrGetChat = async (req, res) => {
     );
     
     if (tutorCourses.length === 0) {
-      return res.status(403).json({
+      return res.status(STATUS_CODES.FORBIDDEN).json({
         success: false,
         message: 'You must purchase a course from this tutor to start chatting'
       });
@@ -197,7 +198,7 @@ export const createOrGetChat = async (req, res) => {
       };
     }
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       chat: {
         _id: chat._id,
@@ -215,7 +216,7 @@ export const createOrGetChat = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error creating chat',
       error: error.message
@@ -230,7 +231,7 @@ export const createOrGetChatByTutor = async (req, res) => {
     const tutorId = req.tutor._id;
 
     if (!studentId) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Student ID is required'
       });
@@ -238,7 +239,7 @@ export const createOrGetChatByTutor = async (req, res) => {
 
     // Prevent tutor from chatting with themselves
     if (studentId === tutorId.toString()) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Cannot create chat with yourself'
       });
@@ -247,7 +248,7 @@ export const createOrGetChatByTutor = async (req, res) => {
     // Verify student exists
     const student = await User.findById(studentId).populate('courses.course');
     if (!student) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Student not found'
       });
@@ -259,7 +260,7 @@ export const createOrGetChatByTutor = async (req, res) => {
     );
     
     if (tutorCourses.length === 0) {
-      return res.status(403).json({
+      return res.status(STATUS_CODES.FORBIDDEN).json({
         success: false,
         message: 'Student has not purchased any of your courses'
       });
@@ -315,7 +316,7 @@ export const createOrGetChatByTutor = async (req, res) => {
       };
     }
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       chat: {
         _id: chat._id,
@@ -333,7 +334,7 @@ export const createOrGetChatByTutor = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error creating chat',
       error: error.message
@@ -349,14 +350,14 @@ export const getChatMessages = async (req, res) => {
     const userId = req.user?._id || req.tutor?._id;
 
     if (!userId) {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: 'Authentication required'
       });
     }
 
     if (!mongoose.Types.ObjectId.isValid(chatId)) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Invalid chat ID'
       });
@@ -365,14 +366,14 @@ export const getChatMessages = async (req, res) => {
     // Verify user has access to this chat
     const chat = await Chat.findById(chatId);
     if (!chat) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Chat not found'
       });
     }
 
     if (!chat.isParticipant(userId)) {
-      return res.status(403).json({
+      return res.status(STATUS_CODES.FORBIDDEN).json({
         success: false,
         message: 'Unauthorized access to chat'
       });
@@ -417,7 +418,7 @@ export const getChatMessages = async (req, res) => {
       isDeleted: false
     });
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       messages: formattedMessages,
       pagination: {
@@ -430,7 +431,7 @@ export const getChatMessages = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching messages',
       error: error.message
@@ -446,14 +447,14 @@ export const markChatAsRead = async (req, res) => {
     const userType = req.user ? 'User' : 'Tutor';
 
     if (!userId) {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: 'Authentication required'
       });
     }
 
     if (!mongoose.Types.ObjectId.isValid(chatId)) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Invalid chat ID'
       });
@@ -462,14 +463,14 @@ export const markChatAsRead = async (req, res) => {
     // Verify user has access to this chat
     const chat = await Chat.findById(chatId);
     if (!chat) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Chat not found'
       });
     }
 
     if (!chat.isParticipant(userId)) {
-      return res.status(403).json({
+      return res.status(STATUS_CODES.FORBIDDEN).json({
         success: false,
         message: 'Unauthorized access to chat'
       });
@@ -492,13 +493,13 @@ export const markChatAsRead = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: 'Messages marked as read'
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error marking messages as read',
       error: error.message
@@ -522,7 +523,7 @@ export const getAvailableTutors = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'User not found'
       });
@@ -574,13 +575,13 @@ export const getAvailableTutors = async (req, res) => {
     
 
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       tutors: availableTutors
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching available tutors',
       error: error.message
@@ -598,7 +599,7 @@ export const getTutorStudents = async (req, res) => {
       .select('title course_thumbnail');
 
     if (!courses.length) {
-      return res.status(200).json({
+      return res.status(STATUS_CODES.OK).json({
         success: true,
         students: []
       });
@@ -649,13 +650,13 @@ export const getTutorStudents = async (req, res) => {
 
     const students = Array.from(studentMap.values());
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       students
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching students',
       error: error.message
@@ -671,7 +672,7 @@ export const clearChatMessages = async (req, res) => {
     const userType = req.user ? 'User' : 'Tutor';
 
     if (!userId) {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: 'Authentication required'
       });
@@ -680,14 +681,14 @@ export const clearChatMessages = async (req, res) => {
     // Verify user has access to this chat
     const chat = await Chat.findById(chatId);
     if (!chat) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Chat not found'
       });
     }
 
     if (!chat.isParticipant(userId)) {
-      return res.status(403).json({
+      return res.status(STATUS_CODES.FORBIDDEN).json({
         success: false,
         message: 'Unauthorized access to chat'
       });
@@ -712,13 +713,13 @@ export const clearChatMessages = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: 'Chat cleared successfully for you'
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error clearing chat',
       error: error.message

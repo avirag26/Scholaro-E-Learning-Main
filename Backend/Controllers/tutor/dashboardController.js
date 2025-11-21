@@ -2,6 +2,7 @@ import { Course } from "../../Model/CourseModel.js";
 import Order from "../../Model/OrderModel.js";
 import User from "../../Model/usermodel.js";
 import Lesson from "../../Model/LessonModel.js";
+import { STATUS_CODES } from "../../constants/constants.js";
 
 const getTutorDashboardStats = async (req, res) => {
   try {
@@ -365,7 +366,7 @@ const getTutorDashboardStats = async (req, res) => {
     .sort({ createdAt: -1 })
     .limit(5);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       totalStudents,
       totalCourses,
       activeCourses,
@@ -384,7 +385,7 @@ const getTutorDashboardStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Tutor dashboard error:', error);
-    res.status(500).json({ message: "Server error" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
   }
 };
 
@@ -475,7 +476,7 @@ const getTutorCoursesPaginated = async (req, res) => {
     
 
     
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       courses,
       pagination: {
         currentPage: parseInt(page),
@@ -487,7 +488,7 @@ const getTutorCoursesPaginated = async (req, res) => {
     });
   } catch (error) {
     console.error('Tutor courses pagination error:', error);
-    res.status(500).json({ message: "Server error" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
   }
 };
 

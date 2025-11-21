@@ -42,7 +42,7 @@ export const getWallet = async (req, res) => {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 10);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       wallet: {
         balance: wallet.balance,
@@ -56,7 +56,7 @@ export const getWallet = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching wallet details',
       error: error.message
@@ -99,7 +99,7 @@ export const getWalletTransactions = async (req, res) => {
 
     const wallet = await Wallet.findByOwner(userId, userType);
     if (!wallet) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Wallet not found'
       });
@@ -140,7 +140,7 @@ export const getWalletTransactions = async (req, res) => {
     const endIndex = startIndex + parseInt(limit);
     const paginatedTransactions = filteredTransactions.slice(startIndex, endIndex);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       transactions: paginatedTransactions,
       pagination: {
@@ -152,7 +152,7 @@ export const getWalletTransactions = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching transactions',
       error: error.message
@@ -194,7 +194,7 @@ export const updateBankDetails = async (req, res) => {
     const { accountNumber, ifscCode, accountHolderName, bankName } = req.body;
 
     if (!accountNumber || !ifscCode || !accountHolderName || !bankName) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'All bank details are required'
       });
@@ -215,13 +215,13 @@ export const updateBankDetails = async (req, res) => {
 
     await wallet.save();
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: 'Bank details updated successfully',
       bankDetails: wallet.bankDetails
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error updating bank details',
       error: error.message
@@ -263,7 +263,7 @@ export const requestWithdrawal = async (req, res) => {
     const { amount } = req.body;
 
     if (!amount || amount <= 0) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Invalid withdrawal amount'
       });
@@ -271,21 +271,21 @@ export const requestWithdrawal = async (req, res) => {
 
     const wallet = await Wallet.findByOwner(userId, userType);
     if (!wallet) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Wallet not found'
       });
     }
 
     if (!wallet.bankDetails.isVerified) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Bank details not verified. Please update and verify your bank details.'
       });
     }
 
     if (!wallet.canWithdraw(amount)) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: `Insufficient balance or amount below minimum withdrawal limit (₹${wallet.withdrawalSettings.minimumAmount})`
       });
@@ -300,13 +300,13 @@ export const requestWithdrawal = async (req, res) => {
 
     await wallet.addTransaction(transaction);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: 'Withdrawal request submitted successfully',
       transaction: wallet.transactions[wallet.transactions.length - 1]
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error processing withdrawal request',
       error: error.message
@@ -335,7 +335,7 @@ export const getWalletStatistics = async (req, res) => {
     const pendingDistributions = await PaymentDistribution.find({ status: 'pending' });
     const totalPendingAmount = pendingDistributions.reduce((sum, dist) => sum + dist.totalAmount, 0);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       statistics: {
         totalTutors: tutorWallets.length,
@@ -358,7 +358,7 @@ export const getWalletStatistics = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching wallet statistics',
       error: error.message

@@ -2,6 +2,7 @@ import Coupon from "../../Model/CouponModel.js";
 import Tutor from "../../Model/TutorModel.js";
 import { Course } from "../../Model/CourseModel.js";
 import User from "../../Model/usermodel.js";
+import { STATUS_CODES } from "../../constants/constants.js";
 
 // Create a new coupon (Tutor only)
 export const createCoupon = async (req, res) => {
@@ -26,7 +27,7 @@ export const createCoupon = async (req, res) => {
     const tutorId = req.tutor?._id || req.user?._id;
     
     if (!tutorId) {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: "Authentication required"
       });
@@ -35,7 +36,7 @@ export const createCoupon = async (req, res) => {
     // Validate tutor exists
     const tutor = await Tutor.findById(tutorId);
     if (!tutor) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Tutor not found"
       });
@@ -43,7 +44,7 @@ export const createCoupon = async (req, res) => {
 
     // Validate required fields
     if (!code || !title || !discountType || !discountValue || !expiryDate) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Missing required fields"
       });
@@ -51,14 +52,14 @@ export const createCoupon = async (req, res) => {
 
     // Validate discount value
     if (discountType === 'percentage' && (discountValue <= 0 || discountValue > 100)) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Percentage discount must be between 1 and 100"
       });
     }
 
     if (discountType === 'fixed' && discountValue <= 0) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Fixed discount must be greater than 0"
       });
@@ -70,14 +71,14 @@ export const createCoupon = async (req, res) => {
     const start = startDate ? new Date(startDate) : now;
 
     if (expiry <= now) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Expiry date must be in the future"
       });
     }
 
     if (start >= expiry) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Start date must be before expiry date"
       });
@@ -89,7 +90,7 @@ export const createCoupon = async (req, res) => {
     });
     
     if (existingCoupon) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Coupon code already exists"
       });
@@ -103,7 +104,7 @@ export const createCoupon = async (req, res) => {
       });
       
       if (courses.length !== applicableCourses.length) {
-        return res.status(400).json({
+        return res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
           message: "Some courses don't belong to you"
         });
@@ -117,7 +118,7 @@ export const createCoupon = async (req, res) => {
       });
       
       if (courses.length !== excludedCourses.length) {
-        return res.status(400).json({
+        return res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
           message: "Some excluded courses don't belong to you"
         });
@@ -147,14 +148,14 @@ export const createCoupon = async (req, res) => {
     // Populate tutor info for response
     await coupon.populate('tutorId', 'full_name email');
 
-    res.status(201).json({
+    res.status(STATUS_CODES.CREATED).json({
       success: true,
       message: "Coupon created successfully",
       coupon
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Error creating coupon",
       error: error.message
@@ -169,7 +170,7 @@ export const getTutorCoupons = async (req, res) => {
     const { page = 1, limit = 10, status = 'all' } = req.query;
 
     if (!tutorId) {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: "Authentication required"
       });
@@ -198,7 +199,7 @@ export const getTutorCoupons = async (req, res) => {
 
     const totalCoupons = await Coupon.countDocuments(query);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       coupons,
       pagination: {
@@ -211,7 +212,7 @@ export const getTutorCoupons = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Error fetching coupons",
       error: error.message
@@ -226,7 +227,7 @@ export const validateCoupon = async (req, res) => {
     const userId = req.user._id;
 
     if (!code || !courseIds || !totalAmount) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Missing required fields"
       });
@@ -236,7 +237,7 @@ export const validateCoupon = async (req, res) => {
     const coupon = await Coupon.findValidCoupon(code, tutorId);
     
     if (!coupon) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Invalid or expired coupon code"
       });
@@ -244,7 +245,7 @@ export const validateCoupon = async (req, res) => {
 
     // For multi-tutor carts, ensure coupon belongs to the specified tutor
     if (tutorId && coupon.tutorId.toString() !== tutorId.toString()) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "This coupon is not valid for the selected tutor's courses"
       });
@@ -252,7 +253,7 @@ export const validateCoupon = async (req, res) => {
 
     // Check if user can use this coupon
     if (!coupon.canUserUse(userId)) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: `You have already used this coupon ${coupon.usagePerUser} time(s)`
       });
@@ -260,7 +261,7 @@ export const validateCoupon = async (req, res) => {
 
     // Check usage limit
     if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Coupon usage limit exceeded"
       });
@@ -268,7 +269,7 @@ export const validateCoupon = async (req, res) => {
 
     // Check minimum purchase amount
     if (totalAmount < coupon.minPurchaseAmount) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: `Minimum purchase amount is ₹${coupon.minPurchaseAmount}`
       });
@@ -276,7 +277,7 @@ export const validateCoupon = async (req, res) => {
 
     // Check if coupon is applicable to the courses
     if (!coupon.isApplicableToCourses(courseIds)) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Coupon is not applicable to selected courses"
       });
@@ -289,7 +290,7 @@ export const validateCoupon = async (req, res) => {
     // Get tutor name for response
     const tutor = await Tutor.findById(coupon.tutorId).select('full_name');
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: "Coupon is valid",
       coupon: {
@@ -309,7 +310,7 @@ export const validateCoupon = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Error validating coupon",
       error: error.message
@@ -325,7 +326,7 @@ export const updateCoupon = async (req, res) => {
     const updates = req.body;
 
     if (!tutorId) {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: "Authentication required"
       });
@@ -334,7 +335,7 @@ export const updateCoupon = async (req, res) => {
     const coupon = await Coupon.findOne({ _id: couponId, tutorId });
     
     if (!coupon) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Coupon not found"
       });
@@ -342,7 +343,7 @@ export const updateCoupon = async (req, res) => {
 
     // Don't allow updating if coupon has been used
     if (coupon.usedCount > 0) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Cannot update coupon that has been used"
       });
@@ -356,7 +357,7 @@ export const updateCoupon = async (req, res) => {
       });
       
       if (existingCoupon) {
-        return res.status(400).json({
+        return res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
           message: "Coupon code already exists"
         });
@@ -366,7 +367,7 @@ export const updateCoupon = async (req, res) => {
 
     if (updates.discountType === 'percentage' && updates.discountValue) {
       if (updates.discountValue <= 0 || updates.discountValue > 100) {
-        return res.status(400).json({
+        return res.status(STATUS_CODES.BAD_REQUEST).json({
           success: false,
           message: "Percentage discount must be between 1 and 100"
         });
@@ -377,14 +378,14 @@ export const updateCoupon = async (req, res) => {
     Object.assign(coupon, updates);
     await coupon.save();
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: "Coupon updated successfully",
       coupon
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Error updating coupon",
       error: error.message
@@ -399,7 +400,7 @@ export const deleteCoupon = async (req, res) => {
     const tutorId = req.tutor?._id || req.user?._id;
 
     if (!tutorId) {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: "Authentication required"
       });
@@ -408,7 +409,7 @@ export const deleteCoupon = async (req, res) => {
     const coupon = await Coupon.findOne({ _id: couponId, tutorId });
     
     if (!coupon) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Coupon not found"
       });
@@ -416,7 +417,7 @@ export const deleteCoupon = async (req, res) => {
 
     // Don't allow deleting if coupon has been used
     if (coupon.usedCount > 0) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Cannot delete coupon that has been used. You can deactivate it instead."
       });
@@ -424,13 +425,13 @@ export const deleteCoupon = async (req, res) => {
 
     await Coupon.findByIdAndDelete(couponId);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: "Coupon deleted successfully"
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Error deleting coupon",
       error: error.message
@@ -445,7 +446,7 @@ export const toggleCouponStatus = async (req, res) => {
     const tutorId = req.tutor?._id || req.user?._id;
 
     if (!tutorId) {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: "Authentication required"
       });
@@ -454,7 +455,7 @@ export const toggleCouponStatus = async (req, res) => {
     const coupon = await Coupon.findOne({ _id: couponId, tutorId });
     
     if (!coupon) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Coupon not found"
       });
@@ -463,14 +464,14 @@ export const toggleCouponStatus = async (req, res) => {
     coupon.isActive = !coupon.isActive;
     await coupon.save();
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: `Coupon ${coupon.isActive ? 'activated' : 'deactivated'} successfully`,
       coupon
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Error updating coupon status",
       error: error.message
@@ -484,7 +485,7 @@ export const getCouponAnalytics = async (req, res) => {
     const tutorId = req.tutor?._id || req.user?._id;
 
     if (!tutorId) {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: "Authentication required"
       });
@@ -529,13 +530,13 @@ export const getCouponAnalytics = async (req, res) => {
       totalDiscountGiven: 0
     };
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       analytics: result
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Error fetching analytics",
       error: error.message
@@ -610,14 +611,14 @@ export const getPublicCoupons = async (req, res) => {
       });
     });
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       couponsByTutor,
       totalCoupons: availableCoupons.length
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Error fetching public coupons",
       error: error.message

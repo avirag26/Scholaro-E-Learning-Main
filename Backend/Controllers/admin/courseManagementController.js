@@ -479,17 +479,17 @@ const toggleCourseListing = async (req, res) => {
     // If course is being unlisted, remove it from all carts and wishlists
     if (!course.listed) {
       try {
-        // Remove from all carts
-        await Cart.updateMany(
-          { 'items.course': courseId },
-          { $pull: { items: { course: courseId } } }
-        );
-
-        // Remove from all wishlists
-        await Wishlist.updateMany(
-          { 'items.course': courseId },
-          { $pull: { items: { course: courseId } } }
-        );
+        // Remove from all carts and wishlists in parallel
+        await Promise.all([
+          Cart.updateMany(
+            { 'items.course': courseId },
+            { $pull: { items: { course: courseId } } }
+          ),
+          Wishlist.updateMany(
+            { 'items.course': courseId },
+            { $pull: { items: { course: courseId } } }
+          )
+        ]);
 
         // Recalculate cart totals for affected carts
         const affectedCarts = await Cart.find({ 'items.0': { $exists: true } })

@@ -5,6 +5,7 @@ import Tutor from "../../Model/TutorModel.js";
 import Lesson from "../../Model/LessonModel.js";
 import Cart from "../../Model/CartModel.js";
 import Wishlist from "../../Model/WishlistModel.js";
+import { STATUS_CODES } from "../../constants/constants.js";
 
 const addCourse = async (req, res) => {
   try {
@@ -37,43 +38,43 @@ const addCourse = async (req, res) => {
 
     // Validate course title
     if (title.length < 3 || title.length > 100) {
-      return res.status(400).json({ message: "Course title must be between 3 and 100 characters" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Course title must be between 3 and 100 characters" });
     }
     if (title.includes('_')) {
-      return res.status(400).json({ message: "Course title cannot contain underscores" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Course title cannot contain underscores" });
     }
     if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)]+$/.test(title)) {
-      return res.status(400).json({ message: "Course title can only contain letters, numbers, spaces, and basic punctuation (- . , : ( ))" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Course title can only contain letters, numbers, spaces, and basic punctuation (- . , : ( ))" });
     }
     if (!title.trim()) {
-      return res.status(400).json({ message: "Course title cannot be empty or just spaces" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Course title cannot be empty or just spaces" });
     }
 
     // Validate description
     if (description.length < 10 || description.length > 1000) {
-      return res.status(400).json({ message: "Description must be between 10 and 1000 characters" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Description must be between 10 and 1000 characters" });
     }
     if (!/^[a-zA-Z0-9\s\-\.\,\:\(\)\!\?\'\"\n\r]+$/.test(description)) {
-      return res.status(400).json({ message: "Description contains invalid characters. Only letters, numbers, spaces, and basic punctuation are allowed." });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Description contains invalid characters. Only letters, numbers, spaces, and basic punctuation are allowed." });
     }
     if (description.trim().length < 10) {
-      return res.status(400).json({ message: "Description must have at least 10 meaningful characters" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Description must have at least 10 meaningful characters" });
     }
 
     // Validate price
     const priceNum = parseFloat(price);
     if (isNaN(priceNum) || priceNum <= 0) {
-      return res.status(400).json({ message: "Price must be a valid number greater than 0" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Price must be a valid number greater than 0" });
     }
     if (priceNum > 100000) {
-      return res.status(400).json({ message: "Price cannot exceed ₹100,000" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Price cannot exceed ₹100,000" });
     }
 
     // Validate offer percentage
     if (offer_percentage) {
       const offerNum = parseFloat(offer_percentage);
       if (isNaN(offerNum) || offerNum < 0 || offerNum > 90) {
-        return res.status(400).json({ message: "Offer percentage must be between 0 and 90" });
+        return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Offer percentage must be between 0 and 90" });
       }
     }
     let categoryData;
@@ -83,12 +84,12 @@ const addCourse = async (req, res) => {
       categoryData = await Category.findOne({ title: category });
     }
     if (!categoryData) {
-      return res.status(404).json({ message: "Category not found." });
+      return res.status(STATUS_CODES.NOT_FOUND).json({ message: "Category not found." });
     }
     if (lessons && lessons.length) {
       const validLessons = await Lesson.find({ _id: { $in: lessons } });
       if (validLessons.length !== lessons.length) {
-        return res.status(400).json({ message: "Some lessons are invalid." });
+        return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Some lessons are invalid." });
       }
     }
     const newCourse = new Course({
@@ -112,12 +113,12 @@ const addCourse = async (req, res) => {
     await Tutor.findByIdAndUpdate(tutor, {
       $addToSet: { courses: newCourse._id },
     });
-    res.status(201).json({
+    res.status(STATUS_CODES.CREATED).json({
       message: "Course added successfully.",
       course: newCourse,
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Server error", error: error.message });
   }
 };
 
@@ -204,7 +205,11 @@ const getTutorCourses = async (req, res) => {
       }
     ]);
 
-    const totalCourses = await Course.countDocuments(matchQuery);
+    const [totalCourses, listedCount, unlistedCount] = await Promise.all([
+      Course.countDocuments(matchQuery),
+      Course.countDocuments({ tutor: tutorId, listed: true }),
+      Course.countDocuments({ tutor: tutorId, listed: false })
+    ]);
     
     const formattedCourses = courses.map((course) => ({
       id: course._id,
@@ -225,7 +230,7 @@ const getTutorCourses = async (req, res) => {
       updatedAt: course.updatedAt,
     }));
     
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       courses: formattedCourses,
       pagination: {
         currentPage: page,
@@ -236,12 +241,12 @@ const getTutorCourses = async (req, res) => {
       },
       stats: {
         total: totalCourses,
-        listed: await Course.countDocuments({ tutor: tutorId, listed: true }),
-        unlisted: await Course.countDocuments({ tutor: tutorId, listed: false })
+        listed: listedCount,
+        unlisted: unlistedCount
       }
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch courses", error: error.message });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch courses", error: error.message });
   }
 };
 
@@ -251,16 +256,16 @@ const updateCourse = async (req, res) => {
     const tutorId = req.tutor._id;
     const updateData = req.body;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid course ID" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Invalid course ID" });
     }
     const course = await Course.findOne({ _id: id, tutor: tutorId });
     if (!course) {
-      return res.status(404).json({ message: "Course not found or unauthorized" });
+      return res.status(STATUS_CODES.NOT_FOUND).json({ message: "Course not found or unauthorized" });
     }
     if (updateData.category) {
       const categoryExists = await Category.findById(updateData.category);
       if (!categoryExists) {
-        return res.status(404).json({ message: "Category not found" });
+        return res.status(STATUS_CODES.NOT_FOUND).json({ message: "Category not found" });
       }
     }
     const updatedCourse = await Course.findByIdAndUpdate(
@@ -268,12 +273,12 @@ const updateCourse = async (req, res) => {
       updateData,
       { new: true }
     ).populate('category', 'title');
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       message: "Course updated successfully",
       course: updatedCourse
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to update course" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Failed to update course" });
   }
 };
 
@@ -282,16 +287,16 @@ const toggleCourseListing = async (req, res) => {
     const { id } = req.params;
     const tutorId = req.tutor._id;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid course ID" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Invalid course ID" });
     }
     const course = await Course.findOne({ _id: id, tutor: tutorId });
     if (!course) {
-      return res.status(404).json({ message: "Course not found or unauthorized" });
+      return res.status(STATUS_CODES.NOT_FOUND).json({ message: "Course not found or unauthorized" });
     }
 
     // Check if course was unlisted by admin
     if (course.unlistedByAdmin && !course.listed) {
-      return res.status(403).json({
+      return res.status(STATUS_CODES.FORBIDDEN).json({
         message: "This course has been unlisted by admin and cannot be listed by tutor",
         unlistedByAdmin: true
       });
@@ -309,17 +314,17 @@ const toggleCourseListing = async (req, res) => {
     // If course is being unlisted, remove it from all carts and wishlists
     if (!course.listed) {
       try {
-        // Remove from all carts
-        await Cart.updateMany(
-          { 'items.course': id },
-          { $pull: { items: { course: id } } }
-        );
-
-        // Remove from all wishlists
-        await Wishlist.updateMany(
-          { 'items.course': id },
-          { $pull: { items: { course: id } } }
-        );
+        // Remove from all carts and wishlists in parallel
+        await Promise.all([
+          Cart.updateMany(
+            { 'items.course': id },
+            { $pull: { items: { course: id } } }
+          ),
+          Wishlist.updateMany(
+            { 'items.course': id },
+            { $pull: { items: { course: id } } }
+          )
+        ]);
 
         // Recalculate cart totals for affected carts
         const affectedCarts = await Cart.find({ 'items.0': { $exists: true } })
@@ -347,12 +352,12 @@ const toggleCourseListing = async (req, res) => {
     }
 
     const action = course.listed ? "listed" : "unlisted";
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       message: `Course ${action} successfully`,
       course
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to update course listing" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Failed to update course listing" });
   }
 };
 
@@ -361,7 +366,7 @@ const getCourseDetails = async (req, res) => {
     const { id } = req.params;
     const tutorId = req.tutor._id;
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid course ID" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Invalid course ID" });
     }
 
     // Use aggregation to get course with correct enrolled count
@@ -423,13 +428,13 @@ const getCourseDetails = async (req, res) => {
     ]);
 
     if (!courseResult || courseResult.length === 0) {
-      return res.status(404).json({ message: "Course not found or unauthorized" });
+      return res.status(STATUS_CODES.NOT_FOUND).json({ message: "Course not found or unauthorized" });
     }
 
     const course = courseResult[0];
-    res.status(200).json({ course });
+    res.status(STATUS_CODES.OK).json({ course });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch course details" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch course details" });
   }
 };
 
@@ -443,9 +448,9 @@ const getCategories = async (req, res) => {
       title: category.title,
       description: category.description
     }));
-    res.status(200).json({ categories: formattedCategories });
+    res.status(STATUS_CODES.OK).json({ categories: formattedCategories });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch categories" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch categories" });
   }
 };
 
@@ -454,7 +459,7 @@ const deleteCourse = async (req, res) => {
     const { courseId } = req.params;
     const course = await Course.findById(courseId);
     if (!course) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Course not found",
       });
@@ -463,12 +468,12 @@ const deleteCourse = async (req, res) => {
       $pull: { courses: courseId },
     });
     await Course.findByIdAndDelete(courseId);
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: "Course deleted successfully",
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Error deleting course",
       error: error.message,
@@ -481,13 +486,13 @@ const submitCourse = async (req, res) => {
     const { courseId } = req.params;
     const course = await Course.findById(courseId).populate("lessons");
     if (!course) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Course not found",
       });
     }
     if (!course.lessons || course.lessons.length === 0) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Course must have at least one lesson before submission",
       });
@@ -495,13 +500,13 @@ const submitCourse = async (req, res) => {
     course.status = "completed";
     course.publishedAt = new Date();
     await course.save();
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: "Course submitted successfully",
       data: course,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to submit course",
       error: error.message,
@@ -523,7 +528,7 @@ const getCourseByCategory = async (req, res) => {
     } = req.query;
     const category = await Category.findById(categoryId);
     if (!category) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Category not found",
       });
@@ -552,7 +557,7 @@ const getCourseByCategory = async (req, res) => {
       .populate("tutor", "full_name profile_image")
       .populate("category", "title");
     const totalCourses = await Course.countDocuments(query);
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       courses,
       totalCourses,
@@ -560,7 +565,7 @@ const getCourseByCategory = async (req, res) => {
       currentPage: pageNumber,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Error fetching courses by category",
       error: error.message,

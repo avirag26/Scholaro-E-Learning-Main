@@ -1,4 +1,5 @@
 import { getNotifications, markNotificationAsRead } from '../../utils/notificationHelper.js';
+import { STATUS_CODES } from '../../constants/constants.js';
 
 // Get notifications for current user/tutor/admin
 export const getUserNotifications = async (req, res) => {
@@ -16,7 +17,7 @@ export const getUserNotifications = async (req, res) => {
       recipientType = 'admin';
       recipientId = req.admin._id;
     } else {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: 'Unauthorized'
       });
@@ -24,13 +25,13 @@ export const getUserNotifications = async (req, res) => {
 
     const notifications = await getNotifications(recipientType, recipientId, parseInt(limit));
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       notifications,
       count: notifications.length
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching notifications',
       error: error.message
@@ -55,7 +56,7 @@ export const markAsRead = async (req, res) => {
       recipientType = 'admin';
       recipientId = req.admin._id;
     } else {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: 'Unauthorized'
       });
@@ -64,18 +65,18 @@ export const markAsRead = async (req, res) => {
     const success = await markNotificationAsRead(recipientType, recipientId, notificationId);
 
     if (success) {
-      res.status(200).json({
+      res.status(STATUS_CODES.OK).json({
         success: true,
         message: 'Notification marked as read'
       });
     } else {
-      res.status(400).json({
+      res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Failed to mark notification as read'
       });
     }
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error marking notification as read',
       error: error.message
@@ -99,7 +100,7 @@ export const getUnreadCount = async (req, res) => {
       recipientType = 'admin';
       recipientId = req.admin._id;
     } else {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: 'Unauthorized'
       });
@@ -108,12 +109,12 @@ export const getUnreadCount = async (req, res) => {
     const notifications = await getNotifications(recipientType, recipientId, 100); // Get more to count unread
     const unreadCount = notifications.filter(n => !n.read).length;
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       unreadCount
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error getting unread count',
       error: error.message
@@ -137,7 +138,7 @@ export const clearAllNotifications = async (req, res) => {
       recipientType = 'admin';
       recipientId = req.admin._id;
     } else {
-      return res.status(401).json({
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: 'Unauthorized'
       });
@@ -164,12 +165,12 @@ export const clearAllNotifications = async (req, res) => {
 
 
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: 'All notifications cleared successfully'
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error clearing notifications',
       error: error.message

@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\USER\\Scholaro-E-Learning-Main\\Backend\\logs\\.68bc7333fe9e8092fea121f4a3af66b3096e8b9c-audit.json",
+    "files": [
+        {
+            "date": 1763723279044,
+            "name": "C:\\Users\\USER\\Scholaro-E-Learning-Main\\Backend\\logs\\combined-2025-11-21.log",
+            "hash": "647403b08d2d42b5f3d753405f32b5f2bbe417420a5ddcb55ff9706ee8a78fcf"
+        }
+    ],
+    "hashType": "sha256"
+}

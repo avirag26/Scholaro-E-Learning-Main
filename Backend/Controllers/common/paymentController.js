@@ -23,7 +23,7 @@ export const createOrder = async (req, res) => {
 
     const cart = await Cart.findOne({ user: userId }).populate('items.course');
     if (!cart || cart.items.length === 0) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Cart is empty'
       });
@@ -36,7 +36,7 @@ export const createOrder = async (req, res) => {
     });
 
     if (availableItems.length === 0) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'No available courses in cart. Please remove unavailable courses and try again.'
       });
@@ -60,7 +60,7 @@ export const createOrder = async (req, res) => {
     const subtotalAfterCoupons = Math.max(0, totalAmount - totalCouponDiscount);
 
     if (subtotalAfterCoupons <= 0) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Invalid cart total amount after discounts'
       });
@@ -106,7 +106,7 @@ export const createOrder = async (req, res) => {
 
 
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       order: {
         id: razorpayOrder.id,
@@ -118,7 +118,7 @@ export const createOrder = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating Razorpay order:', error);
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error creating order',
       error: error.message
@@ -140,7 +140,7 @@ export const verifyPayment = async (req, res) => {
       .digest("hex");
 
     if (razorpay_signature !== expectedSign) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Invalid payment signature'
       });
@@ -149,7 +149,7 @@ export const verifyPayment = async (req, res) => {
     
     const razorpayOrderDetails = await razorpay.orders.fetch(razorpay_order_id);
     if (!razorpayOrderDetails) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Razorpay order not found'
       });
@@ -157,7 +157,7 @@ export const verifyPayment = async (req, res) => {
 
     
     if (razorpayOrderDetails.notes.userId !== userId.toString()) {
-      return res.status(403).json({
+      return res.status(STATUS_CODES.FORBIDDEN).json({
         success: false,
         message: 'Unauthorized payment verification'
       });
@@ -166,7 +166,7 @@ export const verifyPayment = async (req, res) => {
 
     const cart = await Cart.findOne({ user: userId }).populate('items.course');
     if (!cart || cart.items.length === 0) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Cart is empty - cannot complete order'
       });
@@ -178,7 +178,7 @@ export const verifyPayment = async (req, res) => {
     });
 
     if (availableItems.length === 0) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'No available courses in cart'
       });
@@ -213,7 +213,7 @@ export const verifyPayment = async (req, res) => {
 
 
     if (razorpayOrderDetails.amount !== amountInPaise) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Payment amount mismatch'
       });
@@ -303,14 +303,14 @@ export const verifyPayment = async (req, res) => {
       }
     );
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: 'Payment verified successfully and order created',
       orderId: order.orderId
     });
   } catch (error) {
     console.error('Error verifying payment:', error);
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error verifying payment',
       error: error.message
@@ -400,19 +400,19 @@ export const getOrder = async (req, res) => {
       .populate('user', 'full_name email phone profileImage');
 
     if (!order) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Order not found or payment not completed'
       });
     }
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       order
     });
   } catch (error) {
     console.error('Error fetching order:', error);
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching order',
       error: error.message
@@ -433,7 +433,7 @@ export const generateInvoice = async (req, res) => {
       .populate('user', 'full_name email');
 
     if (!order) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Order not found'
       });
@@ -456,12 +456,12 @@ export const generateInvoice = async (req, res) => {
       paymentStatus: order.status
     };
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       invoice: invoiceData
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error generating invoice',
       error: error.message
@@ -504,7 +504,7 @@ export const getUserOrders = async (req, res) => {
 
     const totalOrders = await Order.countDocuments(query);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       orders,
       pagination: {
@@ -514,7 +514,7 @@ export const getUserOrders = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching orders',
       error: error.message
@@ -531,7 +531,7 @@ export const createDirectOrder = async (req, res) => {
     // Validate course
     const course = await Course.findById(courseId);
     if (!course || !course.listed || !course.isActive || course.isBanned) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Course is not available for purchase'
       });
@@ -541,7 +541,7 @@ export const createDirectOrder = async (req, res) => {
     const user = await User.findById(userId);
     const isEnrolled = user.courses.some(c => c.course.toString() === courseId);
     if (isEnrolled) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'You are already enrolled in this course'
       });
@@ -573,7 +573,7 @@ export const createDirectOrder = async (req, res) => {
     const subtotalAfterCoupons = Math.max(0, totalAmount - couponDiscount);
     
     if (subtotalAfterCoupons <= 0) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Invalid course price after discounts'
       });
@@ -611,7 +611,7 @@ export const createDirectOrder = async (req, res) => {
       }
     });
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       order: {
         id: razorpayOrder.id,
@@ -623,7 +623,7 @@ export const createDirectOrder = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating direct order:', error);
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error creating order',
       error: error.message
@@ -645,7 +645,7 @@ export const verifyDirectPayment = async (req, res) => {
       .digest("hex");
 
     if (razorpay_signature !== expectedSign) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Invalid payment signature'
       });
@@ -654,7 +654,7 @@ export const verifyDirectPayment = async (req, res) => {
     // Get Razorpay order details
     const razorpayOrderDetails = await razorpay.orders.fetch(razorpay_order_id);
     if (!razorpayOrderDetails || razorpayOrderDetails.notes.userId !== userId.toString()) {
-      return res.status(403).json({
+      return res.status(STATUS_CODES.FORBIDDEN).json({
         success: false,
         message: 'Unauthorized payment verification'
       });
@@ -664,7 +664,7 @@ export const verifyDirectPayment = async (req, res) => {
     const courseId = razorpayOrderDetails.notes.courseId;
     const course = await Course.findById(courseId);
     if (!course || !course.listed || !course.isActive || course.isBanned) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'Course is no longer available'
       });
@@ -674,7 +674,7 @@ export const verifyDirectPayment = async (req, res) => {
     const user = await User.findById(userId);
     const isEnrolled = user.courses.some(c => c.course.toString() === courseId);
     if (isEnrolled) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: 'You are already enrolled in this course'
       });
@@ -750,14 +750,14 @@ export const verifyDirectPayment = async (req, res) => {
     // Send notifications
     await notifyAdminNewOrder(order.orderId, order.finalAmount, user.email);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: 'Payment verified successfully and course enrolled',
       orderId: order.orderId
     });
   } catch (error) {
     console.error('Error verifying direct payment:', error);
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error verifying payment',
       error: error.message

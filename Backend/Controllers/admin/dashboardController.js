@@ -9,31 +9,39 @@ const getDashboardStats = async (req, res) => {
     const Tutor = (await import('../../Model/TutorModel.js')).default;
     const Order = (await import('../../Model/OrderModel.js')).default;
 
-    // Get user statistics (students only)
-    const totalUsers = await User.countDocuments();
-    const activeUsers = await User.countDocuments({ is_blocked: false });
-    const verifiedUsers = await User.countDocuments({ is_verified: true });
-    const blockedUsers = await User.countDocuments({ is_blocked: true });
-
-    // Get tutor statistics
-    const totalTutors = await Tutor.countDocuments();
-    const verifiedTutors = await Tutor.countDocuments({ is_verified: true });
-    const blockedTutors = await Tutor.countDocuments({ is_blocked: true });
-
-    // Get course statistics
-    const totalCourses = await Course.countDocuments();
-    const activeCourses = await Course.countDocuments({ 
-      isActive: true, 
-      isBanned: false,
-      listed: true 
-    });
-
-    // Get order statistics
-    const totalOrders = await Order.countDocuments();
-    
-    // Calculate total revenue from admin wallet earnings
+    // Get all statistics in parallel using Promise.all
     const Wallet = (await import('../../Model/WalletModel.js')).default;
-    const adminWallet = await Wallet.findOne({ ownerType: 'Admin' });
+    
+    const [
+      totalUsers,
+      activeUsers,
+      verifiedUsers,
+      blockedUsers,
+      totalTutors,
+      verifiedTutors,
+      blockedTutors,
+      totalCourses,
+      activeCourses,
+      totalOrders,
+      adminWallet
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ is_blocked: false }),
+      User.countDocuments({ is_verified: true }),
+      User.countDocuments({ is_blocked: true }),
+      Tutor.countDocuments(),
+      Tutor.countDocuments({ is_verified: true }),
+      Tutor.countDocuments({ is_blocked: true }),
+      Course.countDocuments(),
+      Course.countDocuments({ 
+        isActive: true, 
+        isBanned: false,
+        listed: true 
+      }),
+      Order.countDocuments(),
+      Wallet.findOne({ ownerType: 'Admin' })
+    ]);
+    
     const totalRevenue = adminWallet ? adminWallet.totalEarnings : 0;
 
     const stats = {

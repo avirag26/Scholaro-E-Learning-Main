@@ -2,6 +2,7 @@ import { Course } from "../../Model/CourseModel.js";
 import Category from "../../Model/CategoryModel.js";
 import Tutor from "../../Model/TutorModel.js";
 import mongoose from "mongoose";
+import { STATUS_CODES } from "../../constants/constants.js";
 
 const getPublicCategories = async (req, res) => {
   try {
@@ -13,12 +14,12 @@ const getPublicCategories = async (req, res) => {
       title: category.title,
       description: category.description
     }));
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       categories: formattedCategories
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to fetch categories"
     });
@@ -166,7 +167,7 @@ const getPublicCourses = async (req, res) => {
       total_reviews: course.total_reviews,
       createdAt: course.createdAt,
     }));
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       courses: formattedCourses,
       pagination: {
@@ -178,7 +179,7 @@ const getPublicCourses = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to fetch courses",
       error: error.message
@@ -203,7 +204,7 @@ const getCoursesByCategory = async (req, res) => {
       isVisible: true
     });
     if (!category) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Category not found or not available"
       });
@@ -340,7 +341,7 @@ const getCoursesByCategory = async (req, res) => {
       total_reviews: course.total_reviews,
       createdAt: course.createdAt,
     }));
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       category: {
         id: category._id,
@@ -357,7 +358,7 @@ const getCoursesByCategory = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to fetch courses by category",
       error: error.message
@@ -477,7 +478,7 @@ const getCourseDetails = async (req, res) => {
     ]);
 
     if (!courseResult || courseResult.length === 0) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Course not found or not available"
       });
@@ -486,7 +487,7 @@ const getCourseDetails = async (req, res) => {
     const course = courseResult[0];
 
     if (course.tutor && course.tutor.is_blocked) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Course not found or not available"
       });
@@ -511,12 +512,12 @@ const getCourseDetails = async (req, res) => {
       updatedAt: course.updatedAt
     };
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       course: formattedCourse
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to fetch course details",
       error: error.message
@@ -556,12 +557,12 @@ const getAllSubjects = async (req, res) => {
       }
     ]);
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       subjects
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to fetch subjects",
       error: error.message
@@ -589,15 +590,16 @@ const getPublicTutors = async (req, res) => {
       query.subjects = { $in: [new RegExp(subject, 'i')] };
     }
 
-    const tutors = await Tutor.find(query)
-      .select('full_name profileImage bio subjects')
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .sort({ createdAt: -1 });
+    const [tutors, totalTutors] = await Promise.all([
+      Tutor.find(query)
+        .select('full_name profileImage bio subjects')
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort({ createdAt: -1 }),
+      Tutor.countDocuments(query)
+    ]);
 
-    const totalTutors = await Tutor.countDocuments(query);
-
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       tutors,
       pagination: {
@@ -607,7 +609,7 @@ const getPublicTutors = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to fetch tutors",
       error: error.message
@@ -633,7 +635,7 @@ const getTutorDetails = async (req, res) => {
     }).select('full_name profileImage bio subjects email');
 
     if (!tutor) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Tutor not found or not available"
       });
@@ -683,12 +685,12 @@ const getTutorDetails = async (req, res) => {
       }
     };
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       tutor: tutorData
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to fetch tutor details",
       error: error.message
@@ -707,7 +709,7 @@ const getTutorStats = async (req, res) => {
       .select('courses full_name bio profileImage subjects');
 
     if (!tutor) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Tutor not found'
       });
@@ -716,24 +718,24 @@ const getTutorStats = async (req, res) => {
     // Get course IDs for this tutor
     const courseIds = tutor.courses.map(course => course._id);
 
-    // Calculate both student count and total enrollments from User model
+    // Calculate both student count and total enrollments from User model in parallel
     const User = (await import('../../Model/usermodel.js')).default;
 
-    // Get unique students count
-    const uniqueStudents = await User.aggregate([
-      { $match: { 'courses.course': { $in: courseIds } } },
-      { $group: { _id: '$_id' } },
-      { $count: 'total' }
+    const [uniqueStudents, totalEnrollments] = await Promise.all([
+      User.aggregate([
+        { $match: { 'courses.course': { $in: courseIds } } },
+        { $group: { _id: '$_id' } },
+        { $count: 'total' }
+      ]),
+      User.aggregate([
+        { $match: { 'courses.course': { $in: courseIds } } },
+        { $unwind: '$courses' },
+        { $match: { 'courses.course': { $in: courseIds } } },
+        { $count: 'total' }
+      ])
     ]);
+    
     const studentCount = uniqueStudents[0]?.total || 0;
-
-    // Calculate total enrollments (count all course enrollments, not unique students)
-    const totalEnrollments = await User.aggregate([
-      { $match: { 'courses.course': { $in: courseIds } } },
-      { $unwind: '$courses' },
-      { $match: { 'courses.course': { $in: courseIds } } },
-      { $count: 'total' }
-    ]);
     const enrollmentCount = totalEnrollments[0]?.total || 0;
 
     // Calculate average rating across all courses
@@ -764,7 +766,7 @@ const getTutorStats = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'Error fetching tutor stats',
       error: error.message

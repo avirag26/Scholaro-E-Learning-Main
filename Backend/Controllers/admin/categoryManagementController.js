@@ -1,11 +1,27 @@
 import Category from "../../Model/CategoryModel.js";
 import { updateCoursesByCategory } from "../../Model/CourseModel.js";
 import mongoose from "mongoose";
+import { STATUS_CODES } from "../../constants/constants.js";
 
 const addcategory = async (req, res) => {
   const { title, description } = req.body;
+  
+  // Validation
   if (!title || !description) {
-    return res.status(400).json({ message: "Title and Description are required" });
+    return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Title and Description are required" });
+  }
+
+  if (title.trim().length < 2 || title.trim().length > 50) {
+    return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Title must be between 2 and 50 characters" });
+  }
+
+  if (description.trim().length < 10 || description.trim().length > 200) {
+    return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Description must be between 10 and 200 characters" });
+  }
+
+  // Check for special characters
+  if (!/^[a-zA-Z0-9\s\-\&]+$/.test(title)) {
+    return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Title can only contain letters, numbers, spaces, hyphens and ampersands" });
   }
 
   try {
@@ -15,7 +31,7 @@ const addcategory = async (req, res) => {
     });
 
     if (existingCategory) {
-      return res.status(409).json({
+      return res.status(STATUS_CODES.CONFLICT).json({
         message: "Category with this title already exists",
         success: false
       });
@@ -23,7 +39,7 @@ const addcategory = async (req, res) => {
 
     const category = new Category({ title, description });
     await category.save();
-    res.status(201).json({
+    res.status(STATUS_CODES.CREATED).json({
       message: "Category Added Successfully",
       category,
       success: true
@@ -31,12 +47,12 @@ const addcategory = async (req, res) => {
   } catch (error) {
     // Handle MongoDB duplicate key error
     if (error.code === 11000) {
-      return res.status(409).json({
+      return res.status(STATUS_CODES.CONFLICT).json({
         message: "Category with this title already exists",
         success: false
       });
     }
-    res.status(500).json({ message: "Failed to create category" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Failed to create category" });
   }
 };
 
@@ -96,15 +112,34 @@ const getAllCategories = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(500).json({ message: "Failed to fetch Categories" })
+    return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch Categories" })
   }
 };
 
 const updateCategory = async (req, res) => {
   const { id } = req.params;
   const { title, description } = req.body;
+  
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: "Invalid category ID" });
+    return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Invalid category ID" });
+  }
+
+  // Validation
+  if (!title || !description) {
+    return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Title and Description are required" });
+  }
+
+  if (title.trim().length < 2 || title.trim().length > 50) {
+    return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Title must be between 2 and 50 characters" });
+  }
+
+  if (description.trim().length < 10 || description.trim().length > 200) {
+    return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Description must be between 10 and 200 characters" });
+  }
+
+  // Check for special characters
+  if (!/^[a-zA-Z0-9\s\-\&]+$/.test(title)) {
+    return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Title can only contain letters, numbers, spaces, hyphens and ampersands" });
   }
 
   try {
@@ -115,7 +150,7 @@ const updateCategory = async (req, res) => {
     });
 
     if (existingCategory) {
-      return res.status(409).json({
+      return res.status(STATUS_CODES.CONFLICT).json({
         message: "Category with this title already exists",
         success: false
       });
@@ -127,9 +162,9 @@ const updateCategory = async (req, res) => {
       { new: true }
     );
     if (!category) {
-      return res.status(404).json({ message: "Category not found" });
+      return res.status(STATUS_CODES.NOT_FOUND).json({ message: "Category not found" });
     }
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       message: "Category updated successfully",
       category,
       success: true
@@ -137,12 +172,12 @@ const updateCategory = async (req, res) => {
   } catch (error) {
     // Handle MongoDB duplicate key error
     if (error.code === 11000) {
-      return res.status(409).json({
+      return res.status(STATUS_CODES.CONFLICT).json({
         message: "Category with this title already exists",
         success: false
       });
     }
-    res.status(500).json({ message: "Failed to update category" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Failed to update category" });
   }
 };
 
@@ -150,19 +185,19 @@ const deleteCategory = async (req, res) => {
   const { id } = req.params;
   try {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid category ID" });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: "Invalid category ID" });
     }
     const category = await Category.findById(id);
-    if (!category) return res.status(404).json({ message: "Category not found" });
+    if (!category) return res.status(STATUS_CODES.NOT_FOUND).json({ message: "Category not found" });
     category.isVisible = !category.isVisible;
     await category.save();
     const action = category.isVisible ? "listed" : "unlisted";
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       message: `Category ${action} successfully`,
       category
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to update category visibility" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Failed to update category visibility" });
   }
 };
 
@@ -170,13 +205,13 @@ const toggleCategoryVisibility = async (req, res) => {
   const { id } = req.params;
   try {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         message: "Invalid category ID format",
       });
     }
     const category = await Category.findById(id);
     if (!category) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         message: "Category not found",
       });
     }
@@ -189,7 +224,7 @@ const toggleCategoryVisibility = async (req, res) => {
       category,
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       message: "Failed to update category visibility",
       error: error.message,
     });
@@ -203,3 +238,4 @@ export {
   deleteCategory,
   toggleCategoryVisibility
 };
+

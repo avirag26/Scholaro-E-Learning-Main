@@ -27,7 +27,25 @@ const tutorSlice = createSlice({
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    updateTutorStatus: (state, action) => {
+      const { userId, isBlocked } = action.payload;
+      const tutorIndex = state.tutors.findIndex(tutor => tutor._id === userId);
+      if (tutorIndex !== -1) {
+        state.tutors[tutorIndex].is_blocked = isBlocked;
+      }
+      // Update stats
+      if (state.stats) {
+        if (isBlocked) {
+          state.stats.listed = Math.max(0, state.stats.listed - 1);
+          state.stats.unlisted = (state.stats.unlisted || 0) + 1;
+        } else {
+          state.stats.unlisted = Math.max(0, state.stats.unlisted - 1);
+          state.stats.listed = (state.stats.listed || 0) + 1;
+        }
+      }
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchTutors.pending, (state) => {
@@ -47,4 +65,6 @@ const tutorSlice = createSlice({
       });
   }
 })
+
+export const { updateTutorStatus } = tutorSlice.actions;
 export default tutorSlice.reducer;

@@ -1,5 +1,6 @@
 import Order from "../../Model/OrderModel.js";
 import mongoose from "mongoose";
+import { STATUS_CODES } from "../../constants/constants.js";
 
 const getTutorOrders = async (req, res) => {
   try {
@@ -241,7 +242,7 @@ const getTutorOrders = async (req, res) => {
       pendingOrders: 0
     };
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       orders: formattedOrders,
       pagination: {
@@ -255,7 +256,7 @@ const getTutorOrders = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to fetch orders",
       error: error.message
@@ -268,7 +269,7 @@ const getTutorOrderDetails = async (req, res) => {
     const { orderId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Invalid order ID"
       });
@@ -295,7 +296,7 @@ const getTutorOrderDetails = async (req, res) => {
       });
 
     if (!order) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Order not found"
       });
@@ -308,7 +309,7 @@ const getTutorOrderDetails = async (req, res) => {
     );
 
     if (tutorCourses.length === 0) {
-      return res.status(403).json({
+      return res.status(STATUS_CODES.FORBIDDEN).json({
         success: false,
         message: "You don't have access to this order"
       });
@@ -393,13 +394,13 @@ const getTutorOrderDetails = async (req, res) => {
       updatedAt: order.updatedAt
     };
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       order: orderDetails
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to fetch order details",
       error: error.message
@@ -578,13 +579,13 @@ const getTutorOrderStats = async (req, res) => {
       daily: stats[0].dailyStats || []
     };
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       stats: result
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to fetch order statistics",
       error: error.message

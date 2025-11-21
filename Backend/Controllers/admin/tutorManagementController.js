@@ -1,6 +1,7 @@
 import Tutor from "../../Model/TutorModel.js";
 import { Course } from "../../Model/CourseModel.js";
 import mongoose from "mongoose";
+import { STATUS_CODES } from "../../constants/constants.js";
 
 const getAllTutors = async (req, res) => {
   try {
@@ -22,13 +23,18 @@ const getAllTutors = async (req, res) => {
       if (status === 'blocked') query.is_blocked = true;
       if (status === 'active') query.is_blocked = false;
     }
-    const tutors = await Tutor.find(query)
-      .select('-password -refreshToken')
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    const totalTutors = await Tutor.countDocuments(query);
-    res.status(200).json({
+    const [tutors, totalTutors, listedCount, unlistedCount] = await Promise.all([
+      Tutor.find(query)
+        .select('-password -refreshToken')
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+      Tutor.countDocuments(query),
+      Tutor.countDocuments({ is_verified: true, is_blocked: false }),
+      Tutor.countDocuments({ is_blocked: true })
+    ]);
+
+    res.status(STATUS_CODES.OK).json({
       data: tutors,
       pagination: {
         currentPage: page,
@@ -39,12 +45,12 @@ const getAllTutors = async (req, res) => {
       },
       stats: {
         total: totalTutors,
-        listed: await Tutor.countDocuments({ is_verified: true, is_blocked: false }),
-        unlisted: await Tutor.countDocuments({ is_blocked: true })
+        listed: listedCount,
+        unlisted: unlistedCount
       }
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
   }
 };
 
@@ -53,16 +59,16 @@ const blockTutor = async (req, res) => {
     const { tutorId } = req.params;
     const tutor = await Tutor.findById(tutorId);
     if (!tutor) {
-      return res.status(404).json({ message: "Tutor not found" });
+      return res.status(STATUS_CODES.NOT_FOUND).json({ message: "Tutor not found" });
     }
     tutor.is_blocked = true;
     await tutor.save();
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: "Tutor blocked successfully"
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
   }
 };
 
@@ -71,16 +77,16 @@ const unblockTutor = async (req, res) => {
     const { tutorId } = req.params;
     const tutor = await Tutor.findById(tutorId);
     if (!tutor) {
-      return res.status(404).json({ message: "Tutor not found" });
+      return res.status(STATUS_CODES.NOT_FOUND).json({ message: "Tutor not found" });
     }
     tutor.is_blocked = false;
     await tutor.save();
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: "Tutor unblocked successfully"
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
   }
 };
 
@@ -89,7 +95,7 @@ const getTutorDetails = async (req, res) => {
     const { tutorId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(tutorId)) {
-      return res.status(400).json({
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Invalid tutor ID"
       });
@@ -97,7 +103,7 @@ const getTutorDetails = async (req, res) => {
 
     const tutor = await Tutor.findById(tutorId).select('-password -refreshToken');
     if (!tutor) {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Tutor not found"
       });
@@ -113,8 +119,8 @@ const getTutorDetails = async (req, res) => {
     const totalCourses = courses.length;
     const totalStudents = courses.reduce((sum, course) => sum + (course.enrolled_count || 0), 0);
     const totalReviews = courses.reduce((sum, course) => sum + (course.total_reviews || 0), 0);
-    const averageRating = totalReviews > 0 
-      ? courses.reduce((sum, course) => sum + (course.average_rating || 0), 0) / courses.length 
+    const averageRating = totalReviews > 0
+      ? courses.reduce((sum, course) => sum + (course.average_rating || 0), 0) / courses.length
       : 0;
 
     const formattedCourses = courses.map(course => ({
@@ -156,13 +162,13 @@ const getTutorDetails = async (req, res) => {
       }
     };
 
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       tutor: tutorData
     });
 
   } catch (error) {
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to fetch tutor details"
     });

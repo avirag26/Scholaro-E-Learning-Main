@@ -1,4 +1,5 @@
 import User from "../../Model/usermodel.js";
+import { STATUS_CODES } from "../../constants/constants.js";
 
 const getAllUsers = async (req, res) => {
   try {
@@ -20,13 +21,19 @@ const getAllUsers = async (req, res) => {
       if (status === 'blocked') query.is_blocked = true;
       if (status === 'active') query.is_blocked = false;
     }
-    const users = await User.find(query)
-      .select('-password -refreshToken')
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    const totalUsers = await User.countDocuments(query);
-    res.status(200).json({
+    const [users, totalUsers, listedCount, unlistedCount, unverifiedCount] = await Promise.all([
+      User.find(query)
+        .select('-password -refreshToken')
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+      User.countDocuments(query),
+      User.countDocuments({ is_verified: true, is_blocked: false }),
+      User.countDocuments({ is_blocked: true }),
+      User.countDocuments({ is_verified: false })
+    ]);
+    
+    res.status(STATUS_CODES.OK).json({
       data: users,
       pagination: {
         currentPage: page,
@@ -37,13 +44,13 @@ const getAllUsers = async (req, res) => {
       },
       stats: {
         total: totalUsers,
-        listed: await User.countDocuments({ is_verified: true, is_blocked: false }),
-        unlisted: await User.countDocuments({ is_blocked: true }),
-        unverified: await User.countDocuments({ is_verified: false })
+        listed: listedCount,
+        unlisted: unlistedCount,
+        unverified: unverifiedCount
       }
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
   }
 };
 
@@ -52,16 +59,16 @@ const blockUser = async (req, res) => {
     const { userId } = req.params;
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(STATUS_CODES.NOT_FOUND).json({ message: "User not found" });
     }
     user.is_blocked = true;
     await user.save();
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: "User blocked successfully"
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
   }
 };
 
@@ -70,16 +77,16 @@ const unblockUser = async (req, res) => {
     const { userId } = req.params;
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(STATUS_CODES.NOT_FOUND).json({ message: "User not found" });
     }
     user.is_blocked = false;
     await user.save();
-    res.status(200).json({
+    res.status(STATUS_CODES.OK).json({
       success: true,
       message: "User unblocked successfully"
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: "Server error" });
   }
 };
 

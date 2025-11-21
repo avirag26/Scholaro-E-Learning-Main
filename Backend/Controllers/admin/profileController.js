@@ -26,7 +26,7 @@ const updateAdminProfile = async (req, res) => {
     const { name, phone } = req.body;
     const adminId = req.admin._id;
 
-    // Validate name if provided
+
     if (name) {
       if (name.length < 2 || name.length > 50) {
         return res.status(400).json({ message: "Name must be between 2 and 50 characters" });
