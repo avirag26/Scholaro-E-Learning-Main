@@ -1,5 +1,6 @@
 import Wallet from '../../Model/WalletModel.js';
 import PaymentDistribution from '../../Model/PaymentDistributionModel.js';
+import { STATUS_CODES } from '../../constants/constants.js';
 
 export const getWallet = async (req, res) => {
   try {
