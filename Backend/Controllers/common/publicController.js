@@ -734,7 +734,7 @@ const getTutorStats = async (req, res) => {
         { $count: 'total' }
       ])
     ]);
-    
+
     const studentCount = uniqueStudents[0]?.total || 0;
     const enrollmentCount = totalEnrollments[0]?.total || 0;
 
