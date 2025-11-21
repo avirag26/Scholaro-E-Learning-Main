@@ -67,9 +67,9 @@ const Students = () => {
       const response = await adminAPI.patch(`/api/admin/users/${userId}/${action}`);
       if (response.data.success) {
         if (action === 'block') {
-          toast.success(`🚫 Student has been blocked successfully. They will be logged out on next page refresh.`);
+          toast.success(` Student has been blocked successfully`);
         } else {
-          toast.success(`✅ Student has been unblocked successfully. They can now access their account.`);
+          toast.success(` Student has been unblocked successfully.`);
         }
         dispatch(fetchUsers({
           page: currentPage,

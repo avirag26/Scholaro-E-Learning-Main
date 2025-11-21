@@ -8,6 +8,7 @@ import { adminAPI } from "../../api/axiosConfig";
 import Swal from "sweetalert2";
 
 const Tutors = () => {
+  console.log("HEY")
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const tutors = useSelector((state) => state.tutors.tutors);

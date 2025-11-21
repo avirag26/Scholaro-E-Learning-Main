@@ -75,6 +75,7 @@ function App() {
   if (isLoading) {
     return <LoadingPage />;
   }
+  console.log("hey")
   return (
     <>
       <Router>
