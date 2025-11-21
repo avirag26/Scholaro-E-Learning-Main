@@ -301,7 +301,60 @@ export default function UserHomePage() {
           )}
         </div>
       </section>
-    
+      <section className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Browse All Courses</h2>
+            <Link to={coursesPath} className="text-teal-600 hover:underline font-medium">
+              See All
+            </Link>
+          </div>
+          <div className="flex overflow-x-auto gap-4 pb-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {featuredCourses.map((course) => (
+              <div
+                key={course._id}
+                className="flex-none w-[300px]"
+              >
+                <div className="h-full border rounded-lg overflow-hidden hover:shadow-md transition-shadow relative">
+                  <img
+                    src={
+                      course.course_thumbnail ||
+                      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop"
+                    }
+                    alt={course.title}
+                    className="w-full h-40 object-cover"
+                  />
+                  <div className="absolute top-2 right-2 bg-white rounded-full p-1">
+                    <MdFavoriteBorder className="w-6 h-6" />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-medium mb-2">
+                      {course.title}
+                    </h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      <img
+                        src={
+                          course.tutor?.profile_image ||
+                          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face"
+                        }
+                        alt={course.tutor?.full_name || "Tutor"}
+                        className="w-8 h-8 rounded-full"
+                      />
+                      <span className="text-sm text-gray-600">
+                        {course.tutor?.full_name || "Unknown Tutor"}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <PriceDisplay price={course.price} offerPercentage={course.offer_percentage} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
       {}
       <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
